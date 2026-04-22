@@ -5,6 +5,10 @@ import environ # Using django-environ
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# config/settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Security & Auth Configuration
 AUTH_USER_MODEL = 'accounts.User'
 
