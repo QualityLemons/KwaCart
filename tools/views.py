@@ -95,10 +95,14 @@ def submit_tool(request, instance_id):
             
             # Note: We save here so the Output Gen has access to the final data
             instance.save()
+from exporters.pipeline import run_export_pipeline
 
-            # 5. Trigger Output Generation (Hook for Tactic 6)
-            # We will build these functions next.
-            # generate_outputs(instance) 
+# ... inside submit_tool view, after instance.save() ...
+            
+            # 5. Trigger Output Generation (Tactic 6)
+            run_export_pipeline(instance) 
+
+        messages.success(request, "Tool execution successful. Files generated.")
 
         messages.success(request, "Tool execution successful. Record archived.")
         return redirect('archive:detail', instance_id=instance.id)
