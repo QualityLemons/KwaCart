@@ -1,17 +1,13 @@
-class ToolsConfig(AppConfig):
-    default_auto_field = 'django.db.backends.BigAutoField'
-    name = 'apps.tools'  # MUST match the folder path
+from django.apps import AppConfig  # type: ignore
 
-    # apps/tools/apps.py
-from django.apps import AppConfig
 
 class ToolsConfig(AppConfig):
     default_auto_field = 'django.db.backends.BigAutoField'
-    name = 'apps.tools'  # The actual Python path
-    label = 'tools'       # The "ID" Django uses for the database
+    name = 'apps.tools'
+    label = 'tools'
 
-    from django.apps import AppConfig
 
 class AccountsConfig(AppConfig):
     default_auto_field = 'django.db.backends.BigAutoField'
-    name = 'apps.accounts'  # <--- MUST HAVE THE 'apps.' PREFIX
+    name = 'apps.accounts'
+    label = 'accounts'
