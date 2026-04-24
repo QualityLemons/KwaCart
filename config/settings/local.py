@@ -13,3 +13,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+from .base import *
+
+# Don't do INSTALLED_APPS = [...], do this instead:
+INSTALLED_APPS += [
+    # 'debug_toolbar', # Example of adding an app locally
+]

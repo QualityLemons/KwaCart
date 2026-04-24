@@ -17,10 +17,21 @@ print(f"DEBUG: BASE_DIR is {BASE_DIR}") # Add this for one run
 
 env = environ.Env()
 # Application definition
+# config/settings/base.py
+
 INSTALLED_APPS = [
+    # Core Django Apps (Required)
     'django.contrib.admin',
     'django.contrib.auth',
-    # ... your apps (accounts, tools, archive)
+    'django.contrib.contenttypes', # This is the one causing your error!
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Your Apps
+    'apps.tools',
+    'apps.accounts',
+    'apps.audit',
 ]
 
 # ... (after env = environ.Env() and env.read_env())
