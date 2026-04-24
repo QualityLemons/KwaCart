@@ -6,7 +6,10 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 # Database: Use URL schema for easier environment switching
 DATABASES = {
-    'default': env.db(),
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # SSL/HTTPS Security (Tactic 8)

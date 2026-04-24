@@ -12,6 +12,14 @@ INSTALLED_APPS = [
     # ... your apps (accounts, tools, archive)
 ]
 
+# ... (after env = environ.Env() and env.read_env())
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 # Auth & Security
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = 'tools:catalog'
