@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="tool-instruction-panel">
+    <div class="how-to-section">
+        <h4><i class="icon-help"></i> How to use this tool</h4>
+        <p>{{ tool_meta.how_to }}</p>
+    </div>
+
+    <div class="example-section">
+        <button onclick="loadExample()" class="btn-secondary">Load Example Data</button>
+        <div id="example-data" style="display:none;">
+            {{ tool_meta.example_input|json_script:"example-json" }}
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadExample() {
+        const example = JSON.parse(document.getElementById('example-json').textContent);
+        // Logic to populate your form fields with the example data
+        for (const [key, value] of Object.entries(example)) {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input) input.value = value;
+        }
+    }
+</script>
+</body>
+</html>
