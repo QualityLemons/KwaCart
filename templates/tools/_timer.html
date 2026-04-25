@@ -66,11 +66,16 @@
     }
     .phase-segment {
         height: 8px; border-radius: 3px; transition: background 0.4s;
-        position: relative; flex-shrink: 0;
+        position: relative; flex-shrink: 0; overflow: hidden;
     }
     .phase-segment.done { background: #3b82f6; }
-    .phase-segment.active { background: #1d4ed8; box-shadow: 0 0 0 2px #bfdbfe; }
+    .phase-segment.active { background: #bfdbfe; box-shadow: 0 0 0 2px #bfdbfe; }
     .phase-segment.upcoming { background: #cbd5e1; }
+    .phase-segment-fill {
+        position: absolute; top: 0; left: 0; height: 100%;
+        background: #1d4ed8; border-radius: 3px;
+        transition: width 0.95s linear;
+    }
 </style>
 <script>
 (function () {
@@ -150,20 +155,31 @@
                 seg.className = 'phase-segment upcoming';
                 seg.style.width = ((phase.seconds / total) * 100).toFixed(2) + '%';
                 seg.title = phase.label;
+                const fill = document.createElement('div');
+                fill.className = 'phase-segment-fill';
+                fill.style.width = '0%';
+                seg.appendChild(fill);
                 progressBar.appendChild(seg);
                 segmentEls.push(seg);
             });
         }
 
         function renderProgressBar() {
+            const phaseDuration = phases[phaseIdx].seconds;
+            const elapsed = phaseDuration - remaining;
+            const fillPct = phaseDuration > 0 ? ((elapsed / phaseDuration) * 100).toFixed(1) : 0;
             segmentEls.forEach(function (seg, i) {
                 seg.classList.remove('done', 'active', 'upcoming');
+                const fill = seg.querySelector('.phase-segment-fill');
                 if (i < phaseIdx) {
                     seg.classList.add('done');
+                    if (fill) fill.style.width = '100%';
                 } else if (i === phaseIdx) {
                     seg.classList.add('active');
+                    if (fill) fill.style.width = fillPct + '%';
                 } else {
                     seg.classList.add('upcoming');
+                    if (fill) fill.style.width = '0%';
                 }
             });
         }
