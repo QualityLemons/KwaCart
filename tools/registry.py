@@ -2,6 +2,41 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    '1-2-4-all': {
+        'class': 'tools.implementations.OneTwoFourAllTool',
+        'form_class': 'tools.forms.OneTwoFourAllForm',
+        'title': '1-2-4-All',
+        'icon': 'people-group',
+        'category': 'Facilitation',
+        'what': (
+            'Engage everyone simultaneously in generating questions, ideas, '
+            'and suggestions — regardless of group size.'
+        ),
+        'how': (
+            'Work through four timed phases: 1 min of silent self-reflection, '
+            '2 min in pairs, 4 min in foursomes, then 5 min sharing one '
+            'standout idea with the whole group.'
+        ),
+        'why': (
+            'Ideas and solutions are sifted rapidly. Participants own the '
+            'ideas, so follow-up and implementation is simplified — no '
+            'buy-in strategies needed.'
+        ),
+        'example_input': {
+            'self_reflection': 'One opportunity I see is…',
+            'pair_ideas': 'Together we noticed…',
+            'foursome_ideas': 'Our group built on the idea that…',
+            'standout_idea': 'The idea that stood out most was…',
+        },
+        'display_fields': [
+            'self_reflection',
+            'pair_ideas',
+            'foursome_ideas',
+            'standout_idea',
+            'word_count',
+        ],
+        'timer_seconds': 720,
+    },
     'i-am-and-i-like': {
         'class': 'tools.implementations.IAmAndILikeTool',
         'form_class': 'tools.forms.IAmAndILikeForm',

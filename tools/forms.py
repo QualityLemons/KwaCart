@@ -27,6 +27,37 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class OneTwoFourAllForm(forms.Form):
+    self_reflection = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'What opportunities do YOU see for making progress on this challenge?',
+            'rows': 3,
+        }),
+        label='Phase 1 — Self-reflection (1 min)',
+    )
+    pair_ideas = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Ideas generated with your pair partner…',
+            'rows': 3,
+        }),
+        label='Phase 2 — Pair ideas (2 min)',
+    )
+    foursome_ideas = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Ideas and themes that emerged in your group of four…',
+            'rows': 3,
+        }),
+        label='Phase 3 — Foursome ideas (4 min)',
+    )
+    standout_idea = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'What is one idea that stood out in your conversation?',
+            'rows': 2,
+        }),
+        label='Phase 4 — Standout idea for whole group (5 min)',
+    )
+
+
 class FiveStructuralElementsForm(forms.Form):
     pair_one_challenge = forms.CharField(
         widget=forms.Textarea(attrs={

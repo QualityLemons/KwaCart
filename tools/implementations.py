@@ -47,6 +47,41 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class OneTwoFourAllTool(BaseTool):
+    name = '1-2-4-All'
+    description = (
+        'Engage everyone simultaneously in generating questions, ideas, and '
+        'suggestions. Moves from individual reflection through pairs and '
+        'foursomes to a whole-group share-out.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('self_reflection',  'Individual reflection (1 min)'),
+        ('pair_ideas',       'Ideas from your pair (2 min)'),
+        ('foursome_ideas',   'Ideas from your foursome (4 min)'),
+        ('standout_idea',    'One standout idea to share with everyone (5 min)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class FiveStructuralElementsTool(BaseTool):
     name = 'Five Structural Elements'
     description = 'Pairs share challenges and hopes to build new connections.'
