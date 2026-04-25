@@ -47,6 +47,42 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class AppreciativeInterviewsTool(BaseTool):
+    name = 'Appreciative Interviews'
+    description = (
+        'Discover and build on the root causes of success. '
+        'In under an hour, a group of any size generates the conditions '
+        'essential for its success by uncovering hidden success stories.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('success_story',      'Your success story (pairs, 15–20 min)'),
+        ('success_conditions', 'What made the success possible?'),
+        ('partner_story',      'Your partner\'s story retold — and patterns you noticed (groups of 4, 15 min)'),
+        ('group_patterns',     'Conditions and assets for success collected by the whole group (10–15 min)'),
+        ('opportunities',      'How are we investing in these assets? What opportunities do you see? (10 min)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class WickedQuestionsTool(BaseTool):
     name = 'Wicked Questions'
     description = (

@@ -2,6 +2,46 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'appreciative-interviews': {
+        'class': 'tools.implementations.AppreciativeInterviewsTool',
+        'form_class': 'tools.forms.AppreciativeInterviewsForm',
+        'title': 'Appreciative Interviews',
+        'icon': 'comments',
+        'category': 'Facilitation',
+        'what': (
+            'Generate the conditions essential for success by surfacing hidden '
+            'success stories. Positive momentum springs from uncovering what '
+            'works and why.'
+        ),
+        'how': (
+            'In pairs, take turns interviewing each other about a proud success '
+            'story and what made it possible (15–20 min). In groups of four, '
+            'retell your partner\'s story and listen for patterns (15 min). '
+            'Collect insights for the whole group, then discuss opportunities '
+            'to invest more in those conditions (10–15 min + 10 min).'
+        ),
+        'why': (
+            'Groups are energised sharing success stories rather than problems. '
+            'Spontaneous momentum and insights for positive change are liberated '
+            'as "hidden" stories are revealed and root causes of success identified.'
+        ),
+        'example_input': {
+            'success_story': 'A time our team pulled together under pressure and delivered something we were proud of…',
+            'success_conditions': 'Clear purpose, trust between members, and space to experiment.',
+            'partner_story': 'My partner described a project where leadership stepped back and let the team lead…',
+            'group_patterns': 'Psychological safety, shared ownership, and consistent communication appeared across stories.',
+            'opportunities': 'We could invest more in regular reflection time and cross-team storytelling.',
+        },
+        'display_fields': [
+            'success_story',
+            'success_conditions',
+            'partner_story',
+            'group_patterns',
+            'opportunities',
+            'word_count',
+        ],
+        'timer_seconds': 3600,
+    },
     'wicked-questions': {
         'class': 'tools.implementations.WickedQuestionsTool',
         'form_class': 'tools.forms.WickedQuestionsForm',

@@ -27,6 +27,53 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class AppreciativeInterviewsForm(forms.Form):
+    success_story = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Tell a story about a time when you worked on a challenge with others '
+                'and you are proud of what you accomplished…'
+            ),
+            'rows': 5,
+        }),
+        label='Your success story (pairs, 15–20 min)',
+    )
+    success_conditions = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'What made the success possible? What conditions or assets were at play?',
+            'rows': 3,
+        }),
+        label='What made the success possible?',
+    )
+    partner_story = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Retell your partner\'s story. '
+                'What patterns in conditions or assets supporting success did you notice?'
+            ),
+            'rows': 4,
+        }),
+        label='Your partner\'s story and patterns noticed (groups of 4, 15 min)',
+    )
+    group_patterns = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Conditions and assets for success collected by the whole group…',
+            'rows': 4,
+        }),
+        label='Whole-group patterns and conditions (10–15 min)',
+    )
+    opportunities = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'How are we investing in the assets and conditions that foster success? '
+                'What opportunities do you see to do more?'
+            ),
+            'rows': 3,
+        }),
+        label='Opportunities to invest more (10 min)',
+    )
+
+
 class WickedQuestionsForm(forms.Form):
     individual_questions = forms.CharField(
         widget=forms.Textarea(attrs={
