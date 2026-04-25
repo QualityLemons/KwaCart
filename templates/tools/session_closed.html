@@ -8,6 +8,20 @@
     &middot; hosted by {{ session.host.email }}
     &middot; {{ instances|length }} participant{{ instances|length|pluralize }}.</p>
 
+<div style="margin:1rem 0; padding:0.8rem 1rem; border:1px solid #e2e8f0;
+            border-radius:6px; background:#f8fafc;">
+    <strong>Download combined results:</strong>
+    {% if session.md_file %}
+        <a class="btn" href="{% url 'archive:session_download' session.id 'md' %}" style="margin-left:0.5rem;">Markdown</a>
+    {% endif %}
+    {% if session.rtf_file %}
+        <a class="btn" href="{% url 'archive:session_download' session.id 'rtf' %}" style="margin-left:0.5rem;">RTF</a>
+    {% endif %}
+    {% if not session.md_file and not session.rtf_file %}
+        <em style="color:#64748b;">Files are still being prepared.</em>
+    {% endif %}
+</div>
+
 {% for inst in instances %}
 <section style="margin-top:1.5rem; padding:1rem 1.25rem;
                 border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc;">

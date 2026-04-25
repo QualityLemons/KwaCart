@@ -29,8 +29,14 @@
 <p><em>This tool has no input form configured yet.</em></p>
 {% endif %}
 
-<h2 style="margin-top:2rem;">Participants ({{ participants|length }})</h2>
-<ul>
+<h2 style="margin-top:2rem;">
+    Participants
+    (<span id="participant-count">{{ participants|length }}</span>)
+    <small style="color:#64748b; font-weight:normal;">
+        — <span id="poll-status">live</span>
+    </small>
+</h2>
+<ul id="participant-list">
     {% for p in participants %}
     <li>
         {{ p.user.email }}
@@ -50,9 +56,55 @@
 {% else %}
 <p style="margin-top:2rem; color:#64748b;">
     The host will close the session when everyone is done.
-    Refresh this page to see the combined results once that happens.
+    The page will refresh automatically once that happens.
 </p>
 {% endif %}
 
 <p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
+
+<script>
+(function () {
+    const statusUrl = "{% url 'tools:session_status' session.id %}";
+    const listEl = document.getElementById('participant-list');
+    const countEl = document.getElementById('participant-count');
+    const pollStatusEl = document.getElementById('poll-status');
+    let consecutiveErrors = 0;
+
+    async function poll() {
+        try {
+            const resp = await fetch(statusUrl, { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            consecutiveErrors = 0;
+            pollStatusEl.textContent = 'live';
+            pollStatusEl.style.color = '';
+
+            if (data.status === 'closed') {
+                pollStatusEl.textContent = 'session closed — reloading…';
+                setTimeout(() => window.location.reload(), 600);
+                return;
+            }
+
+            countEl.textContent = data.participants.length;
+            listEl.innerHTML = data.participants.map(p => {
+                const hostTag = p.is_host ? ' <span style="color:#64748b;">(host)</span>' : '';
+                const respTag = p.has_response
+                    ? ' &mdash; <span style="color:#15803d;">response saved</span>' : '';
+                const safeEmail = p.email
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return '<li>' + safeEmail + hostTag + respTag + '</li>';
+            }).join('');
+        } catch (err) {
+            consecutiveErrors += 1;
+            if (consecutiveErrors >= 3) {
+                pollStatusEl.textContent = 'reconnecting…';
+                pollStatusEl.style.color = '#b45309';
+            }
+        }
+    }
+
+    poll();
+    setInterval(poll, 4000);
+})();
+</script>
 {% endblock %}

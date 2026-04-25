@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from archive.models import ToolInstance, ToolSession
-from exporters.pipeline import run_export_pipeline
+from exporters.pipeline import run_export_pipeline, run_session_export_pipeline
 
 from .registry import TOOL_CATALOG, get_tool_form_class, get_tool_instance
 from .utils import get_tool_metadata
@@ -259,5 +259,37 @@ def session_close(request, session_id):
             instance.submitted_at = timezone.now()
             instance.save()
 
+        run_session_export_pipeline(session)
+
     messages.success(request, 'Session closed. Combined results are now visible.')
     return redirect('tools:session_detail', session_id=session.id)
+
+
+@login_required
+def session_status(request, session_id):
+    """Lightweight JSON endpoint for participant-list / status polling."""
+    session = get_object_or_404(ToolSession, id=session_id)
+    is_participant = (
+        session.host_id == request.user.id
+        or ToolInstance.objects.filter(session=session, user=request.user).exists()
+    )
+    if not is_participant:
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    participants = (
+        ToolInstance.objects
+        .filter(session=session)
+        .select_related('user')
+        .order_by('created_at')
+    )
+    return JsonResponse({
+        'status': session.status,
+        'participants': [
+            {
+                'email': p.user.email,
+                'is_host': p.user_id == session.host_id,
+                'has_response': bool(p.payload_input),
+            }
+            for p in participants
+        ],
+    })

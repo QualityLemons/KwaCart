@@ -17,4 +17,5 @@ urlpatterns = [
     path('<slug:tool_slug>/session/start/', views.session_create, name='session_create'),
     path('session/<uuid:session_id>/', views.session_detail, name='session_detail'),
     path('session/<uuid:session_id>/close/', views.session_close, name='session_close'),
+    path('session/<uuid:session_id>/status/', views.session_status, name='session_status'),
 ]

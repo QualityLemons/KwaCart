@@ -31,6 +31,9 @@ class ToolSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
 
+    md_file = models.FileField(upload_to='archives/md/', null=True, blank=True)
+    rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True)
+
     class Meta:
         ordering = ['-created_at']
 

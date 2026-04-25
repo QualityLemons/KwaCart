@@ -1,5 +1,5 @@
 def log_action(user, action, resource_id=None, metadata=None):
-    from .models import AuditLog
+    from archive.models import AuditLog
     AuditLog.objects.create(
         user=user,
         action=action,

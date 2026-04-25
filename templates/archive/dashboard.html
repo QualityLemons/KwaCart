@@ -5,6 +5,7 @@
 {% block content %}
 <h1>My Archive</h1>
 
+<h2 style="margin-top:1.5rem;">Solo submissions</h2>
 {% if records %}
     <table style="width:100%; border-collapse: collapse;">
         <thead>
@@ -24,6 +25,37 @@
         </tbody>
     </table>
 {% else %}
-    <p>No archived records yet.</p>
+    <p>No solo submissions yet.</p>
+{% endif %}
+
+<h2 style="margin-top:2rem;">Sessions I'm part of</h2>
+{% if sessions %}
+    <table style="width:100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align:left; border-bottom:1px solid #e2e8f0;">
+                <th>Tool</th><th>Role</th><th>Status</th><th>Started</th><th>Closed</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr style="border-bottom:1px solid #f1f5f9;">
+                <td>{{ s.tool_slug }}</td>
+                <td>{% if s.host_id == user.id %}Host{% else %}Participant{% endif %}</td>
+                <td>
+                    {% if s.status == 'open' %}
+                        <span style="color:#15803d;">Open</span>
+                    {% else %}
+                        <span style="color:#64748b;">Closed</span>
+                    {% endif %}
+                </td>
+                <td>{{ s.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{% if s.closed_at %}{{ s.closed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+                <td><a href="{% url 'tools:session_detail' s.id %}">Open</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You aren't part of any sessions yet. Start one from the <a href="{% url 'tools:catalog' %}">tool catalog</a>.</p>
 {% endif %}
 {% endblock %}
