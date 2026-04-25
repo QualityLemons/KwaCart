@@ -14,6 +14,9 @@
     </div>
     {% endif %}
     <div class="timer-display">--:--</div>
+    {% if tool_meta.phases %}
+    <div class="phase-progress-bar" aria-label="Session phase progress"></div>
+    {% endif %}
     {% if not timer_session_id %}
     <div class="timer-controls">
         <button type="button" class="btn timer-start">Start</button>
@@ -55,6 +58,18 @@
     .timer-display.warning { color: #b45309; }
     .timer-display.expired { color: #b91c1c; }
     .timer-controls { display: flex; gap: 0.4rem; }
+    .phase-progress-bar {
+        display: flex; width: 100%; gap: 3px;
+        margin-top: 0.35rem; border-radius: 4px; overflow: hidden;
+        flex-basis: 100%; min-width: 0;
+    }
+    .phase-segment {
+        height: 8px; border-radius: 3px; transition: background 0.4s;
+        position: relative; flex-shrink: 0;
+    }
+    .phase-segment.done { background: #3b82f6; }
+    .phase-segment.active { background: #1d4ed8; box-shadow: 0 0 0 2px #bfdbfe; }
+    .phase-segment.upcoming { background: #cbd5e1; }
 </style>
 <script>
 (function () {
@@ -117,11 +132,39 @@
     if (phases && phases.length) {
         const phaseLabel = widget.querySelector('.timer-phase-label');
         const phaseProgress = widget.querySelector('.timer-phase-progress');
+        const progressBar = widget.querySelector('.phase-progress-bar');
         let phaseIdx = 0;
         let remaining = phases[0].seconds;
 
         function totalSeconds() {
             return phases.reduce((s, p) => s + p.seconds, 0);
+        }
+
+        // Build progress bar segments once, proportional to each phase's duration
+        let segmentEls = [];
+        if (progressBar && phases.length) {
+            const total = totalSeconds();
+            phases.forEach(function (phase, i) {
+                const seg = document.createElement('div');
+                seg.className = 'phase-segment upcoming';
+                seg.style.width = ((phase.seconds / total) * 100).toFixed(2) + '%';
+                seg.title = phase.label;
+                progressBar.appendChild(seg);
+                segmentEls.push(seg);
+            });
+        }
+
+        function renderProgressBar() {
+            segmentEls.forEach(function (seg, i) {
+                seg.classList.remove('done', 'active', 'upcoming');
+                if (i < phaseIdx) {
+                    seg.classList.add('done');
+                } else if (i === phaseIdx) {
+                    seg.classList.add('active');
+                } else {
+                    seg.classList.add('upcoming');
+                }
+            });
         }
 
         function resetToInitial() {
@@ -144,6 +187,7 @@
             const isLastPhase = phaseIdx === phases.length - 1;
             display.classList.toggle('warning', remaining > 0 && remaining <= 10);
             display.classList.toggle('expired', remaining === 0 && isLastPhase);
+            renderProgressBar();
         }
 
         function flashLabel() {
