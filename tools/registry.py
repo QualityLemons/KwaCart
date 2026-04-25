@@ -14,11 +14,8 @@ TOOL_CATALOG = {
             'Know-how spreads naturally through informal storytelling and structured Q&A.'
         ),
         'how': (
-            'Explain the setup (2 min). Inner circle converses informally — '
-            'good, bad, and ugly — as if the audience were not there (10–25 min). '
-            'Outer satellite groups formulate observations and questions (4 min). '
-            'Q&A exchange between inner and outer circles (10–25 min). '
-            'Debrief with W³ and ask "What seems possible now?" (10–15 min).'
+            'Get down-to-eatch field experience about new endeavours out on the table '
+            'for everyone to understand at the same time.'
         ),
         'why': (
             'Foster understanding, spark creativity, and accelerate adoption of new practices. '
