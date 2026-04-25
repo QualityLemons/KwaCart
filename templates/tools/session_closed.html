@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Combined results &mdash; {{ tool_meta.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ tool_meta.title }} <small style="color:#64748b;">— combined results</small></h1>
+<p>Session closed at {{ session.closed_at|date:"Y-m-d H:i" }}
+    &middot; hosted by {{ session.host.email }}
+    &middot; {{ instances|length }} participant{{ instances|length|pluralize }}.</p>
+
+{% for inst in instances %}
+<section style="margin-top:1.5rem; padding:1rem 1.25rem;
+                border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc;">
+    <h3 style="margin-top:0;">
+        {{ inst.user.email }}
+        {% if inst.user_id == session.host_id %}<span style="color:#64748b; font-weight:normal;">(host)</span>{% endif %}
+    </h3>
+    {% if inst.payload_output %}
+        {% for key, value in inst.payload_output.items %}
+            <p style="margin:0.4rem 0;"><strong>{{ key }}:</strong>
+                {% if value|stringformat:"s"|length > 80 %}<br>{% endif %}
+                {{ value }}
+            </p>
+        {% endfor %}
+    {% else %}
+        <p><em>No response submitted.</em></p>
+    {% endif %}
+</section>
+{% empty %}
+<p>No participants joined this session.</p>
+{% endfor %}
+
+<p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
+{% endblock %}

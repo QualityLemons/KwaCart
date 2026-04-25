@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Session &mdash; {{ tool_meta.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ tool_meta.title }} <small style="color:#64748b;">— live session</small></h1>
+
+<div style="background:#eef6ff; border:1px solid #cfe2ff; padding:0.8rem 1rem;
+            border-radius:6px; margin: 0.5rem 0 1rem;">
+    <strong>Share this link with participants:</strong>
+    <input type="text" readonly value="{{ share_url }}"
+           onclick="this.select()"
+           style="width:100%; padding:0.4rem; margin-top:0.4rem;
+                  font-family: ui-monospace, Menlo, monospace;">
+    <p style="margin:0.5rem 0 0;"><small>Anyone signed in who opens this link can join.</small></p>
+</div>
+
+{% include "tools/info_box.html" %}
+{% include "tools/_timer.html" %}
+
+<h2>Your response</h2>
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save my response</button>
+</form>
+{% else %}
+<p><em>This tool has no input form configured yet.</em></p>
+{% endif %}
+
+<h2 style="margin-top:2rem;">Participants ({{ participants|length }})</h2>
+<ul>
+    {% for p in participants %}
+    <li>
+        {{ p.user.email }}
+        {% if p.user_id == session.host_id %}<span style="color:#64748b;">(host)</span>{% endif %}
+        {% if p.payload_input %} &mdash; <span style="color:#15803d;">response saved</span>{% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+{% if is_host %}
+<form method="post" action="{% url 'tools:session_close' session.id %}"
+      style="margin-top:2rem; padding-top:1rem; border-top:1px solid #e2e8f0;"
+      onsubmit="return confirm('Close the session? Participants will no longer be able to edit, and the combined results will be revealed to everyone with the link.');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Close session and reveal results</button>
+</form>
+{% else %}
+<p style="margin-top:2rem; color:#64748b;">
+    The host will close the session when everyone is done.
+    Refresh this page to see the combined results once that happens.
+</p>
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
+{% endblock %}

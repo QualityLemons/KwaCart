@@ -6,10 +6,11 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from archive.models import ToolInstance
+from archive.models import ToolInstance, ToolSession
 from exporters.pipeline import run_export_pipeline
 
 from .registry import TOOL_CATALOG, get_tool_form_class, get_tool_instance
@@ -28,6 +29,8 @@ def tool_catalog(request):
     return render(request, 'tools/catalog.html', {'categories': categories})
 
 
+# --- Solo flow ---------------------------------------------------------------
+
 @login_required
 def draft_editor(request, tool_slug, instance_id=None):
     """Render the drafting interface for a given tool and persist drafts on POST."""
@@ -38,7 +41,8 @@ def draft_editor(request, tool_slug, instance_id=None):
     instance = None
     if instance_id:
         instance = get_object_or_404(
-            ToolInstance, id=instance_id, user=request.user, status='draft'
+            ToolInstance, id=instance_id, user=request.user,
+            status='draft', session__isnull=True,
         )
 
     form_class = get_tool_form_class(tool_slug)
@@ -83,7 +87,7 @@ def autosave_endpoint(request, tool_slug):
 
     if instance_id:
         instance = get_object_or_404(
-            ToolInstance, id=instance_id, user=request.user, status='draft'
+            ToolInstance, id=instance_id, user=request.user, status='draft',
         )
     else:
         tool_class = get_tool_instance(tool_slug)
@@ -109,7 +113,8 @@ def autosave_endpoint(request, tool_slug):
 def submit_tool(request, instance_id):
     """Run the tool's logic and transition the draft to an archived record."""
     instance = get_object_or_404(
-        ToolInstance, id=instance_id, user=request.user, status='draft'
+        ToolInstance, id=instance_id, user=request.user,
+        status='draft', session__isnull=True,
     )
 
     try:
@@ -138,3 +143,121 @@ def submit_tool(request, instance_id):
         messages.error(request, f'System Error: {str(e)}')
         return redirect('tools:draft_edit', tool_slug=instance.tool_slug,
                         instance_id=instance.id)
+
+
+# --- Collaborative session flow ---------------------------------------------
+
+@login_required
+@require_POST
+def session_create(request, tool_slug):
+    """Create a new collaborative session for the given tool."""
+    if tool_slug not in TOOL_CATALOG:
+        return redirect('tools:catalog')
+
+    tool_class = get_tool_instance(tool_slug)
+    session = ToolSession.objects.create(
+        host=request.user,
+        tool_slug=tool_slug,
+        tool_version=getattr(tool_class, 'version', '1.0'),
+    )
+    messages.success(
+        request, 'Session started. Share the link with participants.'
+    )
+    return redirect('tools:session_detail', session_id=session.id)
+
+
+@login_required
+def session_detail(request, session_id):
+    """Render the session page (form while open, combined view when closed)."""
+    session = get_object_or_404(ToolSession, id=session_id)
+    tool_meta = get_tool_metadata(session.tool_slug)
+    if not tool_meta:
+        return redirect('tools:catalog')
+
+    is_host = (session.host_id == request.user.id)
+
+    if session.status == 'closed':
+        instances = (
+            ToolInstance.objects
+            .filter(session=session)
+            .select_related('user')
+            .order_by('submitted_at')
+        )
+        return render(request, 'tools/session_closed.html', {
+            'session': session,
+            'tool_meta': tool_meta,
+            'instances': instances,
+            'is_host': is_host,
+        })
+
+    instance, _ = ToolInstance.objects.get_or_create(
+        session=session,
+        user=request.user,
+        defaults={
+            'tool_slug': session.tool_slug,
+            'tool_version': session.tool_version,
+            'status': 'draft',
+        },
+    )
+
+    form_class = get_tool_form_class(session.tool_slug)
+    form = None
+    if form_class is not None:
+        if request.method == 'POST':
+            form = form_class(request.POST)
+            if form.is_valid():
+                instance.payload_input = form.cleaned_data
+                instance.save()
+                messages.success(request, 'Your response was saved.')
+                return redirect('tools:session_detail', session_id=session.id)
+        else:
+            form = form_class(initial=instance.payload_input or {})
+
+    participants = (
+        ToolInstance.objects
+        .filter(session=session)
+        .select_related('user')
+        .order_by('created_at')
+    )
+    share_url = request.build_absolute_uri(
+        reverse('tools:session_detail', args=[session.id])
+    )
+
+    return render(request, 'tools/session_open.html', {
+        'session': session,
+        'tool_meta': tool_meta,
+        'instance': instance,
+        'form': form,
+        'is_host': is_host,
+        'participants': participants,
+        'share_url': share_url,
+    })
+
+
+@login_required
+@require_POST
+def session_close(request, session_id):
+    """Host closes the session: lock everyone's contribution and run the tool."""
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user)
+    if session.status == 'closed':
+        return redirect('tools:session_detail', session_id=session.id)
+
+    with transaction.atomic():
+        session.status = 'closed'
+        session.closed_at = timezone.now()
+        session.save()
+
+        for instance in ToolInstance.objects.filter(session=session, status='draft'):
+            try:
+                tool = get_tool_instance(session.tool_slug, instance.payload_input)
+                instance.payload_output = tool.execute() if tool else {}
+            except ValidationError as e:
+                instance.payload_output = {'error': e.message}
+            except Exception as e:
+                instance.payload_output = {'error': str(e)}
+            instance.status = 'archived'
+            instance.submitted_at = timezone.now()
+            instance.save()
+
+    messages.success(request, 'Session closed. Combined results are now visible.')
+    return redirect('tools:session_detail', session_id=session.id)

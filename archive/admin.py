@@ -1,12 +1,20 @@
 from django.contrib import admin
 
-from .models import AuditLog, ToolInstance
+from .models import AuditLog, ToolInstance, ToolSession
+
+
+@admin.register(ToolSession)
+class ToolSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'tool_slug', 'host', 'status', 'created_at', 'closed_at')
+    list_filter = ('status', 'tool_slug')
+    search_fields = ('tool_slug', 'host__email')
+    readonly_fields = ('id', 'created_at')
 
 
 @admin.register(ToolInstance)
 class ToolInstanceAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'tool_slug', 'tool_version', 'status',
-                    'created_at', 'submitted_at')
+                    'session', 'created_at', 'submitted_at')
     list_filter = ('status', 'tool_slug')
     search_fields = ('tool_slug', 'user__email')
     readonly_fields = ('created_at', 'updated_at')

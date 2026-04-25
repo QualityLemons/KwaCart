@@ -5,7 +5,7 @@
 {% block content %}
 <header>
     <h1>Tool Bank</h1>
-    <p>Select a tool to start a new draft.</p>
+    <p>Pick a tool to use solo, or start a session and invite others.</p>
 </header>
 
 {% for category, tools in categories.items %}
@@ -16,7 +16,13 @@
         <div class="tool-card">
             <h3>{{ tool.title }}</h3>
             <p>{{ tool.how_to|default:"Standard processing tool." }}</p>
-            <a href="{% url 'tools:draft_new' tool.slug %}" class="btn btn-primary">Start New</a>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <a href="{% url 'tools:draft_new' tool.slug %}" class="btn btn-primary">Start solo</a>
+                <form method="post" action="{% url 'tools:session_create' tool.slug %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">Start session</button>
+                </form>
+            </div>
         </div>
         {% endfor %}
     </div>
