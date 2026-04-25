@@ -47,6 +47,40 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class TwentyFiveTenCrowdSourcingTool(BaseTool):
+    name = '25/10 Crowd Sourcing'
+    description = (
+        'Rapidly generate and sift a group\'s most powerful actionable ideas. '
+        'Everyone writes a bold idea and first step, passes cards through five '
+        'scoring rounds, and the top ten rise to the surface.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('bold_idea',    'Your bold idea and first step (write on your index card, 5 min)'),
+        ('scores_received', 'The five scores your card received across the rounds (total out of 25)'),
+        ('top_ideas',    'Ideas that rose to the top — what caught your attention? (2 min debrief)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class ShiftAndShareTool(BaseTool):
     name = 'Shift & Share'
     description = (

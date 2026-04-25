@@ -2,6 +2,44 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    '25-10-crowd-sourcing': {
+        'class': 'tools.implementations.TwentyFiveTenCrowdSourcingTool',
+        'form_class': 'tools.forms.TwentyFiveTenCrowdSourcingForm',
+        'title': '25/10 Crowd Sourcing',
+        'icon': 'ranking-star',
+        'category': 'Facilitation',
+        'what': (
+            'Generate and sift a large group\'s boldest actionable ideas in 30 minutes. '
+            'Everyone writes one idea, passes cards through five scoring rounds, '
+            'and the top ten surface via a countdown from 25.'
+        ),
+        'how': (
+            'Each person writes a bold idea and first step on an index card (5 min). '
+            'Mill around passing cards — no reading, just passing. When the bell rings, '
+            'pair up and score the card you hold 1–5. Repeat for five rounds (15 min). '
+            'Tally scores and count down from 25 to reveal the top ten ideas (5 min). '
+            'Debrief: "What caught your attention?" (2 min).'
+        ),
+        'why': (
+            'Spread innovations out and up — the crowd\'s collective wisdom sifts '
+            'the boldest ideas without facilitated debate. Fast, fun, and surprisingly '
+            'valid. Surprises are frequent.'
+        ),
+        'example_input': {
+            'bold_idea': (
+                'Create a 15-minute "decision sprint" at the start of every project '
+                'kick-off — one decision made, owner named, deadline set.'
+            ),
+            'scores_received': 'Scores: 4, 3, 5, 4, 5 — total 21 out of 25.',
+            'top_ideas': (
+                'The highest scorer (25) was an idea for a shared "team health pulse" '
+                'sent weekly to every manager. What surprised me was how many ideas '
+                'focused on reducing meetings rather than improving them.'
+            ),
+        },
+        'display_fields': ['bold_idea', 'scores_received', 'top_ideas', 'word_count'],
+        'timer_seconds': 1800,
+    },
     'shift-and-share': {
         'class': 'tools.implementations.ShiftAndShareTool',
         'form_class': 'tools.forms.ShiftAndShareForm',

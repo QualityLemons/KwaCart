@@ -27,6 +27,39 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class TwentyFiveTenCrowdSourcingForm(forms.Form):
+    bold_idea = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'If you were ten times bolder, what big idea would you recommend? '
+                'What first step would you take to get started?'
+            ),
+            'rows': 4,
+        }),
+        label='Your bold idea and first step (write on your index card, 5 min)',
+    )
+    scores_received = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What five scores (each 1–5) did your card receive across the rounds? '
+                'What was the total out of 25?'
+            ),
+            'rows': 2,
+        }),
+        label='Scores your card received across the five rounds (total out of 25)',
+    )
+    top_ideas = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Which ideas scored highest in the countdown from 25? '
+                'What surprised you? What caught your attention?'
+            ),
+            'rows': 4,
+        }),
+        label='Top ideas that emerged — and what caught your attention (2 min debrief)',
+    )
+
+
 class ShiftAndShareForm(forms.Form):
     innovation_summary = forms.CharField(
         widget=forms.Textarea(attrs={
