@@ -2,6 +2,49 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'wicked-questions': {
+        'class': 'tools.implementations.WickedQuestionsTool',
+        'form_class': 'tools.forms.WickedQuestionsForm',
+        'title': 'Wicked Questions',
+        'icon': 'bolt',
+        'category': 'Facilitation',
+        'what': (
+            'Articulate the paradoxical challenges a group must confront to succeed. '
+            'Surface opposing-yet-complementary strategies that must be pursued simultaneously.'
+        ),
+        'how': (
+            'Individually generate pairs of opposites using the format '
+            '"How is it that we are ____ and we are ____ simultaneously?" (5 min). '
+            'Small groups select their most impactful question (5 min). '
+            'The whole group picks out the most powerful and refines them (10 min).'
+        ),
+        'why': (
+            'Spark innovative action while diminishing "yes, but…" and "either-or" thinking. '
+            'Bring to light paradoxical-yet-complementary forces that influence behaviours, '
+            'especially during change efforts.'
+        ),
+        'example_input': {
+            'individual_questions': (
+                'How is it that we are deeply committed to our staff and we are '
+                'constantly asking them to do more with less, simultaneously?'
+            ),
+            'group_question': (
+                'How is it that we are focused on long-term strategy and we are '
+                'reacting to short-term pressures, simultaneously?'
+            ),
+            'whole_group_refinement': (
+                'The group sharpened this to: "How is it that we prize innovation '
+                'and we reward compliance, simultaneously?"'
+            ),
+        },
+        'display_fields': [
+            'individual_questions',
+            'group_question',
+            'whole_group_refinement',
+            'word_count',
+        ],
+        'timer_seconds': 1500,
+    },
     'nine-whys': {
         'class': 'tools.implementations.NineWhysTool',
         'form_class': 'tools.forms.NineWhysForm',

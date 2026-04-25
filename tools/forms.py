@@ -27,6 +27,33 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class WickedQuestionsForm(forms.Form):
+    individual_questions = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Use the format: "How is it that we are ____ and we are ____ simultaneously?"\n'
+                'Write one or more pairs of opposites that are at play in your work…'
+            ),
+            'rows': 5,
+        }),
+        label='Your Wicked Questions (individual, 5 min)',
+    )
+    group_question = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'The most impactful Wicked Question your small group selected…',
+            'rows': 3,
+        }),
+        label='Small group\'s selected Wicked Question (5 min)',
+    )
+    whole_group_refinement = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'The most powerful questions and any further refinements from the whole group…',
+            'rows': 4,
+        }),
+        label='Whole-group refinement (10 min)',
+    )
+
+
 class NineWhysForm(forms.Form):
     activities = forms.CharField(
         widget=forms.Textarea(attrs={

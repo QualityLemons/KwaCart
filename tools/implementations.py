@@ -47,6 +47,39 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class WickedQuestionsTool(BaseTool):
+    name = 'Wicked Questions'
+    description = (
+        'Articulate the paradoxical challenges a group must confront to succeed. '
+        'Surface opposing-yet-complementary strategies that must be pursued simultaneously.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('individual_questions',  'Your Wicked Questions — pairs of opposites (individual, 5 min)'),
+        ('group_question',        'Your small group\'s most impactful Wicked Question (5 min)'),
+        ('whole_group_refinement', 'Refined Wicked Questions from the whole group (10 min)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class NineWhysTool(BaseTool):
     name = 'Nine Whys'
     description = (
