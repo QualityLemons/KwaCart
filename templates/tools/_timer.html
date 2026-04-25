@@ -197,6 +197,8 @@
             });
         }
 
+        let initialRender = true;
+
         function renderProgressBar() {
             const phaseDuration = phases[phaseIdx].seconds;
             const elapsed = phaseDuration - remaining;
@@ -205,6 +207,7 @@
                 seg.classList.remove('done', 'active', 'upcoming');
                 const fill = seg.querySelector('.phase-segment-fill');
                 const label = phases[i].label;
+                if (initialRender && fill) fill.style.transition = 'none';
                 if (i < phaseIdx) {
                     seg.classList.add('done');
                     seg.setAttribute('aria-label', label + ' — completed');
@@ -219,6 +222,17 @@
                     if (fill) fill.style.width = '0%';
                 }
             });
+            if (initialRender) {
+                initialRender = false;
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        segmentEls.forEach(function (seg) {
+                            const fill = seg.querySelector('.phase-segment-fill');
+                            if (fill) fill.style.transition = '';
+                        });
+                    });
+                });
+            }
         }
 
         function resetToInitial() {
