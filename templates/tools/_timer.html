@@ -1,5 +1,6 @@
 {% if tool_meta.phases or tool_meta.timer_seconds %}
 {% if tool_meta.phases %}{{ tool_meta.phases|json_script:"phase-data" }}{% endif %}
+{% if timer_session_id %}{{ timer_started_at|json_script:"timer-started-at" }}{{ timer_paused_at|json_script:"timer-paused-at" }}{% endif %}
 <div class="timer-widget"
      data-duration="{{ tool_meta.timer_seconds|default:0 }}"
      {% if timer_session_id %}
@@ -247,6 +248,17 @@
         }
 
         if (sessionMode) {
+            const _initStartedEl = document.getElementById('timer-started-at');
+            const _initPausedEl = document.getElementById('timer-paused-at');
+            if (_initStartedEl) {
+                applyServerTimestamp(
+                    JSON.parse(_initStartedEl.textContent),
+                    _initPausedEl ? JSON.parse(_initPausedEl.textContent) : null
+                );
+            }
+        }
+
+        if (sessionMode) {
             async function pollTimerState() {
                 try {
                     const data = await fetch(statusUrl, { credentials: 'same-origin' }).then(r => r.json());
@@ -338,6 +350,17 @@
             if (remaining > 0 && !intervalId) {
                 intervalId = setInterval(tick, 1000);
                 if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
+            }
+        }
+
+        if (sessionMode) {
+            const _initStartedEl = document.getElementById('timer-started-at');
+            const _initPausedEl = document.getElementById('timer-paused-at');
+            if (_initStartedEl) {
+                applyServerTimestamp(
+                    JSON.parse(_initStartedEl.textContent),
+                    _initPausedEl ? JSON.parse(_initPausedEl.textContent) : null
+                );
             }
         }
 

@@ -221,6 +221,14 @@ def session_detail(request, session_id):
     share_url = request.build_absolute_uri(
         reverse('tools:session_detail', args=[session.id])
     )
+    timer_started_at = (
+        session.timer_started_at.isoformat()
+        if session.timer_started_at else None
+    )
+    timer_paused_at = (
+        session.timer_paused_at.isoformat()
+        if session.timer_paused_at else None
+    )
 
     return render(request, 'tools/session_open.html', {
         'session': session,
@@ -230,6 +238,8 @@ def session_detail(request, session_id):
         'is_host': is_host,
         'participants': participants,
         'share_url': share_url,
+        'timer_started_at': timer_started_at,
+        'timer_paused_at': timer_paused_at,
     })
 
 

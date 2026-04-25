@@ -16,7 +16,7 @@
 </div>
 
 {% include "tools/info_box.html" %}
-{% include "tools/_timer.html" with timer_session_id=session.id is_host=is_host %}
+{% include "tools/_timer.html" with timer_session_id=session.id is_host=is_host timer_started_at=timer_started_at timer_paused_at=timer_paused_at %}
 
 <h2>Your response</h2>
 {% if form %}
