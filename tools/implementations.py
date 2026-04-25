@@ -712,6 +712,42 @@ class OneTwoFourAllTool(BaseTool):
         return result
 
 
+class DrawingTogetherTool(BaseTool):
+    name = 'Drawing Together'
+    description = (
+        'Reveal insights and paths forward through nonverbal expression. '
+        'Participants draw a story about a challenge using five universal symbols, '
+        'then invite others to interpret their drawings.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('challenge',      'The challenge or journey (before drawing)'),
+        ('first_draft',    'First draft — story using the five symbols (10 min)'),
+        ('second_draft',   'Second draft — dramatise size, placement, colour (10 min)'),
+        ('interpretation', 'Interpretation — what others saw (5 min)'),
+        ('insights',       'Insights — what the drawing reveals'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class FiveStructuralElementsTool(BaseTool):
     name = 'Five Structural Elements'
     description = 'Pairs share challenges and hopes to build new connections.'

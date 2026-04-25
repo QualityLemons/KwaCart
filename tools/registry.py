@@ -960,6 +960,66 @@ TOOL_CATALOG = {
         ],
         'timer_seconds': 1200,
     },
+    'drawing-together': {
+        'class': 'tools.implementations.DrawingTogetherTool',
+        'form_class': 'tools.forms.DrawingTogetherForm',
+        'title': 'Drawing Together',
+        'tagline': 'Draw a story about a challenge using five symbols — then let others interpret it.',
+        'icon': 'paintbrush',
+        'category': 'Facilitation',
+        'what': (
+            'Participants draw a personal story about a challenge or innovation journey '
+            'using five universal symbols — circle (wholeness), rectangle (support), '
+            'triangle (goal), spiral (change), and star person (relationship). '
+            'No art experience needed; the symbols are easy for everyone to draw.'
+        ),
+        'how': (
+            '1. Introduce the five symbols and their meanings (5 min).\n'
+            '2. Everyone practises drawing all five symbols (5 min).\n'
+            '3. Each person combines the symbols into a first-draft story about their challenge (10 min).\n'
+            '4. Refine the story in a second draft by dramatising size, placement, and colour (10 min).\n'
+            '5. Each person invites one or more others to interpret their drawing — '
+            'the artist stays silent while others speak (5 min).\n'
+            '6. Whole group debrief: "Together, what do the drawings reveal?" '
+            'Use 1-2-4-All with larger groups (5 min).'
+        ),
+        'why': (
+            'Drawing accesses feelings, attitudes, and patterns that are difficult to express in words. '
+            'When logical thinking has reached its limits, visual storytelling '
+            'evokes ideas that lie outside step-by-step analysis. '
+            'The five symbols have near-universal meaning and require no artistic skill.'
+        ),
+        'example_input': {
+            'challenge': (
+                'Our team has grown fast and we are losing the close collaboration we had early on.'
+            ),
+            'first_draft': (
+                'I drew a large spiral in the centre for the rapid growth, '
+                'with small star people scattered around it — some connected, some drifting away. '
+                'A triangle at the top represents the goal of staying together.'
+            ),
+            'second_draft': (
+                'Made the spiral bigger and darker to show how overwhelming the pace feels. '
+                'Moved two star people closer to a rectangle (a bridge or table) '
+                'to show that shared space still exists.'
+            ),
+            'interpretation': (
+                'Others saw tension between energy and isolation. '
+                'One person noticed the rectangle as a lifeline — '
+                'something solid in the middle of the chaos.'
+            ),
+            'insights': (
+                'The drawings reveal that we have a clear goal but the path is turbulent. '
+                'Creating deliberate meeting points (the rectangle) '
+                'may be more important than slowing the spiral.'
+            ),
+        },
+        'display_fields': [
+            'challenge', 'first_draft', 'second_draft',
+            'interpretation', 'insights', 'word_count',
+        ],
+        'timer_seconds': 2400,
+    },
 }
 
 

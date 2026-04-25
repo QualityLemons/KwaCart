@@ -811,6 +811,50 @@ class OneTwoFourAllForm(forms.Form):
     )
 
 
+class DrawingTogetherForm(forms.Form):
+    challenge = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Briefly describe the challenge or innovation journey you plan to draw.',
+            'rows': 3,
+        }),
+        label='The challenge or journey (before drawing)',
+    )
+    first_draft = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Describe the story your first draft tells. '
+                'Which symbols did you use and what do they represent?'
+            ),
+            'rows': 4,
+        }),
+        label='First draft — story using the five symbols (10 min)',
+    )
+    second_draft = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'How did you refine your second draft? '
+                'Note any changes in size, placement, or colour that deepen the story.'
+            ),
+            'rows': 4,
+        }),
+        label='Second draft — dramatise size, placement, colour (10 min)',
+    )
+    interpretation = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'What did others see and say about your drawing? (You stayed silent.)',
+            'rows': 3,
+        }),
+        label='Interpretation — what others saw (5 min)',
+    )
+    insights = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'What does your drawing reveal about the challenge or the path forward?',
+            'rows': 3,
+        }),
+        label='Insights — what the drawing reveals (whole group debrief)',
+    )
+
+
 class FiveStructuralElementsForm(forms.Form):
     pair_one_challenge = forms.CharField(
         widget=forms.Textarea(attrs={
