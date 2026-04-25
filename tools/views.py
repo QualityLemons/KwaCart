@@ -14,7 +14,7 @@ from archive.models import ToolInstance, ToolSession
 from exporters.pipeline import run_export_pipeline, run_session_export_pipeline
 
 from .registry import TOOL_CATALOG, get_tool_form_class, get_tool_instance
-from .utils import get_tool_metadata, _normalize_meta
+from .utils import extract_canvas_from_payload, get_tool_metadata, _normalize_meta
 
 
 @login_required
@@ -59,7 +59,9 @@ def draft_editor(request, tool_slug, instance_id=None):
                         tool_version=getattr(tool_class, 'version', '1.0'),
                         status='draft',
                     )
-                instance.payload_input = form.cleaned_data
+                instance.payload_input = extract_canvas_from_payload(
+                    form.cleaned_data, tool_slug, request.user.id,
+                )
                 instance.save()
                 messages.success(request, 'Draft saved.')
                 return redirect('tools:draft_edit',
@@ -205,7 +207,9 @@ def session_detail(request, session_id):
         if request.method == 'POST':
             form = form_class(request.POST)
             if form.is_valid():
-                instance.payload_input = form.cleaned_data
+                instance.payload_input = extract_canvas_from_payload(
+                    form.cleaned_data, session.tool_slug, request.user.id,
+                )
                 instance.save()
                 messages.success(request, 'Your response was saved.')
                 return redirect('tools:session_detail', session_id=session.id)

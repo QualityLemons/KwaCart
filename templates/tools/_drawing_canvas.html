@@ -116,10 +116,21 @@
 
     /* ── Load saved data ── */
     const hiddenField = document.querySelector('input[name="canvas_data"]');
-    if (hiddenField && hiddenField.value && hiddenField.value.startsWith('data:')) {
+    function restoreFromSrc(src) {
         const img = new Image();
-        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        img.src = hiddenField.value;
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            resizeCanvas();
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = src;
+    }
+    if (hiddenField && hiddenField.value) {
+        if (hiddenField.value.startsWith('data:')) {
+            restoreFromSrc(hiddenField.value);
+        } else if (hiddenField.value.startsWith('/media/')) {
+            restoreFromSrc(hiddenField.value);
+        }
     }
 
     /* ── Snapshot helpers ── */

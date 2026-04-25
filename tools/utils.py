@@ -1,4 +1,58 @@
+import base64
+import hashlib
+import os
+
+from django.conf import settings
+
 from .registry import TOOL_CATALOG
+
+
+def save_canvas_to_file(canvas_data, tool_slug, user_id):
+    """
+    Accept a data-URL PNG from the drawing canvas, write it to
+    media/drawings/, and return the media-relative URL path
+    (e.g. '/media/drawings/drawing-together_7_abc123.png').
+
+    If canvas_data is already a path (not a data-URL), return it unchanged.
+    If canvas_data is empty, return an empty string.
+    """
+    if not canvas_data:
+        return ''
+    if not canvas_data.startswith('data:image/'):
+        return canvas_data  # already a saved path
+
+    try:
+        _header, encoded = canvas_data.split(',', 1)
+        png_bytes = base64.b64decode(encoded)
+    except Exception:
+        return ''
+
+    content_hash = hashlib.md5(png_bytes).hexdigest()[:12]
+    filename = f'{tool_slug}_{user_id}_{content_hash}.png'
+    drawings_dir = os.path.join(settings.MEDIA_ROOT, 'drawings')
+    os.makedirs(drawings_dir, exist_ok=True)
+
+    filepath = os.path.join(drawings_dir, filename)
+    with open(filepath, 'wb') as fh:
+        fh.write(png_bytes)
+
+    return settings.MEDIA_URL + 'drawings/' + filename
+
+
+def extract_canvas_from_payload(payload, tool_slug, user_id):
+    """
+    If payload contains a 'canvas_data' data-URL, save it to a file
+    and return a copy of payload with 'canvas_data' replaced by the
+    media path. Returns payload unchanged if no conversion is needed.
+    """
+    if not payload or 'canvas_data' not in payload:
+        return payload
+    canvas_data = payload.get('canvas_data', '')
+    if not canvas_data or not canvas_data.startswith('data:image/'):
+        return payload
+    result = dict(payload)
+    result['canvas_data'] = save_canvas_to_file(canvas_data, tool_slug, user_id)
+    return result
 
 
 def _normalize_meta(slug, meta):
