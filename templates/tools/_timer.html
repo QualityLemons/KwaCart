@@ -5,8 +5,6 @@
      {% if timer_session_id %}
      data-status-url="{% url 'tools:session_status' timer_session_id %}"
      data-timer-start-url="{% url 'tools:timer_start' timer_session_id %}"
-     data-timer-pause-url="{% url 'tools:timer_pause' timer_session_id %}"
-     data-timer-resume-url="{% url 'tools:timer_resume' timer_session_id %}"
      data-timer-reset-url="{% url 'tools:timer_reset' timer_session_id %}"
      {% endif %}>
     {% if tool_meta.phases %}
@@ -28,7 +26,6 @@
     {% elif is_host %}
     <div class="timer-controls">
         <button type="button" class="btn timer-start">Start</button>
-        <button type="button" class="btn timer-pause" disabled>Pause</button>
         <button type="button" class="btn timer-reset">Reset</button>
     </div>
     {% endif %}
@@ -83,12 +80,9 @@
     const pauseBtn = widget.querySelector('.timer-pause');
     const resetBtn = widget.querySelector('.timer-reset');
     let intervalId = null;
-    let lastKnownPausedAt = null;
 
     const statusUrl = widget.dataset.statusUrl || null;
     const timerStartUrl = widget.dataset.timerStartUrl || null;
-    const timerPauseUrl = widget.dataset.timerPauseUrl || null;
-    const timerResumeUrl = widget.dataset.timerResumeUrl || null;
     const timerResetUrl = widget.dataset.timerResetUrl || null;
     const sessionMode = !!statusUrl;
 
@@ -175,11 +169,9 @@
 
         function resetToInitial() {
             clearInterval(intervalId); intervalId = null;
-            lastKnownPausedAt = null;
             phaseIdx = 0;
             remaining = phases[0].seconds;
             if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Start'; }
-            if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.textContent = 'Pause'; }
             renderPhase();
         }
 
@@ -225,14 +217,12 @@
             }
         }
 
-        function applyServerTimestamp(timerStartedAt, timerPausedAt) {
-            lastKnownPausedAt = timerPausedAt || null;
+        function applyServerTimestamp(timerStartedAt) {
             if (!timerStartedAt) {
                 resetToInitial();
                 return;
             }
-            const refTime = timerPausedAt ? new Date(timerPausedAt).getTime() : Date.now();
-            const elapsedSec = Math.floor((refTime - new Date(timerStartedAt).getTime()) / 1000);
+            const elapsedSec = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000);
             let acc = 0;
             let newPhaseIdx = phases.length - 1;
             let newRemaining = 0;
@@ -247,18 +237,12 @@
             phaseIdx = newPhaseIdx;
             remaining = newRemaining;
             renderPhase();
-            if (timerPausedAt) {
-                if (intervalId) { clearInterval(intervalId); intervalId = null; }
-                if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.textContent = 'Resume'; }
-            } else if (remaining > 0 && !intervalId) {
+            if (remaining > 0 && !intervalId) {
                 intervalId = setInterval(tick, 1000);
                 if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.textContent = 'Pause'; }
             } else if (remaining === 0 && intervalId) {
                 clearInterval(intervalId); intervalId = null;
                 if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Start'; }
-                if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.textContent = 'Pause'; }
             }
         }
 
@@ -266,7 +250,7 @@
             async function pollTimerState() {
                 try {
                     const data = await fetch(statusUrl, { credentials: 'same-origin' }).then(r => r.json());
-                    applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
+                    applyServerTimestamp(data.timer_started_at);
                 } catch (e) {}
             }
             pollTimerState();
@@ -285,7 +269,7 @@
                     try {
                         const data = await postJson(timerStartUrl);
                         if (data.timer_started_at) {
-                            applyServerTimestamp(data.timer_started_at, null);
+                            applyServerTimestamp(data.timer_started_at);
                             return;
                         }
                     } catch (e) {}
@@ -297,32 +281,11 @@
         }
 
         if (pauseBtn) {
-            pauseBtn.addEventListener('click', async () => {
-                if (sessionMode) {
-                    if (lastKnownPausedAt) {
-                        try {
-                            const data = await postJson(timerResumeUrl);
-                            if (data.timer_started_at) {
-                                applyServerTimestamp(data.timer_started_at, null);
-                            }
-                        } catch (e) {}
-                    } else if (intervalId) {
-                        try {
-                            const data = await postJson(timerPauseUrl);
-                            if (data.timer_paused_at) {
-                                lastKnownPausedAt = data.timer_paused_at;
-                                if (intervalId) { clearInterval(intervalId); intervalId = null; }
-                                if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                                pauseBtn.disabled = false; pauseBtn.textContent = 'Resume';
-                            }
-                        } catch (e) {}
-                    }
-                } else {
-                    if (!intervalId) return;
-                    clearInterval(intervalId); intervalId = null;
-                    if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
-                    pauseBtn.disabled = true;
-                }
+            pauseBtn.addEventListener('click', () => {
+                if (!intervalId) return;
+                clearInterval(intervalId); intervalId = null;
+                if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
+                pauseBtn.disabled = true;
             });
         }
 
@@ -343,10 +306,9 @@
 
         function resetToInitial() {
             clearInterval(intervalId); intervalId = null;
-            lastKnownPausedAt = null;
             remaining = total;
             if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Start'; }
-            if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.textContent = 'Pause'; }
+            if (pauseBtn) pauseBtn.disabled = true;
             render();
         }
 
@@ -365,24 +327,17 @@
             }
         }
 
-        function applyServerTimestamp(timerStartedAt, timerPausedAt) {
-            lastKnownPausedAt = timerPausedAt || null;
+        function applyServerTimestamp(timerStartedAt) {
             if (!timerStartedAt) {
                 resetToInitial();
                 return;
             }
-            const refTime = timerPausedAt ? new Date(timerPausedAt).getTime() : Date.now();
-            const elapsedSec = Math.floor((refTime - new Date(timerStartedAt).getTime()) / 1000);
+            const elapsedSec = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000);
             remaining = Math.max(0, total - elapsedSec);
             render();
-            if (timerPausedAt) {
-                if (intervalId) { clearInterval(intervalId); intervalId = null; }
-                if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.textContent = 'Resume'; }
-            } else if (remaining > 0 && !intervalId) {
+            if (remaining > 0 && !intervalId) {
                 intervalId = setInterval(tick, 1000);
                 if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.textContent = 'Pause'; }
             }
         }
 
@@ -390,7 +345,7 @@
             async function pollTimerState() {
                 try {
                     const data = await fetch(statusUrl, { credentials: 'same-origin' }).then(r => r.json());
-                    applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
+                    applyServerTimestamp(data.timer_started_at);
                 } catch (e) {}
             }
             pollTimerState();
@@ -405,7 +360,7 @@
                     try {
                         const data = await postJson(timerStartUrl);
                         if (data.timer_started_at) {
-                            applyServerTimestamp(data.timer_started_at, null);
+                            applyServerTimestamp(data.timer_started_at);
                             return;
                         }
                     } catch (e) {}
@@ -417,32 +372,11 @@
         }
 
         if (pauseBtn) {
-            pauseBtn.addEventListener('click', async () => {
-                if (sessionMode) {
-                    if (lastKnownPausedAt) {
-                        try {
-                            const data = await postJson(timerResumeUrl);
-                            if (data.timer_started_at) {
-                                applyServerTimestamp(data.timer_started_at, null);
-                            }
-                        } catch (e) {}
-                    } else if (intervalId) {
-                        try {
-                            const data = await postJson(timerPauseUrl);
-                            if (data.timer_paused_at) {
-                                lastKnownPausedAt = data.timer_paused_at;
-                                if (intervalId) { clearInterval(intervalId); intervalId = null; }
-                                if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
-                                pauseBtn.disabled = false; pauseBtn.textContent = 'Resume';
-                            }
-                        } catch (e) {}
-                    }
-                } else {
-                    if (!intervalId) return;
-                    clearInterval(intervalId); intervalId = null;
-                    if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
-                    if (pauseBtn) pauseBtn.disabled = true;
-                }
+            pauseBtn.addEventListener('click', () => {
+                if (!intervalId) return;
+                clearInterval(intervalId); intervalId = null;
+                if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
+                if (pauseBtn) pauseBtn.disabled = true;
             });
         }
 
