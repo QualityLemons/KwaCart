@@ -27,6 +27,39 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class TroikaConsultingForm(forms.Form):
+    consulting_question = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What is your challenge? '
+                'What kind of help do you need from your consultants?'
+            ),
+            'rows': 3,
+        }),
+        label='Your consulting question (reflect alone, 1 min)',
+    )
+    consultant_advice = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What ideas, suggestions, or coaching advice did you offer '
+                'while acting as a consultant for your colleagues?'
+            ),
+            'rows': 4,
+        }),
+        label='Advice you gave as a consultant',
+    )
+    valuable_takeaway = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What was most valuable about what you heard when you were the client? '
+                'What will you take away?'
+            ),
+            'rows': 3,
+        }),
+        label='Most valuable takeaway from your client turn (1–2 min)',
+    )
+
+
 class FifteenPercentSolutionsForm(forms.Form):
     solutions_list = forms.CharField(
         widget=forms.Textarea(attrs={

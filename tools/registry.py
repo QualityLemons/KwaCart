@@ -2,6 +2,44 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'troika-consulting': {
+        'class': 'tools.implementations.TroikaConsultingTool',
+        'form_class': 'tools.forms.TroikaConsultingForm',
+        'title': 'Troika Consulting',
+        'icon': 'people-arrows',
+        'category': 'Facilitation',
+        'what': (
+            'Peer-to-peer coaching in trios. Each person takes a turn as client '
+            'while the other two consult — back turned, speaking freely.'
+        ),
+        'how': (
+            'Reflect on your challenge and the help you need (1 min). '
+            'As client, share your question (1–2 min), answer clarifying questions '
+            '(1–2 min), then turn your back while consultants generate advice (4–5 min). '
+            'Turn back and share what was most valuable (1–2 min). '
+            'Repeat for each person in the trio.'
+        ),
+        'why': (
+            'Help people gain insight on issues they face and unleash local wisdom. '
+            'Extend peer coaching beyond formal reporting relationships and '
+            'reveal patterns, discover everyday solutions, and refine prototypes.'
+        ),
+        'example_input': {
+            'consulting_question': 'I am struggling to get cross-team buy-in for a new process. What should I try?',
+            'consultant_advice': (
+                'We suggested mapping the stakeholders and finding one early champion. '
+                'Also: frame it as an experiment, not a permanent change.'
+            ),
+            'valuable_takeaway': 'The idea of finding one champion first felt immediately actionable.',
+        },
+        'display_fields': [
+            'consulting_question',
+            'consultant_advice',
+            'valuable_takeaway',
+            'word_count',
+        ],
+        'timer_seconds': 1800,
+    },
     '15-percent-solutions': {
         'class': 'tools.implementations.FifteenPercentSolutionsTool',
         'form_class': 'tools.forms.FifteenPercentSolutionsForm',

@@ -47,6 +47,40 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class TroikaConsultingTool(BaseTool):
+    name = 'Troika Consulting'
+    description = (
+        'Get practical and imaginative help from colleagues immediately. '
+        'Round-robin peer consultations in trios — each person takes a turn '
+        'as client while the other two act as consultants.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('consulting_question', 'Your challenge and the help you need (client reflection, 1 min)'),
+        ('consultant_advice',   'Ideas, suggestions, and coaching advice you gave as a consultant'),
+        ('valuable_takeaway',   'What was most valuable from your time as client (1–2 min)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class FifteenPercentSolutionsTool(BaseTool):
     name = '15% Solutions'
     description = (
