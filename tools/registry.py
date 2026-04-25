@@ -2,6 +2,49 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'min-specs': {
+        'class': 'tools.implementations.MinSpecsTool',
+        'form_class': 'tools.forms.MinSpecsForm',
+        'title': 'Min Specs',
+        'icon': 'list-check',
+        'category': 'Facilitation',
+        'what': (
+            'Identify only the absolute must-dos and must-not-dos for achieving a purpose. '
+            'Start with a complete list of rules, then ruthlessly drop anything that '
+            'could be broken without losing the purpose.'
+        ),
+        'how': (
+            'Generate the full Max Spec list alone (1 min) then in small groups (5 min). '
+            'Test each rule: "If we broke this, could we still achieve our purpose?" — '
+            'drop every rule that passes the test (15 min, repeat if needed). '
+            'Compare across small groups and consolidate to the shortest shared list (15 min).'
+        ),
+        'why': (
+            'Eliminate rule clutter and unlock innovation. '
+            'Free people from micromanagement, focus energy where it matters, '
+            'and create enabling constraints that guide scaling with fidelity.'
+        ),
+        'example_input': {
+            'max_specs': (
+                'Must-dos: communicate daily, document decisions, involve stakeholders early, '
+                'get sign-off at each stage, use the approved template, '
+                'hold a kick-off meeting, assign a named owner, run a retrospective. '
+                'Must-not-dos: skip testing, launch without approval, ignore user feedback.'
+            ),
+            'sifting_result': (
+                'Dropped: daily communication (weekly is enough), approved template '
+                '(format doesn\'t affect outcome), kick-off meeting (can be async). '
+                'Survived: named owner, involve stakeholders early, no launch without approval, '
+                'no skipping testing.'
+            ),
+            'min_specs': (
+                'Must-dos: assign a named owner; involve key stakeholders before any build begins. '
+                'Must-not-dos: launch without explicit approval; skip user testing.'
+            ),
+        },
+        'display_fields': ['max_specs', 'sifting_result', 'min_specs', 'word_count'],
+        'timer_seconds': 2700,
+    },
     'wise-crowds-large-group': {
         'class': 'tools.implementations.WiseCrowdsLargeGroupTool',
         'form_class': 'tools.forms.WiseCrowdsLargeGroupForm',

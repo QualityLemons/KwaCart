@@ -47,6 +47,40 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class MinSpecsTool(BaseTool):
+    name = 'Min Specs'
+    description = (
+        'Specify only the absolute must-dos and must-not-dos for achieving a purpose. '
+        'Generate a full list of rules, sift ruthlessly by testing each against the '
+        'purpose, and consolidate to the shortest possible enabling list.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('max_specs',      'All must-dos and must-not-dos — generate as complete a list as possible (1 min alone, 5 min small group)'),
+        ('sifting_result', 'Which rules were dropped after testing against the purpose? Which survived the cut?'),
+        ('min_specs',      'Your final minimum list — only the absolute essentials'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class WiseCrowdsLargeGroupTool(BaseTool):
     name = 'Wise Crowds (Large Group)'
     description = (

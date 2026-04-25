@@ -27,6 +27,42 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class MinSpecsForm(forms.Form):
+    max_specs = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'List every must-do and must-not-do you can think of. '
+                'Make the list as complete as possible — include everything, '
+                'even rules that may turn out to be nonessential.'
+            ),
+            'rows': 6,
+        }),
+        label='Max Specs — full list of all must-dos and must-not-dos (1 min alone, 5 min small group)',
+    )
+    sifting_result = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'For each rule on your Max Spec list, ask: '
+                '"If we broke or ignored this rule, could we still achieve our purpose?" '
+                'List what was dropped and briefly why. Note what survived the test.'
+            ),
+            'rows': 5,
+        }),
+        label='Sifting — what was dropped after testing against the purpose, and what survived',
+    )
+    min_specs = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Your final, shortest possible list. '
+                'Only the rules that are truly essential — '
+                'nothing more that can be taken away.'
+            ),
+            'rows': 4,
+        }),
+        label='Min Specs — the absolute essentials only',
+    )
+
+
 class WiseCrowdsLargeGroupForm(forms.Form):
     challenge = forms.CharField(
         widget=forms.Textarea(attrs={
