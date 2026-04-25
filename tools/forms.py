@@ -27,6 +27,51 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class UserExperienceFishbowlForm(forms.Form):
+    fishbowl_experience = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Inner circle: share the good, the bad, and the ugly — '
+                'informally and concretely, as if talking among yourselves. '
+                'Avoid presenting to the audience.'
+            ),
+            'rows': 5,
+        }),
+        label='Inner circle conversation — what was shared (10–25 min)',
+    )
+    observations_questions = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'Outer circle: what did you observe — including nonverbal exchanges? '
+                'What questions emerged in your satellite group?'
+            ),
+            'rows': 4,
+        }),
+        label='Outer circle observations and questions (satellite groups, 4 min)',
+    )
+    qa_exchange = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What questions were put to the inner circle? '
+                'What answers or exchanges stood out? '
+                'What shifted in the room?'
+            ),
+            'rows': 4,
+        }),
+        label='Q&A exchange between inner and outer circles (10–25 min)',
+    )
+    debrief = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'W³ debrief — What happened? So what does it mean? Now what will you do? '
+                'And: what seems possible now that did not before?'
+            ),
+            'rows': 4,
+        }),
+        label='W³ debrief — What, So What, Now What, and what seems possible now (10–15 min)',
+    )
+
+
 class ConversationCafeForm(forms.Form):
     theme = forms.CharField(
         widget=forms.Textarea(attrs={

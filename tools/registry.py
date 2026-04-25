@@ -2,6 +2,62 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'user-experience-fishbowl': {
+        'class': 'tools.implementations.UserExperienceFishbowlTool',
+        'form_class': 'tools.forms.UserExperienceFishbowlForm',
+        'title': 'User Experience Fishbowl',
+        'icon': 'fish',
+        'category': 'Facilitation',
+        'what': (
+            'A small inner circle with direct field experience talks openly '
+            'while a larger outer circle listens, observes, and formulates questions. '
+            'Know-how spreads naturally through informal storytelling and structured Q&A.'
+        ),
+        'how': (
+            'Explain the setup (2 min). Inner circle converses informally — '
+            'good, bad, and ugly — as if the audience were not there (10–25 min). '
+            'Outer satellite groups formulate observations and questions (4 min). '
+            'Q&A exchange between inner and outer circles (10–25 min). '
+            'Debrief with W³ and ask "What seems possible now?" (10–15 min).'
+        ),
+        'why': (
+            'Foster understanding, spark creativity, and accelerate adoption of new practices. '
+            'Direct field experience is more credible and memorable than presentations. '
+            'The fishbowl design gives everyone equal access to rare tacit knowledge.'
+        ),
+        'example_input': {
+            'fishbowl_experience': (
+                'The inner circle talked about what the rollout actually felt like on the ground. '
+                'The good: senior sponsors genuinely removed blockers. '
+                'The bad: we underestimated how long trust-building with the frontline would take. '
+                'The ugly: we declared success six months too early and lost momentum.'
+            ),
+            'observations_questions': (
+                'Outer circle noticed that the inner group kept referencing one person by name — '
+                'suggesting a key dependency. Questions: How did you rebuild momentum after the '
+                'premature win declaration? What would you do differently in week one?'
+            ),
+            'qa_exchange': (
+                'On rebuilding momentum: they did a visible recommitment with executive presence, '
+                'not a memo. On week one: they would now spend the whole first week listening, '
+                'not presenting.'
+            ),
+            'debrief': (
+                'What: a credible rollout takes longer than the plan says. '
+                'So what: our timelines consistently underestimate the trust-building phase. '
+                'Now what: build a trust audit into week two of every future rollout. '
+                'What seems possible: a version of this that works in 90 days instead of 18 months.'
+            ),
+        },
+        'display_fields': [
+            'fishbowl_experience',
+            'observations_questions',
+            'qa_exchange',
+            'debrief',
+            'word_count',
+        ],
+        'timer_seconds': 3000,
+    },
     'conversation-cafe': {
         'class': 'tools.implementations.ConversationCafeTool',
         'form_class': 'tools.forms.ConversationCafeForm',

@@ -47,6 +47,41 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class UserExperienceFishbowlTool(BaseTool):
+    name = 'User Experience Fishbowl'
+    description = (
+        'Share know-how gained from experience with a larger community. '
+        'A small inner circle talks openly about the good, the bad, and the ugly; '
+        'the outer circle listens, then asks questions in a structured exchange.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('fishbowl_experience', 'Inner circle conversation — the good, the bad, and the ugly (10–25 min)'),
+        ('observations_questions', 'Outer circle observations and questions formulated in satellite groups (4 min)'),
+        ('qa_exchange',          'Q&A exchange between inner and outer circles (10–25 min)'),
+        ('debrief',              'W³ debrief — What? So What? Now What? And: what seems possible now? (10–15 min)'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class ConversationCafeTool(BaseTool):
     name = 'Conversation Café'
     description = (
