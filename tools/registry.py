@@ -33,6 +33,7 @@ TOOL_CATALOG = {
             'initial_thought': 'A challenge I keep noticing is...',
         },
         'display_fields': ['initial_thought', 'word_count'],
+        'timer_seconds': 60,
     },
     'data-cleaner': {
         'class': 'tools.implementations.DataCleanerTool',
