@@ -112,6 +112,12 @@ TOOL_CATALOG = {
             'word_count',
         ],
         'timer_seconds': 720,
+        'phases': [
+            {'label': 'Phase 1 — Self-reflection', 'seconds': 60},
+            {'label': 'Phase 2 — Pair ideas', 'seconds': 120},
+            {'label': 'Phase 3 — Foursome ideas', 'seconds': 240},
+            {'label': 'Phase 4 — Standout idea', 'seconds': 300},
+        ],
     },
     'i-am-and-i-like': {
         'class': 'tools.implementations.IAmAndILikeTool',
