@@ -100,14 +100,25 @@
     const pauseBtn = widget.querySelector('.timer-pause');
     const resetBtn = widget.querySelector('.timer-reset');
     let intervalId = null;
+    let _wasPaused = null;
 
     function setPausedIndicator(isPaused) {
         if (!pausedBadge) return;
+        const _announcer = document.getElementById('phase-announcer');
         if (isPaused) {
             pausedBadge.removeAttribute('hidden');
+            if (_wasPaused === false && _announcer) {
+                _announcer.textContent = '';
+                requestAnimationFrame(function () { _announcer.textContent = 'Timer paused'; });
+            }
         } else {
             pausedBadge.setAttribute('hidden', '');
+            if (_wasPaused === true && _announcer) {
+                _announcer.textContent = '';
+                requestAnimationFrame(function () { _announcer.textContent = 'Timer resumed'; });
+            }
         }
+        _wasPaused = isPaused;
     }
 
     const statusUrl = widget.dataset.statusUrl || null;
@@ -401,6 +412,7 @@
                         }
                     } catch (e) { pauseIntent = false; }
                 }
+                setPausedIndicator(false);
                 intervalId = setInterval(tick, 1000);
                 if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
                 if (pauseBtn) pauseBtn.disabled = false;
@@ -414,6 +426,7 @@
                 clearInterval(intervalId); intervalId = null;
                 if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
                 pauseBtn.disabled = true;
+                setPausedIndicator(true);
             });
         }
 
@@ -551,6 +564,7 @@
                         }
                     } catch (e) { pauseIntent = false; }
                 }
+                setPausedIndicator(false);
                 intervalId = setInterval(tick, 1000);
                 if (startBtn) { startBtn.disabled = true; startBtn.textContent = 'Running…'; }
                 if (pauseBtn) pauseBtn.disabled = false;
@@ -564,6 +578,7 @@
                 clearInterval(intervalId); intervalId = null;
                 if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
                 if (pauseBtn) pauseBtn.disabled = true;
+                setPausedIndicator(true);
             });
         }
 
