@@ -20,6 +20,25 @@ class SummarizerTool(BaseTool):
         }
 
 
+class IdeaGenerationTool(BaseTool):
+    name = 'Idea Generation'
+    description = 'Capture an individual reflection as the start of an idea-generation session.'
+    version = '1.0'
+
+    def validate(self):
+        text = (self.user_input.get('initial_thought') or '').strip()
+        if len(text) < 5:
+            self.errors['initial_thought'] = 'Please write a slightly longer reflection.'
+
+    def process(self):
+        text = (self.user_input.get('initial_thought') or '').strip()
+        return {
+            'initial_thought': text,
+            'word_count': len(text.split()),
+            'character_count': len(text),
+        }
+
+
 class DataCleanerTool(BaseTool):
     name = 'CSV Data Sanitizer'
     description = 'Removes duplicate rows from raw CSV input.'

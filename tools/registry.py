@@ -19,6 +19,21 @@ TOOL_CATALOG = {
         },
         'display_fields': ['summary', 'word_count'],
     },
+    'idea-generation': {
+        'class': 'tools.implementations.IdeaGenerationTool',
+        'form_class': 'tools.forms.IdeaGenerationForm',
+        'title': 'Idea Generation',
+        'icon': 'lightbulb',
+        'category': 'Facilitation',
+        'how_to': (
+            'Spend a minute writing down your individual reflection before '
+            'sharing it with the group.'
+        ),
+        'example_input': {
+            'initial_thought': 'A challenge I keep noticing is...',
+        },
+        'display_fields': ['initial_thought', 'word_count'],
+    },
     'data-cleaner': {
         'class': 'tools.implementations.DataCleanerTool',
         'title': 'CSV Data Sanitizer',
@@ -45,3 +60,11 @@ def get_tool_instance(slug, input_data=None):
         return None
     tool_class = _resolve_class(info['class'])
     return tool_class(user_input=input_data)
+
+
+def get_tool_form_class(slug):
+    """Return the Django form class associated with a tool, or None."""
+    info = TOOL_CATALOG.get(slug)
+    if not info or 'form_class' not in info:
+        return None
+    return _resolve_class(info['form_class'])

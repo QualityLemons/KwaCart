@@ -6,13 +6,22 @@
 <h1>{{ tool_meta.title }}</h1>
 {% include "tools/info_box.html" %}
 
-<form method="post" action="{% if instance %}{% url 'tools:submit' instance.id %}{% endif %}">
+{% if form %}
+<form method="post">
     {% csrf_token %}
-    <p><em>Draft editor scaffold — full form rendering still to be wired up.</em></p>
-    {% if instance %}
-        <button type="submit" class="btn btn-primary">Submit</button>
-    {% endif %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save draft</button>
 </form>
+{% else %}
+<p><em>This tool has no input form configured yet.</em></p>
+{% endif %}
 
-<p><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
+{% if instance %}
+<form method="post" action="{% url 'tools:submit' instance.id %}" style="margin-top:1rem;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Submit and archive</button>
+</form>
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
 {% endblock %}

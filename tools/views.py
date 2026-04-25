@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from archive.models import ToolInstance
 from exporters.pipeline import run_export_pipeline
 
-from .registry import TOOL_CATALOG, get_tool_instance
+from .registry import TOOL_CATALOG, get_tool_form_class, get_tool_instance
 from .utils import get_tool_metadata
 
 
@@ -30,7 +30,7 @@ def tool_catalog(request):
 
 @login_required
 def draft_editor(request, tool_slug, instance_id=None):
-    """Render the drafting interface for a given tool."""
+    """Render the drafting interface for a given tool and persist drafts on POST."""
     tool_meta = get_tool_metadata(tool_slug)
     if not tool_meta:
         return redirect('tools:catalog')
@@ -41,10 +41,35 @@ def draft_editor(request, tool_slug, instance_id=None):
             ToolInstance, id=instance_id, user=request.user, status='draft'
         )
 
+    form_class = get_tool_form_class(tool_slug)
+    form = None
+
+    if form_class is not None:
+        if request.method == 'POST':
+            form = form_class(request.POST)
+            if form.is_valid():
+                tool_class = get_tool_instance(tool_slug)
+                if instance is None:
+                    instance = ToolInstance.objects.create(
+                        user=request.user,
+                        tool_slug=tool_slug,
+                        tool_version=getattr(tool_class, 'version', '1.0'),
+                        status='draft',
+                    )
+                instance.payload_input = form.cleaned_data
+                instance.save()
+                messages.success(request, 'Draft saved.')
+                return redirect('tools:draft_edit',
+                                tool_slug=tool_slug, instance_id=instance.id)
+        else:
+            initial = (instance.payload_input if instance else None) or {}
+            form = form_class(initial=initial)
+
     return render(request, 'tools/draft_editor.html', {
         'tool_slug': tool_slug,
         'tool_meta': tool_meta,
         'instance': instance,
+        'form': form,
     })
 
 
