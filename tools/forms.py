@@ -27,6 +27,42 @@ class IAmAndILikeForm(forms.Form):
     )
 
 
+class ShiftAndShareForm(forms.Form):
+    innovation_summary = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What is the innovation or program you are sharing? '
+                'Describe the essence in a way that helps others see the value — '
+                'include a story, example, or object if possible.'
+            ),
+            'rows': 5,
+        }),
+        label='Your innovation — what you shared at your station (10 min presentation)',
+    )
+    questions_feedback = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What questions did visitors ask? '
+                'What feedback or reactions stood out? '
+                'If you were a visitor, what did you ask or contribute?'
+            ),
+            'rows': 4,
+        }),
+        label='Questions and feedback at your station (2 min per visit)',
+    )
+    key_takeaways = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': (
+                'What innovations did you see at other stations? '
+                'What ideas sparked your thinking? '
+                'Any potential collaborations or follow-ups?'
+            ),
+            'rows': 4,
+        }),
+        label='What you learned visiting other stations',
+    )
+
+
 class DiscoveryActionDialogueForm(forms.Form):
     problem_presence = forms.CharField(
         widget=forms.Textarea(attrs={

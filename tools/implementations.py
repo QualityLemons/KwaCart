@@ -47,6 +47,40 @@ class IAmAndILikeTool(BaseTool):
         }
 
 
+class ShiftAndShareTool(BaseTool):
+    name = 'Shift & Share'
+    description = (
+        'Spread good ideas and make informal connections with innovators. '
+        'A few presenters set up stations; small groups rotate through each '
+        'one for a 10-minute presentation and feedback round.'
+    )
+    version = '1.0'
+
+    PHASES = (
+        ('innovation_summary', 'Your innovation — what you shared or are sharing at your station (10 min each)'),
+        ('questions_feedback',  'Questions and feedback received (or given) at your station (2 min each)'),
+        ('key_takeaways',       'What you learned from visiting other stations'),
+    )
+
+    def validate(self):
+        for field, label in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            if len(value) < 3:
+                self.errors[field] = f'{label}: please write a slightly longer response.'
+
+    def process(self):
+        result = {}
+        total_words = 0
+        for field, _ in self.PHASES:
+            value = (self.user_input.get(field) or '').strip()
+            words = len(value.split())
+            result[field] = value
+            result[f'{field}_word_count'] = words
+            total_words += words
+        result['word_count'] = total_words
+        return result
+
+
 class DiscoveryActionDialogueTool(BaseTool):
     name = 'Discovery & Action Dialogue'
     description = (

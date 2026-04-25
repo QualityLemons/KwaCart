@@ -2,6 +2,53 @@ from importlib import import_module
 
 
 TOOL_CATALOG = {
+    'shift-and-share': {
+        'class': 'tools.implementations.ShiftAndShareTool',
+        'form_class': 'tools.forms.ShiftAndShareForm',
+        'title': 'Shift & Share',
+        'icon': 'arrows-spin',
+        'category': 'Facilitation',
+        'what': (
+            'Replace long large-group presentations with simultaneous concise '
+            'station sessions. A few innovators share in 10 minutes; small groups '
+            'rotate through every station, then share what they learned.'
+        ),
+        'how': (
+            'Identify 3–7 presenters and form an equal number of small groups (5 min). '
+            'Each group visits a different station for a 10-min presentation plus '
+            '2-min Q&A, then rotates (1 min per move) until everyone has visited '
+            'every station. ~90 min for 6 stations.'
+        ),
+        'why': (
+            'Quickly surface innovations hidden within the group and build a '
+            'community of practice. Reveal frontline contributions that formal '
+            'hierarchies can obscure, and spark collaboration and friendly '
+            'mash-ups across teams.'
+        ),
+        'example_input': {
+            'innovation_summary': (
+                'I shared our async-first onboarding approach: new hires complete '
+                'a self-paced module before any live sessions, cutting first-week '
+                'confusion by roughly half.'
+            ),
+            'questions_feedback': (
+                'Teams asked how we handle questions that come up during the '
+                'module. Feedback: add a short FAQ section and a Slack channel '
+                'dedicated to onboarding questions.'
+            ),
+            'key_takeaways': (
+                'Station 3 showed a brilliant visual "team radar" to track skill '
+                'gaps. I want to bring that back to our team.'
+            ),
+        },
+        'display_fields': [
+            'innovation_summary',
+            'questions_feedback',
+            'key_takeaways',
+            'word_count',
+        ],
+        'timer_seconds': 5400,
+    },
     'discovery-action-dialogue': {
         'class': 'tools.implementations.DiscoveryActionDialogueTool',
         'form_class': 'tools.forms.DiscoveryActionDialogueForm',
