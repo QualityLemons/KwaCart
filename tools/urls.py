@@ -19,5 +19,7 @@ urlpatterns = [
     path('session/<uuid:session_id>/close/', views.session_close, name='session_close'),
     path('session/<uuid:session_id>/status/', views.session_status, name='session_status'),
     path('session/<uuid:session_id>/timer/start/', views.timer_start, name='timer_start'),
+    path('session/<uuid:session_id>/timer/pause/', views.timer_pause, name='timer_pause'),
+    path('session/<uuid:session_id>/timer/resume/', views.timer_resume, name='timer_resume'),
     path('session/<uuid:session_id>/timer/reset/', views.timer_reset, name='timer_reset'),
 ]

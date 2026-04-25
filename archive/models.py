@@ -34,6 +34,10 @@ class ToolSession(models.Model):
         null=True, blank=True,
         help_text='Set when the host starts the phase timer so all clients stay in sync.',
     )
+    timer_paused_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text='Set when the host pauses the timer; cleared on resume.',
+    )
 
     md_file = models.FileField(upload_to='archives/md/', null=True, blank=True)
     rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True)

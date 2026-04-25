@@ -285,10 +285,15 @@ def session_status(request, session_id):
         session.timer_started_at.isoformat()
         if session.timer_started_at else None
     )
+    timer_paused_at = (
+        session.timer_paused_at.isoformat()
+        if session.timer_paused_at else None
+    )
     tool_meta = get_tool_metadata(session.tool_slug) or {}
     return JsonResponse({
         'status': session.status,
         'timer_started_at': timer_started_at,
+        'timer_paused_at': timer_paused_at,
         'timer_phases': tool_meta.get('phases') or None,
         'timer_seconds': tool_meta.get('timer_seconds') or 0,
         'participants': [
@@ -310,7 +315,8 @@ def timer_start(request, session_id):
     if session.status != 'open':
         return JsonResponse({'error': 'session not open'}, status=400)
     session.timer_started_at = timezone.now()
-    session.save(update_fields=['timer_started_at'])
+    session.timer_paused_at = None
+    session.save(update_fields=['timer_started_at', 'timer_paused_at'])
     return JsonResponse({'timer_started_at': session.timer_started_at.isoformat()})
 
 
@@ -322,5 +328,38 @@ def timer_reset(request, session_id):
     if session.status != 'open':
         return JsonResponse({'error': 'session not open'}, status=400)
     session.timer_started_at = None
-    session.save(update_fields=['timer_started_at'])
-    return JsonResponse({'timer_started_at': None})
+    session.timer_paused_at = None
+    session.save(update_fields=['timer_started_at', 'timer_paused_at'])
+    return JsonResponse({'timer_started_at': None, 'timer_paused_at': None})
+
+
+@login_required
+@require_POST
+def timer_pause(request, session_id):
+    """Host pauses the timer; records the moment of pause for all clients."""
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user)
+    if session.status != 'open':
+        return JsonResponse({'error': 'session not open'}, status=400)
+    if not session.timer_started_at:
+        return JsonResponse({'error': 'timer not started'}, status=400)
+    if session.timer_paused_at:
+        return JsonResponse({'timer_paused_at': session.timer_paused_at.isoformat()})
+    session.timer_paused_at = timezone.now()
+    session.save(update_fields=['timer_paused_at'])
+    return JsonResponse({'timer_paused_at': session.timer_paused_at.isoformat()})
+
+
+@login_required
+@require_POST
+def timer_resume(request, session_id):
+    """Host resumes the timer; shifts timer_started_at forward by the paused duration."""
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user)
+    if session.status != 'open':
+        return JsonResponse({'error': 'session not open'}, status=400)
+    if not session.timer_paused_at:
+        return JsonResponse({'error': 'timer not paused'}, status=400)
+    paused_duration = timezone.now() - session.timer_paused_at
+    session.timer_started_at = session.timer_started_at + paused_duration
+    session.timer_paused_at = None
+    session.save(update_fields=['timer_started_at', 'timer_paused_at'])
+    return JsonResponse({'timer_started_at': session.timer_started_at.isoformat(), 'timer_paused_at': None})
