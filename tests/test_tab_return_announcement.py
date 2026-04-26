@@ -271,12 +271,13 @@ class TestTabReturnAnnouncement:
     ):
         """
         Phase-timer (standalone): returning to a tab with a running timer
-        announces "about 9 seconds remaining in Alpha".
+        announces "about 3 seconds remaining in Alpha".
 
         Standalone timers re-calculate remaining synchronously from
         ``virtualStartedAt`` in the ``visibilitychange`` handler.  With the
-        fake clock frozen at T and ``virtualStartedAt = T``, elapsed = 0 and
-        remaining = 9 (the full phase total).
+        fake clock frozen at T and ``virtualStartedAt = T``, elapsed = 0.
+        The phase-timer remaining is calculated per phase:
+        ``remaining = phases[0].seconds − 0 = 3``.
         """
         page.clock.install()
         page.set_content(timer_html, wait_until="domcontentloaded")
@@ -293,9 +294,9 @@ class TestTabReturnAnnouncement:
         page.clock.run_for(200)
 
         text = _announcer_text(page)
-        assert "remaining in Alpha" in text, (
-            f"Standalone phase-timer tab-return must announce phase position, "
-            f"got: '{text}'"
+        # remaining = phases[0].seconds − elapsed = 3 − 0 = 3 (remaining in current phase)
+        assert text == "about 3 seconds remaining in Alpha", (
+            f"Standalone phase-timer tab-return announcement mismatch, got: '{text}'"
         )
 
     def test_simple_timer_standalone_running_tab_return_announces(
@@ -323,10 +324,182 @@ class TestTabReturnAnnouncement:
         page.clock.run_for(200)
 
         text = _announcer_text(page)
-        assert "remaining" in text, (
-            f"Standalone simple-timer tab-return must announce remaining time, "
+        # approxLabel(60): m = Math.round(60/60) = 1 → singular "about 1 minute"
+        assert text == "about 1 minute remaining", (
+            f"Standalone simple-timer tab-return announcement mismatch, got: '{text}'"
+        )
+
+    # -----------------------------------------------------------------------
+    # Session mode — expired (zero remaining) negative cases
+    # -----------------------------------------------------------------------
+
+    def test_phase_timer_session_expired_tab_return_silent(
+        self, page, session_phase_timer_html
+    ):
+        """
+        Phase-timer (session): returning to a tab when all phases have
+        expired (remaining = 0) must NOT fire the return-announcement cue.
+
+        elapsed_ms = 9 000 ms (= total duration of all three 3 s phases),
+        so remaining = 0 and the ``remaining > 0`` guard in
+        ``applyServerTimestamp`` suppresses the announce.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        _setup_session_route(page, T, elapsed_ms=9_000, paused=False)
+        _load_session(page, session_phase_timer_html)
+        _wait_display(page, "00:00")
+
+        # The first poll transitions phaseIdx from 0 (Alpha) to 2 (Gamma) and
+        # schedules a "Now entering Phase 3 — Gamma" setTimeout.  Drain it before
+        # clearing the announcer so the tab-return step starts with a clean slate.
+        page.clock.run_for(200)
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+        _hide_tab(page)
+        _show_tab(page)
+        page.wait_for_timeout(50)
+        page.clock.run_for(200)
+
+        text = _announcer_text(page)
+        assert text == "", (
+            f"Expired phase-timer tab-return (session) must not announce, got: '{text}'"
+        )
+
+    def test_simple_timer_session_expired_tab_return_silent(
+        self, page, session_simple_timer_html
+    ):
+        """
+        Simple timer (session): returning to a tab when the full 60 s has
+        elapsed (remaining = 0) must NOT fire the return-announcement cue.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        _setup_session_route(page, T, elapsed_ms=60_000, paused=False)
+        _load_session(page, session_simple_timer_html)
+        _wait_display(page, "00:00")
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+        _hide_tab(page)
+        _show_tab(page)
+        page.wait_for_timeout(50)
+        page.clock.run_for(200)
+
+        text = _announcer_text(page)
+        assert text == "", (
+            f"Expired simple-timer tab-return (session) must not announce, got: '{text}'"
+        )
+
+    # -----------------------------------------------------------------------
+    # Standalone mode — negative cases (paused and expired)
+    # -----------------------------------------------------------------------
+
+    def test_phase_timer_standalone_paused_tab_return_silent(
+        self, page, timer_html
+    ):
+        """
+        Phase-timer (standalone): returning to a tab after the timer has been
+        paused must NOT fire the return-announcement cue.
+
+        When the Pause button is clicked in standalone mode, both
+        ``intervalId`` and ``virtualStartedAt`` are set to ``null``.  The
+        ``visibilitychange`` handler checks both and returns early, so no
+        announcement is scheduled.
+        """
+        page.clock.install()
+        page.set_content(timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        page.locator(".timer-start").click()
+        page.wait_for_function(
+            "document.querySelector('.timer-start').textContent === 'Running\u2026'"
+        )
+        page.locator(".timer-pause").click()
+        page.wait_for_function(
+            "document.querySelector('.timer-start').textContent === 'Resume'"
+        )
+        # Drain the pending "Timer paused" setTimeout (ANNOUNCE_DELAY_MS = 50 ms)
+        # before clearing the announcer.  Without this, run_for(200) below would
+        # fire that timeout and leave "Timer paused" in the live region.
+        page.clock.run_for(200)
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+        _hide_tab(page)
+        _show_tab(page)
+        page.clock.run_for(200)
+
+        text = _announcer_text(page)
+        assert text == "", (
+            f"Paused phase-timer tab-return (standalone) must not announce, "
             f"got: '{text}'"
         )
-        assert "Timer is paused" not in text, (
-            f"Standalone simple-timer tab-return must not say paused, got: '{text}'"
+
+    def test_phase_timer_standalone_expired_tab_return_silent(
+        self, page, timer_html
+    ):
+        """
+        Phase-timer (standalone): returning to a tab after all phases have
+        completed (``intervalId = null``) must NOT fire a return-announcement.
+
+        After ``run_for(9_500)`` all 9 tick callbacks plus the deferred
+        "All phases complete" announcement have fired.  ``intervalId`` is
+        ``null``; the ``visibilitychange`` guard therefore returns early.
+        """
+        page.clock.install()
+        page.set_content(timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        page.locator(".timer-start").click()
+        page.wait_for_function(
+            "document.querySelector('.timer-start').textContent === 'Running\u2026'"
+        )
+
+        page.clock.run_for(9_500)
+        page.wait_for_function(
+            "document.querySelector('.timer-display').textContent === '00:00'"
+        )
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+        _hide_tab(page)
+        _show_tab(page)
+        page.clock.run_for(200)
+
+        text = _announcer_text(page)
+        assert text == "", (
+            f"Expired phase-timer tab-return (standalone) must not announce, "
+            f"got: '{text}'"
+        )
+
+    def test_simple_timer_standalone_expired_tab_return_silent(
+        self, page, simple_timer_html
+    ):
+        """
+        Simple timer (standalone): returning to a tab after the 60 s has
+        elapsed (``intervalId = null``) must NOT fire a return-announcement.
+        """
+        page.clock.install()
+        page.set_content(simple_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        page.locator(".timer-start").click()
+        page.wait_for_function(
+            "document.querySelector('.timer-start').textContent === 'Running\u2026'"
+        )
+
+        page.clock.run_for(60_500)
+        page.wait_for_function(
+            "document.querySelector('.timer-display').textContent === '00:00'"
+        )
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+        _hide_tab(page)
+        _show_tab(page)
+        page.clock.run_for(200)
+
+        text = _announcer_text(page)
+        assert text == "", (
+            f"Expired simple-timer tab-return (standalone) must not announce, "
+            f"got: '{text}'"
         )
