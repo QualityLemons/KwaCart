@@ -5,6 +5,10 @@ Provides a `timer_html` fixture that pre-renders the timer widget template as a
 plain string.  Browser tests use page.set_content() to load it directly, so no
 live Django server is required — the timer widget is fully client-side once it
 has been rendered.
+
+Also provides `archive_detail_html` and `session_closed_html` fixtures that
+pre-render those full-page templates using lightweight mock context objects so
+that the browser-based axe-core tests can load them without a running server.
 """
 
 import os
@@ -12,15 +16,33 @@ from types import SimpleNamespace
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
-# Chromium (Playwright) requires libgbm.so.1 which lives in the Nix profile
-# library directory on Replit.  Prepend it to LD_LIBRARY_PATH before Django
-# or any browser subprocess is launched so Playwright can find it without
-# requiring a manual shell export.
+# pytest-playwright uses an asyncio event loop for its session-scoped browser
+# fixture.  Django 6.0 added a strict guard that raises SynchronousOnlyOperation
+# whenever synchronous ORM operations (including connection.close() during test
+# DB creation) are called from within an async context.  The env var below is
+# the sanctioned override for test environments where this is harmless.
+os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
+
+# ---------------------------------------------------------------------------
+# Chromium / Playwright library path setup for Replit
+# ---------------------------------------------------------------------------
+# On Replit the Nix environment exposes REPLIT_LD_LIBRARY_PATH which already
+# contains the Mesa (libgbm) library path required by Chromium.  We prepend
+# it to LD_LIBRARY_PATH so the browser subprocess can find the shared
+# libraries it needs.
+#
+# If REPLIT_LD_LIBRARY_PATH is not set (e.g. local development outside
+# Replit) we fall back to the old heuristic of checking
+# /home/runner/.nix-profile/lib.
+_replit_lib = os.environ.get("REPLIT_LD_LIBRARY_PATH", "")
 _nix_lib = "/home/runner/.nix-profile/lib"
-if os.path.isdir(_nix_lib):
+_lib_path = _replit_lib or (_nix_lib if os.path.isdir(_nix_lib) else "")
+if _lib_path:
     _existing = os.environ.get("LD_LIBRARY_PATH", "")
-    if _nix_lib not in _existing:
-        os.environ["LD_LIBRARY_PATH"] = f"{_nix_lib}:{_existing}" if _existing else _nix_lib
+    if _lib_path not in _existing:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{_lib_path}:{_existing}" if _existing else _lib_path
+        )
 
 import django
 import pytest
@@ -164,3 +186,58 @@ def session_simple_timer_html() -> str:
         },
     )
     return _inject_base(html)
+
+
+# ---------------------------------------------------------------------------
+# Archive detail and session-closed page fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def archive_detail_html() -> str:
+    """
+    Pre-render the archive detail template using a lightweight mock record.
+
+    No database access is required — all context values are supplied via
+    SimpleNamespace objects.  The payload sections and download buttons are
+    omitted (payload_output/input and md_file/rtf_file are falsy) so that
+    no URL reversals for dynamic PKs are needed.
+    """
+    from datetime import datetime
+    from django.template.loader import render_to_string
+
+    record = SimpleNamespace(
+        tool_slug="wise-crowds",
+        tool_version="1.0",
+        submitted_at=datetime(2025, 1, 15, 10, 30),
+        user=SimpleNamespace(email="tester@example.com"),
+        payload_output=None,
+        payload_input=None,
+        md_file=None,
+        rtf_file=None,
+    )
+    return render_to_string("archive/detail.html", {"record": record})
+
+
+@pytest.fixture(scope="session")
+def session_closed_html() -> str:
+    """
+    Pre-render the session-closed template using lightweight mock objects.
+
+    The instances list is empty so the {% empty %} branch is taken and no
+    per-participant URL reversals are needed.  Download links are suppressed
+    by setting md_file and rtf_file to falsy values.
+    """
+    from datetime import datetime
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(title="Wise Crowds")
+    session = SimpleNamespace(
+        closed_at=datetime(2025, 1, 15, 11, 0),
+        host=SimpleNamespace(email="host@example.com"),
+        md_file=None,
+        rtf_file=None,
+    )
+    return render_to_string(
+        "tools/session_closed.html",
+        {"tool_meta": tool_meta, "session": session, "instances": []},
+    )
