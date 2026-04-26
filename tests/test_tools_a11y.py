@@ -531,3 +531,104 @@ class ArchiveDashboardWithDataA11yTests(_A11yAssertions, TestCase):
             any("Submitted" in t for t in th_texts),
             f"Expected a 'Submitted' <th>; found: {th_texts}",
         )
+
+
+# ---------------------------------------------------------------------------
+# Archive detail view
+# ---------------------------------------------------------------------------
+
+class ArchiveDetailA11yTests(_A11yAssertions, TestCase):
+    """
+    Accessibility checks for the archive detail page
+    (GET /archive/view/<pk>/).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from archive.models import ToolInstance
+        cls.user = User.objects.create_user(
+            email="archive-detail-a11y@example.com",
+            password="testpassword123",
+        )
+        cls.instance = ToolInstance.objects.create(
+            user=cls.user,
+            tool_slug=TOOL_SLUG,
+            tool_version="1.0",
+            status="archived",
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+        response = self.client.get(f"/archive/view/{self.instance.pk}/")
+        self.assertEqual(
+            response.status_code, 200,
+            f"Expected 200 from archive detail, got {response.status_code}",
+        )
+        self.html = response.content.decode("utf-8")
+        self.dom = _parse_html(self.html)
+
+    def test_page_title_is_set(self):
+        self._assert_page_title(self.html, "Archive detail")
+
+    def test_has_single_h1(self):
+        self._assert_single_h1(self.dom, "Archive detail")
+
+    def test_no_heading_level_skips(self):
+        self._assert_no_heading_skips(self.dom, "Archive detail")
+
+    def test_nav_landmark_present(self):
+        self._assert_nav_landmark(self.dom, "Archive detail")
+
+    def test_html_lang_attribute(self):
+        self._assert_html_lang(self.dom, "Archive detail")
+
+
+# ---------------------------------------------------------------------------
+# Session-closed view
+# ---------------------------------------------------------------------------
+
+class SessionClosedA11yTests(_A11yAssertions, TestCase):
+    """
+    Accessibility checks for the session-closed results page
+    (GET /tools/session/<session_id>/ when the session is closed).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.utils import timezone
+        cls.user = User.objects.create_user(
+            email="session-closed-a11y@example.com",
+            password="testpassword123",
+        )
+        cls.session = ToolSession.objects.create(
+            host=cls.user,
+            tool_slug=TOOL_SLUG,
+            tool_version="1.0",
+            status="closed",
+            closed_at=timezone.now(),
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+        response = self.client.get(f"/tools/session/{self.session.id}/")
+        self.assertEqual(
+            response.status_code, 200,
+            f"Expected 200 from session-closed view, got {response.status_code}",
+        )
+        self.html = response.content.decode("utf-8")
+        self.dom = _parse_html(self.html)
+
+    def test_page_title_is_set(self):
+        self._assert_page_title(self.html, "Session closed")
+
+    def test_has_single_h1(self):
+        self._assert_single_h1(self.dom, "Session closed")
+
+    def test_no_heading_level_skips(self):
+        self._assert_no_heading_skips(self.dom, "Session closed")
+
+    def test_nav_landmark_present(self):
+        self._assert_nav_landmark(self.dom, "Session closed")
+
+    def test_html_lang_attribute(self):
+        self._assert_html_lang(self.dom, "Session closed")
