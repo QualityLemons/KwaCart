@@ -345,6 +345,7 @@ def session_status(request, session_id):
     tool_meta = get_tool_metadata(session.tool_slug) or {}
     return JsonResponse({
         'status': session.status,
+        'server_now': timezone.now().isoformat(),
         'timer_started_at': timer_started_at,
         'timer_phases': tool_meta.get('phases') or None,
         'timer_seconds': tool_meta.get('timer_seconds') or 0,

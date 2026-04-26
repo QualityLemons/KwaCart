@@ -280,6 +280,8 @@
         const MILESTONES = [300, 120, 60, 30, 10];
         let announcedMilestones = new Set();
         let firstSync = true;
+        let clockSkew = 0;
+        let clockSkewSet = false;
 
         function milestoneLabel(s) {
             if (s >= 60) {
@@ -428,7 +430,7 @@
             }
             const referenceTime = timerPausedAt
                 ? new Date(timerPausedAt).getTime()
-                : Date.now();
+                : Date.now() + clockSkew;
             const elapsedSec = Math.floor((referenceTime - new Date(timerStartedAt).getTime()) / 1000);
             let acc = 0;
             let newPhaseIdx = phases.length - 1;
@@ -498,6 +500,10 @@
                     if (pauseIntent) { pauseIntent = false; return; }
                     pollFailCount = 0;
                     setStaleIndicator(false);
+                    if (!clockSkewSet && data.server_now) {
+                        clockSkew = new Date(data.server_now).getTime() - Date.now();
+                        clockSkewSet = true;
+                    }
                     applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
                 } catch (e) {
                     pollFailCount += 1;
@@ -596,6 +602,8 @@
         const MILESTONES = [300, 120, 60, 30, 10];
         let announcedMilestones = new Set();
         let firstSync = true;
+        let clockSkew = 0;
+        let clockSkewSet = false;
 
         function milestoneLabel(s) {
             if (s >= 60) {
@@ -656,7 +664,7 @@
             }
             const referenceTime = timerPausedAt
                 ? new Date(timerPausedAt).getTime()
-                : Date.now();
+                : Date.now() + clockSkew;
             const elapsedSec = Math.floor((referenceTime - new Date(timerStartedAt).getTime()) / 1000);
             remaining = Math.max(0, total - elapsedSec);
             // Mark milestones that have already passed so they don't fire stale.
@@ -702,6 +710,10 @@
                     if (pauseIntent) { pauseIntent = false; return; }
                     pollFailCount = 0;
                     setStaleIndicator(false);
+                    if (!clockSkewSet && data.server_now) {
+                        clockSkew = new Date(data.server_now).getTime() - Date.now();
+                        clockSkewSet = true;
+                    }
                     applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
                 } catch (e) {
                     pollFailCount += 1;
