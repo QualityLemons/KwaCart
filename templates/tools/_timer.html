@@ -17,6 +17,7 @@
     <div class="timer-display">--:--</div>
     <div class="timer-paused-badge" hidden></div>
     <div class="timer-stale-badge" hidden role="status" aria-live="polite">&#9888; Out of sync</div>
+    <div class="timer-reconnect-toast" hidden role="status" aria-live="polite"></div>
     {% if tool_meta.phases %}
     <div class="phase-progress-bar" role="group" aria-label="Session phase progress"></div>
     {% endif %}
@@ -99,6 +100,17 @@
     .timer-paused-badge.long-paused {
         color: #92400e; background: #fef3c7; border-color: #fcd34d; font-weight: 600;
     }
+    .timer-reconnect-toast {
+        display: inline-block; font-size: 0.75rem; color: #166534;
+        background: #dcfce7; border: 1px solid #86efac;
+        border-radius: 4px; padding: 0.15rem 0.5rem; letter-spacing: 0.02em;
+        animation: timer-reconnect-fadein 0.3s ease;
+    }
+    .timer-reconnect-toast[hidden] { display: none; }
+    @keyframes timer-reconnect-fadein {
+        from { opacity: 0; transform: translateY(-3px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 </style>
 <script>
 (function () {
@@ -116,6 +128,7 @@
     const display = widget.querySelector('.timer-display');
     const pausedBadge = widget.querySelector('.timer-paused-badge');
     const staleBadge = widget.querySelector('.timer-stale-badge');
+    const reconnectToast = widget.querySelector('.timer-reconnect-toast');
     const startBtn = widget.querySelector('.timer-start');
     const pauseBtn = widget.querySelector('.timer-pause');
     const resetBtn = widget.querySelector('.timer-reset');
@@ -123,14 +136,32 @@
     let pauseTickId = null;
     let _wasPaused = null;
     let pollFailCount = 0;
+    let _wasStale = false;
+    let _reconnectToastId = null;
     const POLL_FAIL_THRESHOLD = 3;
+
+    function showReconnectToast() {
+        if (!reconnectToast) return;
+        if (_reconnectToastId) clearTimeout(_reconnectToastId);
+        reconnectToast.textContent = '\u2713 Reconnected \u2014 syncing timer';
+        reconnectToast.removeAttribute('hidden');
+        _reconnectToastId = setTimeout(function () {
+            reconnectToast.setAttribute('hidden', '');
+            _reconnectToastId = null;
+        }, 4000);
+    }
 
     function setStaleIndicator(isStale) {
         if (!staleBadge) return;
         if (isStale) {
             staleBadge.removeAttribute('hidden');
+            _wasStale = true;
         } else {
             staleBadge.setAttribute('hidden', '');
+            if (_wasStale) {
+                _wasStale = false;
+                showReconnectToast();
+            }
         }
     }
 
