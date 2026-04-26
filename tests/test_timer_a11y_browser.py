@@ -1096,3 +1096,120 @@ class TestLongPauseHostReminder:
             f"{self._THRESHOLD_MS // 1000}-s threshold "
             f"(only {self._BELOW_THRESHOLD_MS // 1000} s elapsed)"
         )
+
+
+# ---------------------------------------------------------------------------
+# Simple-timer reset-announcement tests
+# ---------------------------------------------------------------------------
+
+class TestSimpleTimerResetAnnouncement:
+    """
+    Verify that resetting the **simple timer** (``timer_seconds`` only, no
+    phases) announces "Timer reset" — and never "Timer resumed" — after a
+    start → pause → reset cycle.
+
+    Background
+    ----------
+    The simple timer has its own ``resetToInitial()`` function (separate from
+    the phase-timer variant) that calls ``setPausedIndicator(false, undefined,
+    true)`` (``skipAnnounce=true``) before calling ``announce('Timer reset')``.
+    Without the ``skipAnnounce`` guard the hidden paused-badge dismissal would
+    fire an extra "Timer resumed" announcement, confusing screen reader users.
+
+    These tests use the ``simple_timer_html`` fixture (60-second countdown,
+    no phases) and the same MutationObserver pattern as
+    ``TestResetAnnouncementAccuracy``.
+    """
+
+    _SETTLE_MS = 200
+
+    def test_simple_timer_reset_announces_timer_reset_not_resumed(
+        self, page, simple_timer_html
+    ):
+        """
+        After start → pause → reset the simple timer must emit exactly one
+        non-empty announcement ("Timer reset") and must *not* emit "Timer
+        resumed".
+
+        If the ``skipAnnounce`` guard were removed from the simple-timer
+        ``resetToInitial()``, the observer would capture two non-empty changes:
+        "Timer resumed" followed by "Timer reset".
+        """
+        _load_timer(page, simple_timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+
+        _install_announcer_observer(page)
+
+        page.locator(".timer-reset").click()
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert non_empty, (
+            "Expected at least one announcement after simple-timer reset, got none"
+        )
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement after simple-timer reset, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Timer reset", (
+            f"Expected 'Timer reset', got '{non_empty[0]}'. "
+            "A stray 'Timer resumed' before 'Timer reset' would indicate the "
+            "skipAnnounce guard is missing from the simple-timer resetToInitial()."
+        )
+        assert "Timer resumed" not in non_empty, (
+            f"'Timer resumed' must not appear in announcements after reset; "
+            f"got: {non_empty}"
+        )
+
+    def test_simple_timer_reset_leaves_badge_hidden(
+        self, page, simple_timer_html
+    ):
+        """
+        After a pause → reset cycle on the simple timer the paused badge must
+        be hidden, confirming ``setPausedIndicator`` ran and the DOM is clean.
+        """
+        _load_timer(page, simple_timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+        page.locator(".timer-reset").click()
+        _advance(page, self._SETTLE_MS)
+
+        badge = page.locator(".timer-paused-badge")
+        assert not badge.is_visible(), (
+            "Paused badge should be hidden after resetting the simple timer from "
+            "a paused state"
+        )
+
+    def test_simple_timer_reset_restores_start_button(
+        self, page, simple_timer_html
+    ):
+        """
+        After a pause → reset cycle on the simple timer the Start button must
+        read "Start" (not "Resume") and be enabled, confirming full state reset.
+        """
+        _load_timer(page, simple_timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+        page.locator(".timer-reset").click()
+        _advance(page, self._SETTLE_MS)
+
+        start_btn = page.locator(".timer-start")
+        assert start_btn.inner_text() == "Start", (
+            f"Expected Start button to read 'Start' after simple-timer reset, "
+            f"got '{start_btn.inner_text()}'"
+        )
+        assert not start_btn.is_disabled(), (
+            "Start button should be enabled after simple-timer reset"
+        )
