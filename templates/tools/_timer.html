@@ -461,6 +461,7 @@
             MILESTONES.forEach(function (ms) { if (remaining < ms) announcedMilestones.add(ms); });
             // On first sync, announce the current position so late-joining
             // participants hear a cue immediately, whether the timer is running or paused.
+            const _wasFSPaused = firstSync && !!timerStartedAt && remaining > 0 && !!timerPausedAt;
             if (firstSync && timerStartedAt && remaining > 0) {
                 if (timerPausedAt) {
                     announce('Timer is paused \u2014 ' + approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
@@ -473,7 +474,10 @@
             if (timerPausedAt) {
                 clearInterval(intervalId); intervalId = null;
                 if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
-                setPausedIndicator(true, new Date(timerPausedAt).getTime());
+                // Pass skipAnnounce=true when the paused-join cue was just fired on
+                // firstSync — both use the same ANNOUNCE_DELAY_MS setTimeout, and without
+                // the guard the "Timer paused" update overwrites the more informative cue.
+                setPausedIndicator(true, new Date(timerPausedAt).getTime(), _wasFSPaused);
             } else {
                 setPausedIndicator(false);
                 if (remaining > 0 && !intervalId) {
@@ -678,6 +682,7 @@
             MILESTONES.forEach(function (ms) { if (remaining < ms) announcedMilestones.add(ms); });
             // On first sync, announce the current position for late-joining participants,
             // whether the timer is running or paused.
+            const _wasFSPaused = firstSync && !!timerStartedAt && remaining > 0 && !!timerPausedAt;
             if (firstSync && timerStartedAt && remaining > 0) {
                 if (timerPausedAt) {
                     announce('Timer is paused \u2014 ' + approxLabel(remaining) + ' remaining');
@@ -690,7 +695,9 @@
             if (timerPausedAt) {
                 clearInterval(intervalId); intervalId = null;
                 if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Resume'; }
-                setPausedIndicator(true, new Date(timerPausedAt).getTime());
+                // Pass skipAnnounce=true when the paused-join cue was just fired on
+                // firstSync — without the guard, "Timer paused" overwrites the richer cue.
+                setPausedIndicator(true, new Date(timerPausedAt).getTime(), _wasFSPaused);
             } else {
                 setPausedIndicator(false);
                 if (remaining > 0 && !intervalId) {
