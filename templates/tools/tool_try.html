@@ -74,6 +74,171 @@
 </div>
 {% endif %}
 
+<!-- ── Countdown timer ── -->
+{% if try_timer_seconds %}
+<div id="try-timer"
+     style="border:2px solid #5D3A9B; border-radius:8px;
+            padding:1rem 1.25rem; margin-bottom:1.75rem; background:#f8f3ff;"
+     role="region" aria-label="Countdown timer">
+
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                flex-wrap:wrap; gap:0.75rem;">
+        <div>
+            <p style="font-size:0.7rem; font-weight:700; letter-spacing:0.07em;
+                      text-transform:uppercase; color:#5D3A9B; margin:0 0 0.2rem;">
+                Suggested time
+            </p>
+            <p style="font-size:0.9rem; color:#334155; margin:0;">
+                {{ try_timer_label }}
+            </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <span id="try-timer-display"
+                  style="font-size:2rem; font-weight:800; font-variant-numeric:tabular-nums;
+                         color:#5D3A9B; min-width:5ch; text-align:center;"
+                  aria-label="{{ try_timer_seconds|floatformat:0 }} seconds remaining"
+                  role="timer"></span>
+            <div style="display:flex; gap:0.5rem;">
+                <button id="try-timer-btn" type="button"
+                        style="padding:0.4rem 0.9rem; background:#5D3A9B; color:#fff;
+                               border:none; border-radius:5px; font-size:0.9rem;
+                               cursor:pointer; font-family:inherit; font-weight:600;">
+                    Start
+                </button>
+                <button id="try-timer-reset" type="button"
+                        style="padding:0.4rem 0.7rem; background:#fff; color:#5D3A9B;
+                               border:1px solid #5D3A9B; border-radius:5px; font-size:0.9rem;
+                               cursor:pointer; font-family:inherit;">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div style="margin-top:0.75rem; background:#e2d8f5; border-radius:4px;
+                height:5px; overflow:hidden;" aria-hidden="true">
+        <div id="try-timer-bar"
+             style="background:#5D3A9B; height:100%; width:100%; border-radius:4px;
+                    transition:width 1s linear;"></div>
+    </div>
+
+    <!-- Time's up message -->
+    <p id="try-timer-complete"
+       style="display:none; margin:0.6rem 0 0; font-size:0.875rem;
+              color:#0d6b66; font-weight:600;">
+        Time's up — complete your answer and submit whenever you're ready.
+    </p>
+
+    <!-- Screen-reader announcements -->
+    <div id="try-timer-announcer" aria-live="polite" aria-atomic="true"
+         class="sr-only"></div>
+</div>
+
+<script>
+(function () {
+    var TOTAL = {{ try_timer_seconds }};
+    var remaining = TOTAL;
+    var running = false;
+    var intervalId = null;
+    var ANNOUNCE_DELAY_MS = 50;
+    var announced = new Set();
+
+    var display  = document.getElementById('try-timer-display');
+    var btn      = document.getElementById('try-timer-btn');
+    var resetBtn = document.getElementById('try-timer-reset');
+    var bar      = document.getElementById('try-timer-bar');
+    var complete = document.getElementById('try-timer-complete');
+    var live     = document.getElementById('try-timer-announcer');
+
+    function fmt(s) {
+        var m = Math.floor(s / 60), sc = s % 60;
+        return String(m).padStart(2, '0') + ':' + String(sc).padStart(2, '0');
+    }
+
+    function announce(msg) {
+        live.textContent = '';
+        setTimeout(function () { live.textContent = msg; }, ANNOUNCE_DELAY_MS);
+    }
+
+    function render() {
+        var t = fmt(remaining);
+        display.textContent = t;
+        display.setAttribute('aria-label', t + ' remaining');
+        bar.style.width = (TOTAL > 0 ? (remaining / TOTAL * 100) : 0) + '%';
+    }
+
+    function checkMilestones() {
+        [300, 120, 60, 30, 10].forEach(function (m) {
+            if (remaining === m && !announced.has(m)) {
+                announced.add(m);
+                var mins = Math.floor(remaining / 60);
+                var secs = remaining % 60;
+                var label = mins > 0
+                    ? mins + ' minute' + (mins !== 1 ? 's' : '') + (secs ? ' ' + secs + 's' : '')
+                    : remaining + ' seconds';
+                announce(label + ' remaining');
+            }
+        });
+    }
+
+    function finish() {
+        running = false;
+        clearInterval(intervalId);
+        remaining = 0;
+        render();
+        btn.textContent = 'Start';
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        bar.style.background = '#40B0A6';
+        complete.style.display = 'block';
+        announce('Time is up. Complete your answer and submit whenever you\'re ready.');
+    }
+
+    function tick() {
+        remaining -= 1;
+        render();
+        checkMilestones();
+        if (remaining <= 0) finish();
+    }
+
+    btn.addEventListener('click', function () {
+        if (remaining <= 0) return;
+        if (running) {
+            running = false;
+            clearInterval(intervalId);
+            btn.textContent = 'Resume';
+            btn.style.background = '#40B0A6';
+            announce('Timer paused — ' + fmt(remaining) + ' remaining');
+        } else {
+            running = true;
+            btn.textContent = 'Pause';
+            btn.style.background = '#E66100';
+            announce('Timer started — ' + fmt(remaining) + ' remaining');
+            intervalId = setInterval(tick, 1000);
+        }
+    });
+
+    resetBtn.addEventListener('click', function () {
+        running = false;
+        clearInterval(intervalId);
+        remaining = TOTAL;
+        announced.clear();
+        btn.textContent = 'Start';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.background = '#5D3A9B';
+        bar.style.background = '#5D3A9B';
+        complete.style.display = 'none';
+        render();
+        announce('Timer reset to ' + fmt(TOTAL));
+    });
+
+    render();
+}());
+</script>
+{% endif %}
+
 <!-- ── How to use ── -->
 <details style="margin-bottom:1.75rem; background:#f8fafc; border:1px solid #e2e8f0;
                 border-radius:6px; padding:0.9rem 1.1rem;">

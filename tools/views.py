@@ -55,6 +55,8 @@ def tool_try(request, tool_slug):
         'result': result,
         'result_fields': result_fields,
         'tool_slug': tool_slug,
+        'try_timer_seconds': tool_meta.get('try_timer_seconds', 0),
+        'try_timer_label': tool_meta.get('try_timer_label', ''),
     })
 
 

@@ -270,6 +270,8 @@ TOOL_CATALOG = {
         },
         'display_fields': ['max_specs', 'sifting_result', 'min_specs', 'word_count'],
         'timer_seconds': 2700,
+        'try_timer_seconds': 300,
+        'try_timer_label': 'Generate your Max Spec list',
     },
     'wise-crowds-large-group': {
         'class': 'tools.implementations.WiseCrowdsLargeGroupTool',
@@ -646,6 +648,8 @@ TOOL_CATALOG = {
             'word_count',
         ],
         'timer_seconds': 1200,
+        'try_timer_seconds': 300,
+        'try_timer_label': 'Generate your 15% Solutions',
     },
     'triz': {
         'class': 'tools.implementations.TrizTool',
