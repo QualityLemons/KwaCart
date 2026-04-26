@@ -111,6 +111,10 @@ class _A11yAssertions:
         nav = dom.find_one(tag="nav")
         self.assertIsNotNone(nav, f"{page_label}: page must contain a <nav> landmark")
 
+    def _assert_main_landmark(self, dom, page_label):
+        main = dom.find_one(tag="main")
+        self.assertIsNotNone(main, f"{page_label}: page must contain a <main> landmark")
+
     def _assert_html_lang(self, dom, page_label):
         html_el = dom.find_one(tag="html")
         self.assertIsNotNone(html_el, f"{page_label}: missing <html> element")
@@ -209,6 +213,9 @@ class DraftEditorA11yTests(_A11yAssertions, TestCase):
 
     def test_nav_landmark_present(self):
         self._assert_nav_landmark(self.dom, "Draft editor")
+
+    def test_main_landmark_present(self):
+        self._assert_main_landmark(self.dom, "Draft editor")
 
     def test_html_lang_attribute(self):
         self._assert_html_lang(self.dom, "Draft editor")
@@ -347,6 +354,9 @@ class SessionHostA11yTests(_A11yAssertions, TestCase):
     def test_nav_landmark_present(self):
         self._assert_nav_landmark(self.dom, "Session host view")
 
+    def test_main_landmark_present(self):
+        self._assert_main_landmark(self.dom, "Session host view")
+
     def test_html_lang_attribute(self):
         self._assert_html_lang(self.dom, "Session host view")
 
@@ -443,6 +453,9 @@ class ArchiveDashboardA11yTests(_A11yAssertions, TestCase):
 
     def test_nav_landmark_present(self):
         self._assert_nav_landmark(self.dom, "Archive dashboard")
+
+    def test_main_landmark_present(self):
+        self._assert_main_landmark(self.dom, "Archive dashboard")
 
     def test_html_lang_attribute(self):
         self._assert_html_lang(self.dom, "Archive dashboard")
