@@ -280,6 +280,7 @@
         const MILESTONES = [300, 120, 60, 30, 10];
         let announcedMilestones = new Set();
         let firstSync = true;
+        let announceOnReturn = false;
         let clockSkew = 0;
 
         function milestoneLabel(s) {
@@ -469,6 +470,13 @@
                     announce(approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
                 }
             }
+            // On tab-return, announce only if the timer is still actively running.
+            if (announceOnReturn) {
+                announceOnReturn = false;
+                if (!timerPausedAt && remaining > 0) {
+                    announce(approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
+                }
+            }
             firstSync = false;
             renderPhase();
             if (timerPausedAt) {
@@ -531,6 +539,7 @@
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) {
                     initialRender = true;
+                    announceOnReturn = true;
                     pollTimerState();
                 }
             });
@@ -539,6 +548,9 @@
                 if (!document.hidden && intervalId && virtualStartedAt) {
                     initialRender = true;
                     applyServerTimestamp(new Date(virtualStartedAt).toISOString(), null);
+                    if (intervalId && remaining > 0) {
+                        announce(approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
+                    }
                 }
             });
         }
@@ -614,6 +626,7 @@
         const MILESTONES = [300, 120, 60, 30, 10];
         let announcedMilestones = new Set();
         let firstSync = true;
+        let announceOnReturn = false;
         let clockSkew = 0;
 
         function milestoneLabel(s) {
@@ -690,6 +703,13 @@
                     announce(approxLabel(remaining) + ' remaining');
                 }
             }
+            // On tab-return, announce only if the timer is still actively running.
+            if (announceOnReturn) {
+                announceOnReturn = false;
+                if (!timerPausedAt && remaining > 0) {
+                    announce(approxLabel(remaining) + ' remaining');
+                }
+            }
             firstSync = false;
             render();
             if (timerPausedAt) {
@@ -746,6 +766,7 @@
             window.addEventListener('online', function () { pollTimerState(); });
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) {
+                    announceOnReturn = true;
                     pollTimerState();
                 }
             });
@@ -753,6 +774,9 @@
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden && intervalId && virtualStartedAt) {
                     applyServerTimestamp(new Date(virtualStartedAt).toISOString(), null);
+                    if (intervalId && remaining > 0) {
+                        announce(approxLabel(remaining) + ' remaining');
+                    }
                 }
             });
         }
