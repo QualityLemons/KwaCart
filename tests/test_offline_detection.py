@@ -127,13 +127,9 @@ class TestOfflineDetection:
         _load_session(page, session_phase_timer_html)
         page.wait_for_timeout(50)
 
-        # Confirm pollFailCount is still 0 — no intervening poll failures.
-        fail_count = page.evaluate(
-            "document.querySelector('.timer-widget') && "
-            "typeof pollFailCount !== 'undefined' ? pollFailCount : 0"
-        )
-        # pollFailCount is a local JS var; we can't read it directly, but we
-        # CAN verify the badge is not yet visible before the event fires.
+        # pollFailCount is a closure-local JS variable; confirm the badge is
+        # not yet visible before the event fires (route returns success, so
+        # no poll failures have accumulated).
         assert not page.locator(".timer-stale-badge").is_visible(), (
             "Stale badge must be hidden before 'offline' event fires "
             "(routing is returning success, so no failures yet)"
