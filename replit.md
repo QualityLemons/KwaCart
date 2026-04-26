@@ -46,7 +46,7 @@ Migrations are run as part of the deployment build step.
 
 ## User Preferences
 
-- **Do not suggest follow-up tasks** after completing work unless the user explicitly asks.
+- **Do not suggest or propose any tasks** — neither follow-up tasks nor new tasks — unless the user explicitly asks. This applies to the main agent and all task agents.
 
 ## Notes / Known Issues
 
