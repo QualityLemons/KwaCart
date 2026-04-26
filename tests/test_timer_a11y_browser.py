@@ -867,6 +867,115 @@ class TestResetAnnouncementAccuracy:
 
 
 # ---------------------------------------------------------------------------
+# Phase-transition announcement-count tests
+# ---------------------------------------------------------------------------
+
+class TestPhaseTransitionAnnouncementCount:
+    """
+    Verify that each phase transition causes ``#phase-announcer`` to emit
+    exactly one non-empty announcement — "Now entering Phase N — <label>" —
+    and that "All phases complete" fires exactly once when the last phase ends.
+
+    Background
+    ----------
+    ``announce()`` always clears the live region first (``textContent = ''``)
+    and then sets the message text after ``ANNOUNCE_DELAY_MS`` (50 ms).  That
+    produces two DOM mutations per call, but only *one* non-empty mutation.
+    If the announce path were accidentally called twice (e.g. from both the
+    ``tick()`` loop and a sync-path re-entry) the observer would capture two
+    non-empty changes and the test would fail.
+
+    Test setup
+    ----------
+    1. Start the timer and advance past the previous phase boundary so the
+       clock is firmly *inside* the phase before the one being tested.
+    2. Install the MutationObserver (``_install_announcer_observer``).
+    3. Advance ``TICK_MS`` (phase duration + 500 ms) so the clock crosses the
+       next boundary and the ``ANNOUNCE_DELAY_MS`` setTimeout fires within the
+       same ``run_for`` call.
+    4. Filter captured changes to non-empty strings and assert exactly 1,
+       with the expected message text.
+    """
+
+    def test_phase_1_to_2_fires_exactly_one_announcement(self, page, timer_html):
+        """
+        Crossing the phase 1 → 2 boundary must produce exactly one non-empty
+        announcement: "Now entering Phase 2 — Beta".
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        _install_announcer_observer(page)
+
+        _advance(page, TICK_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on phase 1 → 2 transition, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Now entering Phase 2 \u2014 Beta", (
+            f"Expected 'Now entering Phase 2 \u2014 Beta', got: '{non_empty[0]}'"
+        )
+
+    def test_phase_2_to_3_fires_exactly_one_announcement(self, page, timer_html):
+        """
+        Crossing the phase 2 → 3 boundary must produce exactly one non-empty
+        announcement: "Now entering Phase 3 — Gamma".
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, TICK_MS)
+        _advance(page, 100)
+
+        _install_announcer_observer(page)
+
+        _advance(page, TICK_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on phase 2 → 3 transition, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Now entering Phase 3 \u2014 Gamma", (
+            f"Expected 'Now entering Phase 3 \u2014 Gamma', got: '{non_empty[0]}'"
+        )
+
+    def test_all_phases_complete_fires_exactly_one_announcement(
+        self, page, timer_html
+    ):
+        """
+        When the last phase expires, ``#phase-announcer`` must emit exactly one
+        non-empty announcement: "All phases complete".
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, TICK_MS)
+        _advance(page, TICK_MS)
+        _advance(page, 100)
+
+        _install_announcer_observer(page)
+
+        _advance(page, TICK_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement for 'All phases complete', "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "All phases complete", (
+            f"Expected 'All phases complete', got: '{non_empty[0]}'"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Long-pause host-reminder tests
 # ---------------------------------------------------------------------------
 
