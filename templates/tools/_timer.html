@@ -15,7 +15,7 @@
     </div>
     {% endif %}
     <div class="timer-display">--:--</div>
-    <div class="timer-paused-badge" hidden aria-live="polite"></div>
+    <div class="timer-paused-badge" hidden aria-hidden="true"></div>
     <div class="timer-stale-badge" hidden role="status" aria-live="polite">&#9888; Out of sync</div>
     {% if tool_meta.phases %}
     <div class="phase-progress-bar" role="group" aria-label="Session phase progress"></div>
@@ -99,6 +99,13 @@
 </style>
 <script>
 (function () {
+    // Delay (ms) between clearing and repopulating the aria-live region.
+    // A single requestAnimationFrame (~16 ms) is too short for NVDA, JAWS,
+    // and some versions of VoiceOver to register the cleared state; 50 ms
+    // gives the browser and screen reader enough time to see an empty region
+    // before the announcement text arrives, preventing swallowed messages.
+    const ANNOUNCE_DELAY_MS = 50;
+
     const widget = document.querySelector('.timer-widget');
     if (!widget) return;
     const display = widget.querySelector('.timer-display');
@@ -129,7 +136,7 @@
             pausedBadge.removeAttribute('hidden');
             if (_wasPaused === false && _announcer) {
                 _announcer.textContent = '';
-                requestAnimationFrame(function () { _announcer.textContent = 'Timer paused'; });
+                setTimeout(function () { _announcer.textContent = 'Timer paused'; }, ANNOUNCE_DELAY_MS);
             }
             if (pauseTickId) clearInterval(pauseTickId);
             function updatePausedText() {
@@ -153,7 +160,7 @@
             if (pauseTickId) { clearInterval(pauseTickId); pauseTickId = null; }
             if (_wasPaused === true && _announcer) {
                 _announcer.textContent = '';
-                requestAnimationFrame(function () { _announcer.textContent = 'Timer resumed'; });
+                setTimeout(function () { _announcer.textContent = 'Timer resumed'; }, ANNOUNCE_DELAY_MS);
             }
         }
         _wasPaused = isPaused;
@@ -223,7 +230,7 @@
         function announce(msg) {
             if (!announcer) return;
             announcer.textContent = '';
-            requestAnimationFrame(function () { announcer.textContent = msg; });
+            setTimeout(function () { announcer.textContent = msg; }, ANNOUNCE_DELAY_MS);
         }
 
         const MILESTONES = [300, 120, 60, 30, 10];
@@ -536,7 +543,7 @@
         function announce(msg) {
             if (!_simpleAnnouncer) return;
             _simpleAnnouncer.textContent = '';
-            requestAnimationFrame(function () { _simpleAnnouncer.textContent = msg; });
+            setTimeout(function () { _simpleAnnouncer.textContent = msg; }, ANNOUNCE_DELAY_MS);
         }
 
         const MILESTONES = [300, 120, 60, 30, 10];

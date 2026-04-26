@@ -176,13 +176,21 @@ class TimerWidgetStaticHTMLTests(TestCase):
         classes = (announcer["attrs"].get("class") or "").split()
         self.assertIn("sr-only", classes, "phase-announcer must have class 'sr-only'")
 
-    def test_paused_badge_has_aria_live_polite(self):
+    def test_paused_badge_has_aria_hidden(self):
         badge = self.dom.find_one(tag="div", **{"class": "timer-paused-badge"})
         self.assertIsNotNone(badge, "timer-paused-badge div must exist")
-        self.assertEqual(
+        self.assertNotEqual(
             badge["attrs"].get("aria-live"),
             "polite",
-            "timer-paused-badge must have aria-live='polite'",
+            "timer-paused-badge must NOT have aria-live='polite' — its "
+            "every-second counter updates would flood the screen-reader queue; "
+            "pause/resume announcements are handled by #phase-announcer instead",
+        )
+        self.assertEqual(
+            badge["attrs"].get("aria-hidden"),
+            "true",
+            "timer-paused-badge must have aria-hidden='true' so its "
+            "second-by-second counter is not picked up by the live region",
         )
 
     def test_sr_only_css_rule_hides_visually(self):
@@ -243,8 +251,9 @@ class TimerWidgetJavaScriptTests(TestCase):
     def test_js_clears_announcer_before_updating(self):
         self.assertIn("announcer.textContent = ''", self.html)
 
-    def test_js_uses_requestAnimationFrame_for_announcement(self):
-        self.assertIn("requestAnimationFrame", self.html)
+    def test_js_uses_settimeout_for_announcement(self):
+        self.assertIn("ANNOUNCE_DELAY_MS", self.html)
+        self.assertIn("setTimeout(function () { announcer.textContent = msg; }, ANNOUNCE_DELAY_MS)", self.html)
 
     def test_js_sets_aria_label_in_renderProgressBar(self):
         self.assertIn("setAttribute('aria-label'", self.html)

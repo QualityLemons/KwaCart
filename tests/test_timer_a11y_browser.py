@@ -20,9 +20,55 @@ between tests — this makes the suite deterministic and parallelism-safe.
 Clock note
 ----------
 We use `page.clock.run_for()` (not `fast_forward`) because the timer's
-`announce()` function defers textContent updates via `requestAnimationFrame`.
-`run_for` fires both timer callbacks *and* rAF callbacks, so the live region
+`announce()` function defers textContent updates via setTimeout(fn, ANNOUNCE_DELAY_MS).
+`run_for` fires both timer callbacks and setTimeout callbacks, so the live region
 is always up to date when the assertion runs.
+
+Manual screen-reader verification checklist
+-------------------------------------------
+The automated suite catches DOM-level regressions but cannot replace real
+assistive technology.  Run the following scenario with VoiceOver (macOS) or
+NVDA (Windows) after any change to _timer.html:
+
+  Setup
+  -----
+  1. Open the timer test page (or any session page with a phase timer).
+  2. Enable the screen reader (VoiceOver: Cmd+F5 / NVDA: Ctrl+Alt+N).
+
+  Phase timer — start and milestones
+  -----------------------------------
+  3. Press Start.  SR must say "Running…" (button label change) — no extra
+     announcement is expected at this point.
+  4. Wait (or use browser dev-tools to jump the clock) until 5 minutes remain
+     in the first phase.  SR must announce "5 minutes remaining in <Phase 1>".
+  5. Repeat for 2 minutes, 1 minute, 30 seconds, 10 seconds.
+
+  Phase transition
+  ----------------
+  6. Allow phase 1 to expire.  SR must say "Now entering Phase 2 — <label>".
+     The announcement should not be doubled.
+
+  Completion
+  ----------
+  7. Allow all phases to expire.  SR must say "All phases complete".
+
+  Pause / resume
+  --------------
+  8. While the timer is running, press Pause (host view).
+     SR must say "Timer paused" exactly once.
+     The paused elapsed counter ("Paused · 3s" etc.) must NOT be announced
+     repeatedly — the badge carries aria-hidden="true" so it is invisible to
+     screen readers.
+  9. Press Resume (Start).  SR must say "Timer resumed" exactly once.
+
+  Late-join initial cue
+  ---------------------
+  10. Join a session mid-run (simulate by refreshing the page while the timer
+      is active).  SR must announce approximately how much time remains,
+      e.g. "about 3 minutes remaining in <Phase 1>".
+
+  Expected: all announcements above are spoken clearly, without doubling or
+  swallowing, on both NVDA/Firefox and VoiceOver/Safari.
 """
 
 from pathlib import Path
