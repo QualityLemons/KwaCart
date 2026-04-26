@@ -460,9 +460,13 @@
             // don't fire if the timer drifts back through a boundary.
             MILESTONES.forEach(function (ms) { if (remaining < ms) announcedMilestones.add(ms); });
             // On first sync, announce the current position so late-joining
-            // participants hear a cue immediately.
-            if (firstSync && timerStartedAt && !timerPausedAt && remaining > 0) {
-                announce(approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
+            // participants hear a cue immediately, whether the timer is running or paused.
+            if (firstSync && timerStartedAt && remaining > 0) {
+                if (timerPausedAt) {
+                    announce('Timer is paused \u2014 ' + approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
+                } else {
+                    announce(approxLabel(remaining) + ' remaining in ' + phases[phaseIdx].label);
+                }
             }
             firstSync = false;
             renderPhase();
@@ -672,9 +676,14 @@
             remaining = Math.max(0, total - elapsedSec);
             // Mark milestones that have already passed so they don't fire stale.
             MILESTONES.forEach(function (ms) { if (remaining < ms) announcedMilestones.add(ms); });
-            // On first sync, announce the current position for late-joining participants.
-            if (firstSync && timerStartedAt && !timerPausedAt && remaining > 0) {
-                announce(approxLabel(remaining) + ' remaining');
+            // On first sync, announce the current position for late-joining participants,
+            // whether the timer is running or paused.
+            if (firstSync && timerStartedAt && remaining > 0) {
+                if (timerPausedAt) {
+                    announce('Timer is paused \u2014 ' + approxLabel(remaining) + ' remaining');
+                } else {
+                    announce(approxLabel(remaining) + ' remaining');
+                }
             }
             firstSync = false;
             render();
