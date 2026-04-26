@@ -27,7 +27,7 @@ def save_canvas_to_file(canvas_data, tool_slug, user_id):
     except Exception:
         return ''
 
-    content_hash = hashlib.md5(png_bytes).hexdigest()[:12]
+    content_hash = hashlib.sha256(png_bytes).hexdigest()[:12]
     filename = f'{tool_slug}_{user_id}_{content_hash}.png'
     drawings_dir = os.path.join(settings.MEDIA_ROOT, 'drawings')
     os.makedirs(drawings_dir, exist_ok=True)
