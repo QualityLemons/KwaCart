@@ -152,6 +152,35 @@ def _announcer_text(page) -> str:
     return page.locator("#phase-announcer").inner_text()
 
 
+def _install_announcer_observer(page) -> None:
+    """
+    Inject a MutationObserver that records every textContent change on
+    ``#phase-announcer`` into ``window.__announcerChanges``.
+
+    Call this *after* the timer widget is visible but *before* the action
+    under test (pause/resume/reset) so that every mutation is captured.
+    The list accumulates both the '' clear and the actual message text,
+    allowing the test to count non-empty announcements separately.
+    """
+    page.evaluate("""
+        () => {
+            window.__announcerChanges = [];
+            const el = document.getElementById('phase-announcer');
+            const obs = new MutationObserver(muts => {
+                muts.forEach(m => {
+                    window.__announcerChanges.push(m.target.textContent.trim());
+                });
+            });
+            obs.observe(el, { childList: true, subtree: true, characterData: true });
+        }
+    """)
+
+
+def _get_announcer_changes(page) -> list:
+    """Return the list of textContent snapshots captured by the observer."""
+    return page.evaluate("() => window.__announcerChanges")
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -555,3 +584,143 @@ class TestTimerA11yBrowserKeyboard:
         assert "Timer reset" in text, (
             f"Expected 'Timer reset' in live region after keyboard reset, got: '{text}'"
         )
+
+
+# ---------------------------------------------------------------------------
+# Announcement-count tests — exactly one SR announcement per pause / resume
+# ---------------------------------------------------------------------------
+
+class TestPauseResumeAnnouncementCount:
+    """
+    Verify that pausing or resuming the timer causes ``#phase-announcer`` to
+    emit exactly one non-empty announcement ("Timer paused" / "Timer resumed").
+
+    Background
+    ----------
+    A previous bug emitted two announcements on pause: one from the
+    ``#phase-announcer`` live region and a second from the ``.timer-paused-badge``
+    which also carried ``aria-live``.  The fix was to strip ``aria-live`` from
+    the badge.  These tests catch any regression by:
+
+    1. Attaching a MutationObserver to ``#phase-announcer`` before the action.
+    2. Triggering pause or resume.
+    3. Advancing the fake clock past ``ANNOUNCE_DELAY_MS`` (50 ms) so the
+       deferred ``textContent`` update fires.
+    4. Asserting that exactly one *non-empty* mutation was captured —
+       i.e. the '' clear followed by the message text, giving one non-empty
+       entry.
+
+    The paused-badge test additionally confirms that the badge element itself
+    carries no ``aria-live`` attribute, so screen readers never read its
+    continuously-updating elapsed-time text.
+    """
+
+    # How long (ms) to advance the fake clock after triggering an action so
+    # that the ANNOUNCE_DELAY_MS setTimeout (50 ms) has fired.
+    _SETTLE_MS = 200
+
+    def test_pause_fires_exactly_one_announcement(self, page, timer_html):
+        """
+        Clicking Pause while the timer is running must produce exactly one
+        non-empty change on ``#phase-announcer`` — the text "Timer paused".
+        """
+        _load_timer(page, timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        _install_announcer_observer(page)
+
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on pause, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Timer paused", (
+            f"Expected announcement text 'Timer paused', got: '{non_empty[0]}'"
+        )
+
+    def test_resume_fires_exactly_one_announcement(self, page, timer_html):
+        """
+        Clicking Resume (after a pause) must produce exactly one non-empty
+        change on ``#phase-announcer`` — the text "Timer resumed".
+        """
+        _load_timer(page, timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+
+        _install_announcer_observer(page)
+
+        page.locator(".timer-start").click()
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on resume, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Timer resumed", (
+            f"Expected announcement text 'Timer resumed', got: '{non_empty[0]}'"
+        )
+
+    def test_paused_badge_has_no_aria_live(self, page, timer_html):
+        """
+        The ``.timer-paused-badge`` element must not carry an ``aria-live``
+        attribute.  If it did, screen readers would continuously read out the
+        updating elapsed-pause-time text ("Paused · 3s", "Paused · 4s", …).
+        """
+        _load_timer(page, timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+
+        aria_live = page.locator(".timer-paused-badge").get_attribute("aria-live")
+        assert aria_live is None, (
+            f"Paused badge must not have aria-live (found: '{aria_live}'). "
+            "This would cause the elapsed-pause timer to be announced repeatedly."
+        )
+
+    def test_paused_badge_visible_after_pause(self, page, timer_html):
+        """
+        Sanity check: the ``.timer-paused-badge`` must be visible after pausing
+        (not hidden), confirming the DOM state is correct before the aria-live
+        check above is meaningful.
+        """
+        _load_timer(page, timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+
+        badge = page.locator(".timer-paused-badge")
+        assert badge.is_visible(), "Paused badge should be visible after pausing"
+
+    def test_paused_badge_hidden_after_resume(self, page, timer_html):
+        """
+        The ``.timer-paused-badge`` must disappear once the timer resumes,
+        confirming the full pause → resume lifecycle is correct.
+        """
+        _load_timer(page, timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._SETTLE_MS)
+        page.locator(".timer-start").click()
+        _advance(page, self._SETTLE_MS)
+
+        badge = page.locator(".timer-paused-badge")
+        assert not badge.is_visible(), "Paused badge should be hidden after resuming"
