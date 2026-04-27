@@ -438,3 +438,153 @@ class TestPausedJoinThenPauseResumeCycle:
         assert non_empty[0] == "Timer paused", (
             f"Expected 'Timer paused', got: '{non_empty[0]}'"
         )
+
+
+class TestPhasedTimerPauseResumeCycle:
+    """
+    Phase-timer variant of ``TestPausedJoinThenPauseResumeCycle``.
+
+    Verifies that ``_wasFSPaused`` does not leak into non-firstSync
+    pause/resume cycles when a **phase** timer is used.
+
+    The ``session_long_phase_timer_html`` fixture (3 × 120 s) is used so
+    the timer cannot expire or advance through a phase boundary during the
+    ~8 s of fake-clock advances produced by two consecutive 4.1 s
+    ``run_for`` calls.
+
+    Differences from the simple-timer variant
+    -----------------------------------------
+    * The paused-join cue includes the phase name:
+      "Timer is paused — about 2 minutes remaining in Alpha".
+    * The display shows "01:59" (119 s remaining in Alpha with 1 s elapsed).
+    * Resume and re-pause announcements are identical: "Timer resumed" and
+      "Timer paused" (pause/resume cues never include phase names).
+    """
+
+    _POLL_MS = 4_100
+    _SETTLE_MS = 200
+
+    def test_phase_timer_resume_after_paused_join_fires_exactly_once(
+        self, page, session_long_phase_timer_html
+    ):
+        """
+        Phase timer: after joining while paused (firstSync), the first server
+        poll showing the timer running must fire exactly one "Timer resumed"
+        announcement and nothing else.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        state = ["paused"]
+
+        def handle_route(route):
+            if state[0] == "paused":
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T - 1_000),
+                    "timer_paused_at": _iso(T),
+                }
+            else:
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T - 1_000),
+                    "timer_paused_at": None,
+                }
+            route.fulfill(content_type="application/json", body=json.dumps(data))
+
+        page.route(_ROUTE_PATTERN, handle_route)
+        _load_session(page, session_long_phase_timer_html)
+        _wait_display(page, "01:59")
+        _settle(page)
+
+        first_text = _announcer_text(page)
+        assert "Timer is paused" in first_text, (
+            f"Precondition: firstSync must produce paused-join cue for phase timer, "
+            f"got: '{first_text}'"
+        )
+        assert "Alpha" in first_text, (
+            f"Paused-join cue for phase timer must include phase name 'Alpha', "
+            f"got: '{first_text}'"
+        )
+
+        state[0] = "running"
+        _install_announcer_observer(page)
+        page.clock.run_for(self._POLL_MS)
+        _settle(page)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Phase timer: expected exactly 1 announcement on resume after paused-join, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Timer resumed", (
+            f"Phase timer: expected 'Timer resumed', got: '{non_empty[0]}'"
+        )
+
+    def test_phase_timer_repause_after_resume_fires_exactly_once(
+        self, page, session_long_phase_timer_html
+    ):
+        """
+        Phase timer: after a paused-join → resume cycle, a subsequent server
+        poll showing the timer paused again must fire exactly one "Timer paused"
+        announcement — ``_wasFSPaused`` must not permanently suppress the cue.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        state = ["paused"]
+
+        def handle_route(route):
+            if state[0] == "paused":
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T - 1_000),
+                    "timer_paused_at": _iso(T),
+                }
+            elif state[0] == "running":
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T - 1_000),
+                    "timer_paused_at": None,
+                }
+            else:
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T - 1_000),
+                    "timer_paused_at": _iso(T + self._POLL_MS),
+                }
+            route.fulfill(content_type="application/json", body=json.dumps(data))
+
+        page.route(_ROUTE_PATTERN, handle_route)
+        _load_session(page, session_long_phase_timer_html)
+        _wait_display(page, "01:59")
+        _settle(page)
+
+        assert "Timer is paused" in _announcer_text(page), (
+            "Precondition: firstSync must produce paused-join cue"
+        )
+        assert "Alpha" in _announcer_text(page), (
+            "Precondition: paused-join cue must include phase name 'Alpha'"
+        )
+
+        state[0] = "running"
+        page.clock.run_for(self._POLL_MS)
+        _settle(page)
+
+        state[0] = "paused-again"
+        _install_announcer_observer(page)
+        page.clock.run_for(self._POLL_MS)
+        _settle(page)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Phase timer: expected exactly 1 announcement on re-pause after paused-join, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "Timer paused", (
+            f"Phase timer: expected 'Timer paused', got: '{non_empty[0]}'"
+        )

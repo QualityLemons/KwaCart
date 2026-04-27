@@ -218,6 +218,40 @@ def session_phase_timer_html() -> str:
 
 
 @pytest.fixture(scope="session")
+def session_long_phase_timer_html() -> str:
+    """
+    Phase timer (3 × 120 s = 6 minutes per phase) rendered in session mode.
+
+    Used by pause-resume cycle tests (task #91) where the fake-clock advances
+    across multiple 4 s poll intervals.  The long phases ensure the timer
+    never expires mid-test, avoiding spurious "Now in Beta" / "All phases
+    complete" announcements that would break the observer count assertions.
+    """
+    from django.template.loader import render_to_string
+
+    long_phases = [
+        {"label": "Alpha", "seconds": 120},
+        {"label": "Beta", "seconds": 120},
+        {"label": "Gamma", "seconds": 120},
+    ]
+    tool_meta = SimpleNamespace(
+        phases=long_phases,
+        timer_seconds=360,
+        title="Session Long Phase Timer",
+    )
+    html = render_to_string(
+        "tools/timer_test_page.html",
+        {
+            "tool_meta": tool_meta,
+            "timer_session_id": _TEST_SESSION_ID,
+            "timer_started_at": None,
+            "timer_paused_at": None,
+        },
+    )
+    return _inject_base(html)
+
+
+@pytest.fixture(scope="session")
 def session_simple_timer_html() -> str:
     """
     Simple (no-phases) timer (60 s) rendered in session mode with a fake
@@ -291,6 +325,62 @@ def canvas_html() -> str:
         f"<body>{fragment}</body>"
         "</html>"
     )
+
+
+@pytest.fixture(scope="session")
+def phase_timer_milestone_html() -> str:
+    """
+    Pre-render the phase timer with a single 15-second phase.
+
+    This fixture is used by milestone-count tests.  With a 15-second phase the
+    only milestone that fires is the 10-second one (MILESTONES = [300, 120, 60,
+    30, 10]).  After 5 simulated seconds the remaining time reaches 10 s and
+    ``checkMilestones()`` emits "10 seconds remaining in Alpha" exactly once.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=[{"label": "Alpha", "seconds": 15}],
+        timer_seconds=15,
+        title="Milestone Timer",
+    )
+    return render_to_string(
+        "tools/timer_test_page.html",
+        {"tool_meta": tool_meta, "timer_session_id": None},
+    )
+
+
+@pytest.fixture(scope="session")
+def archive_detail_with_payload_html() -> str:
+    """
+    Pre-render the archive detail template with both payload_output and
+    payload_input present.
+
+    The template renders extra <h2> sections ("Results" and "Your input") and
+    key/value pairs when these fields are non-empty.  This fixture exercises
+    those branches so that axe-core and heading-level tests can confirm the
+    additional markup is accessible.
+    """
+    from datetime import datetime
+    from django.template.loader import render_to_string
+
+    record = SimpleNamespace(
+        tool_slug="wise-crowds",
+        tool_version="1.0",
+        submitted_at=datetime(2025, 1, 15, 10, 30),
+        user=SimpleNamespace(email="tester@example.com"),
+        payload_output={
+            "summary": "The group identified three key patterns.",
+            "themes": "Trust, communication, shared goals.",
+        },
+        payload_input={
+            "challenge": "How do we improve cross-team collaboration?",
+            "context": "We are a team of 12 distributed across three time zones.",
+        },
+        md_file=None,
+        rtf_file=None,
+    )
+    return render_to_string("archive/detail.html", {"record": record})
 
 
 @pytest.fixture(scope="session")

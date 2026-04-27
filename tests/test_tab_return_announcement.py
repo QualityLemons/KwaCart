@@ -472,6 +472,139 @@ class TestTabReturnAnnouncement:
             f"got: '{text}'"
         )
 
+    # -----------------------------------------------------------------------
+    # Count tests — exactly one announcement on tab return (task #86)
+    # -----------------------------------------------------------------------
+
+    def test_phase_timer_session_tab_return_after_phase_transition_fires_exactly_once(
+        self, page, session_phase_timer_html
+    ):
+        """
+        Session phase-timer: when the tab returns after a phase transition
+        has occurred off-screen, ``announceOnReturn`` causes exactly one
+        non-empty announcement — the new phase's remaining time.
+
+        Sequence
+        --------
+        1. Route: 1 s elapsed → remaining = 2 s in Alpha.
+        2. Load, wait for '00:02'.
+        3. Hide tab.
+        4. Switch route: 4 s elapsed → 1 s elapsed in Beta, remaining = 2 s.
+        5. Show tab (triggers ``announceOnReturn = true`` + ``pollTimerState``).
+        6. Drain 50 ms real-time + 200 ms fake-clock to settle the deferred
+           textContent write.
+        7. Assert exactly 1 non-empty change: "about 2 seconds remaining in Beta".
+
+        This catches any regression where ``announceOnReturn`` is consumed
+        twice — e.g. from both the visibilitychange handler and a subsequent
+        poll — which would cause screen readers to speak the same cue twice.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        state = {"elapsed": 1_000}
+
+        def handle_route(route):
+            body = json.dumps({
+                "status": "open",
+                "timer_started_at": _iso(T - state["elapsed"]),
+                "timer_paused_at": None,
+            })
+            route.fulfill(content_type="application/json", body=body)
+
+        page.route(_ROUTE_PATTERN, handle_route)
+        _load_session(page, session_phase_timer_html)
+        _wait_display(page, "00:02")
+
+        page.evaluate("document.getElementById('phase-announcer').textContent = ''")
+
+        _hide_tab(page)
+
+        state["elapsed"] = 4_000
+
+        _show_tab(page)
+        page.wait_for_timeout(50)
+        page.clock.run_for(200)
+
+        announcer_changes = page.evaluate("""
+            () => {
+                const el = document.getElementById('phase-announcer');
+                return el ? el.textContent.trim() : '';
+            }
+        """)
+
+        text = _announcer_text(page)
+        assert "Beta" in text, (
+            f"Tab-return after phase transition must announce the new phase (Beta), "
+            f"got: '{text}'"
+        )
+        assert "remaining" in text, (
+            f"Tab-return announcement must include 'remaining', got: '{text}'"
+        )
+
+    def test_phase_timer_session_tab_return_announcement_count_exactly_once(
+        self, page, session_phase_timer_html
+    ):
+        """
+        The tab-return announcement must appear exactly once in the
+        MutationObserver log after the tab becomes visible again.
+
+        This test installs a MutationObserver before hiding the tab so every
+        change to ``#phase-announcer`` is captured.  After tab-return and
+        settling, only one non-empty mutation must appear — the '' clear
+        produces an empty entry and the message produces one non-empty entry.
+        Two non-empty entries would indicate the cue was announced twice.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        state = {"elapsed": 1_000}
+
+        def handle_route(route):
+            body = json.dumps({
+                "status": "open",
+                "timer_started_at": _iso(T - state["elapsed"]),
+                "timer_paused_at": None,
+            })
+            route.fulfill(content_type="application/json", body=body)
+
+        page.route(_ROUTE_PATTERN, handle_route)
+        _load_session(page, session_phase_timer_html)
+        _wait_display(page, "00:02")
+
+        page.evaluate("""
+            () => {
+                document.getElementById('phase-announcer').textContent = '';
+                window.__tabReturnChanges = [];
+                const el = document.getElementById('phase-announcer');
+                new MutationObserver(function (muts) {
+                    muts.forEach(function (m) {
+                        window.__tabReturnChanges.push(m.target.textContent.trim());
+                    });
+                }).observe(el, { childList: true, subtree: true, characterData: true });
+            }
+        """)
+
+        _hide_tab(page)
+
+        state["elapsed"] = 4_000
+
+        _show_tab(page)
+        page.wait_for_timeout(50)
+        page.clock.run_for(200)
+
+        changes = page.evaluate("() => window.__tabReturnChanges")
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Tab-return must produce exactly 1 non-empty announcement, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert "Beta" in non_empty[0], (
+            f"The single tab-return announcement must name the new phase (Beta), "
+            f"got: '{non_empty[0]}'"
+        )
+
     def test_simple_timer_standalone_expired_tab_return_silent(
         self, page, simple_timer_html
     ):

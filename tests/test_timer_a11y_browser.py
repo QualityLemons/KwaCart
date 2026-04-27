@@ -1288,6 +1288,184 @@ class TestTimerDisplayAriaLabelBrowser:
         )
 
 
+class TestMilestoneAnnouncementCount:
+    """
+    Verify that each milestone reminder ("30 seconds remaining", etc.) is
+    emitted by ``#phase-announcer`` exactly once — and does not repeat if the
+    ``announcedMilestones`` guard were accidentally cleared.
+
+    Background
+    ----------
+    ``checkMilestones()`` runs on every tick.  A guard Set (``announcedMilestones``)
+    prevents the same milestone from firing twice.  A MutationObserver
+    count test catches any regression where the guard is cleared mid-phase
+    and the announcement fires a second time.
+
+    Fixtures used
+    -------------
+    * ``simple_timer_html`` — 60 s simple timer; only the 30 s milestone is
+      reachable within the test window.
+    * ``phase_timer_milestone_html`` — single 15 s phase; only the 10 s
+      milestone fires.
+    """
+
+    _SETTLE_MS = 200
+
+    def test_simple_timer_30s_milestone_fires_exactly_once(
+        self, page, simple_timer_html
+    ):
+        """
+        Simple timer: the 30-second milestone must produce exactly one
+        non-empty announcement — "30 seconds remaining".
+
+        Approach
+        --------
+        1. Start the timer and advance 29 s (remaining = 31, no milestone yet).
+        2. Install the MutationObserver.
+        3. Advance 1 s (remaining → 30, milestone fires) + 200 ms settle.
+        4. Assert exactly 1 non-empty change: "30 seconds remaining".
+        5. Advance 1 s more (remaining → 29) and confirm the list has not grown.
+        """
+        _load_timer(page, simple_timer_html)
+        page.locator(".timer-start").click()
+
+        _advance(page, 29_000)
+
+        _install_announcer_observer(page)
+
+        _advance(page, 1_000 + self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 announcement at 30-second milestone, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "30 seconds remaining", (
+            f"Expected '30 seconds remaining', got: '{non_empty[0]}'"
+        )
+
+        _advance(page, 1_000)
+
+        changes_after = _get_announcer_changes(page)
+        non_empty_after = [c for c in changes_after if c]
+        assert len(non_empty_after) == 1, (
+            f"Milestone must not re-announce after the tick has passed; "
+            f"got {len(non_empty_after)}: {non_empty_after}"
+        )
+
+    def test_phase_timer_10s_milestone_fires_exactly_once(
+        self, page, phase_timer_milestone_html
+    ):
+        """
+        Phase timer: the 10-second milestone in a 15 s phase must produce
+        exactly one non-empty announcement — "10 seconds remaining in Alpha".
+
+        Approach
+        --------
+        1. Start the timer and advance 4 s (remaining = 11, no milestone yet).
+        2. Install the MutationObserver.
+        3. Advance 1 s (remaining → 10, milestone fires) + 200 ms settle.
+        4. Assert exactly 1 non-empty change: "10 seconds remaining in Alpha".
+        5. Advance 1 s more (remaining → 9) and confirm no repeat.
+        """
+        _load_timer(page, phase_timer_milestone_html)
+        page.locator(".timer-start").click()
+
+        _advance(page, 4_000)
+
+        _install_announcer_observer(page)
+
+        _advance(page, 1_000 + self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 announcement at 10-second milestone, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "10 seconds remaining in Alpha", (
+            f"Expected '10 seconds remaining in Alpha', got: '{non_empty[0]}'"
+        )
+
+        _advance(page, 1_000)
+
+        changes_after = _get_announcer_changes(page)
+        non_empty_after = [c for c in changes_after if c]
+        assert len(non_empty_after) == 1, (
+            f"Milestone must not re-announce after the tick has passed; "
+            f"got {len(non_empty_after)}: {non_empty_after}"
+        )
+
+
+class TestBadgeTextResetAfterLongPauseResume:
+    """
+    Confirm that the pause badge text resets to the neutral "▮▮ Paused" value
+    when the host resumes from a long pause and then pauses again.
+
+    Background
+    ----------
+    After a long pause (>= PAUSE_REMINDER_THRESHOLD_SEC), ``updatePausedText``
+    sets the badge text to "▮▮ Still paused — X min".  When the host resumes,
+    ``setPausedIndicator(false)`` sets ``textContent = '▮▮ Paused'`` before
+    hiding the badge.  If this reset were missing, the next pause would
+    immediately show the stale "▮▮ Still paused" text rather than the neutral
+    "▮▮ Paused · 0s" / "▮▮ Paused · 1s" progression.
+
+    Test sequence
+    -------------
+    1. Load ``host_timer_html`` (IS_HOST = true, default 300 s threshold).
+    2. Start timer, pause, advance 300 s → badge shows "Still paused".
+    3. Resume → badge is hidden and textContent is reset to "▮▮ Paused".
+    4. Pause immediately → badge reappears with "▮▮ Paused · 0s" or
+       "▮▮ Paused · 1s" (NOT "Still paused"), confirming the reset held.
+    """
+
+    _THRESHOLD_MS = 300_000
+    _SETTLE_MS = 200
+
+    def test_badge_text_resets_to_paused_after_long_pause_resume(
+        self, page, host_timer_html
+    ):
+        """
+        After a long-pause reminder and a subsequent resume, re-pausing the
+        timer must show the neutral 'Paused' badge text, not 'Still paused'.
+        """
+        _load_timer(page, host_timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._THRESHOLD_MS)
+
+        badge_text_before = page.locator(".timer-paused-badge").inner_text()
+        assert "Still paused" in badge_text_before, (
+            f"Prerequisite: badge must show 'Still paused' at threshold, "
+            f"got: '{badge_text_before}'"
+        )
+
+        page.locator(".timer-start").click()
+        _advance(page, self._SETTLE_MS)
+
+        assert not page.locator(".timer-paused-badge").is_visible(), (
+            "Badge must be hidden immediately after resume"
+        )
+
+        page.locator(".timer-pause").click()
+        _advance(page, 1_000)
+
+        badge_text_after = page.locator(".timer-paused-badge").inner_text()
+        assert "Still paused" not in badge_text_after, (
+            f"After resume + re-pause, badge must NOT show 'Still paused'; "
+            f"got: '{badge_text_after}'"
+        )
+        assert "Paused" in badge_text_after, (
+            f"After re-pause, badge must show 'Paused', got: '{badge_text_after}'"
+        )
+
+
 class TestSimpleTimerResetAnnouncement:
     """
     Verify that resetting the **simple timer** (``timer_seconds`` only, no

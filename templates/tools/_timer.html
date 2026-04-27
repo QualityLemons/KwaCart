@@ -504,6 +504,7 @@
                 } else if (remaining === 0 && intervalId) {
                     clearInterval(intervalId); intervalId = null;
                     if (startBtn) { startBtn.disabled = false; startBtn.textContent = 'Start'; }
+                    announce('All phases complete');
                 }
             }
         }
