@@ -54,8 +54,7 @@ TOOL_CATALOG = {
             'fishbowl_experience',
             'observations_questions',
             'qa_exchange',
-            'debrief',
-            'word_count',
+            'debrief'
         ],
         'timer_seconds': 3000,
     },
@@ -111,9 +110,9 @@ TOOL_CATALOG = {
             'Seek to understand rather than persuade.',
             'Invite and honour diverse opinions.',
             'Speak what has personal heart and meaning.',
-            'Go for honesty and depth with brevity.',
+            'Go for honesty and depth with brevity.'
         ],
-        'display_fields': ['theme', 'round_one', 'round_two', 'open_conversation', 'takeaway', 'word_count'],
+        'display_fields': ['theme', 'round_one', 'round_two', 'open_conversation', 'takeaway'],
         'timer_seconds': 2700,
     },
     'helping-heuristics': {
@@ -172,8 +171,7 @@ TOOL_CATALOG = {
             'guided_discovery',
             'loving_provocation',
             'process_mindfulness',
-            'debrief',
-            'word_count',
+            'debrief'
         ],
         'timer_seconds': 900,
     },
@@ -224,7 +222,7 @@ TOOL_CATALOG = {
                 'It costs under 10 seconds and eliminates ambiguity at the handover point.'
             ),
         },
-        'display_fields': ['scenario', 'scene_observations', 'prototype', 'reflection', 'word_count'],
+        'display_fields': ['scenario', 'scene_observations', 'prototype', 'reflection'],
         'timer_seconds': 1200,
     },
     'min-specs': {
@@ -268,7 +266,7 @@ TOOL_CATALOG = {
                 'Must-not-dos: launch without explicit approval; skip user testing.'
             ),
         },
-        'display_fields': ['max_specs', 'sifting_result', 'min_specs', 'word_count'],
+        'display_fields': ['max_specs', 'sifting_result', 'min_specs'],
         'timer_seconds': 2700,
         'try_timer_seconds': 300,
         'try_timer_label': 'Generate your Max Spec list',
@@ -335,8 +333,7 @@ TOOL_CATALOG = {
             'primary_advice',
             'satellite_feedback',
             'takeaway',
-            'group_reflection',
-            'word_count',
+            'group_reflection'
         ],
         'timer_seconds': 3600,
     },
@@ -388,8 +385,7 @@ TOOL_CATALOG = {
             'challenge',
             'clarifying_questions',
             'consultant_advice',
-            'takeaway',
-            'word_count',
+            'takeaway'
         ],
         'timer_seconds': 900,
     },
@@ -429,7 +425,7 @@ TOOL_CATALOG = {
                 'focused on reducing meetings rather than improving them.'
             ),
         },
-        'display_fields': ['bold_idea', 'scores_received', 'top_ideas', 'word_count'],
+        'display_fields': ['bold_idea', 'scores_received', 'top_ideas'],
         'timer_seconds': 1800,
     },
     'shift-and-share': {
@@ -475,8 +471,7 @@ TOOL_CATALOG = {
         'display_fields': [
             'innovation_summary',
             'questions_feedback',
-            'key_takeaways',
-            'word_count',
+            'key_takeaways'
         ],
         'timer_seconds': 5400,
     },
@@ -520,8 +515,7 @@ TOOL_CATALOG = {
             'positive_deviants',
             'ideas',
             'next_steps',
-            'who_else',
-            'word_count',
+            'who_else'
         ],
         'timer_seconds': 2100,
     },
@@ -563,7 +557,7 @@ TOOL_CATALOG = {
                 'and check in weekly on load rather than monthly.'
             ),
         },
-        'display_fields': ['what', 'so_what', 'now_what', 'word_count'],
+        'display_fields': ['what', 'so_what', 'now_what'],
         'timer_seconds': 2700,
     },
     'troika-consulting': {
@@ -600,8 +594,7 @@ TOOL_CATALOG = {
         'display_fields': [
             'consulting_question',
             'consultant_advice',
-            'valuable_takeaway',
-            'word_count',
+            'valuable_takeaway'
         ],
         'timer_seconds': 1800,
     },
@@ -644,8 +637,7 @@ TOOL_CATALOG = {
         'display_fields': [
             'solutions_list',
             'group_share',
-            'consultation_insights',
-            'word_count',
+            'consultation_insights'
         ],
         'timer_seconds': 1200,
         'try_timer_seconds': 300,
@@ -691,8 +683,7 @@ TOOL_CATALOG = {
         'display_fields': [
             'worst_result_list',
             'current_resemblances',
-            'stop_first_steps',
-            'word_count',
+            'stop_first_steps'
         ],
         'timer_seconds': 2100,
     },
@@ -732,8 +723,7 @@ TOOL_CATALOG = {
             'success_conditions',
             'partner_story',
             'group_patterns',
-            'opportunities',
-            'word_count',
+            'opportunities'
         ],
         'timer_seconds': 3600,
     },
@@ -776,8 +766,7 @@ TOOL_CATALOG = {
         'display_fields': [
             'individual_questions',
             'group_question',
-            'whole_group_refinement',
-            'word_count',
+            'whole_group_refinement'
         ],
         'timer_seconds': 1500,
     },
@@ -815,8 +804,7 @@ TOOL_CATALOG = {
             'why_chain',
             'fundamental_purpose',
             'foursome_insights',
-            'group_reflection',
-            'word_count',
+            'group_reflection'
         ],
         'timer_seconds': 1200,
     },
@@ -854,8 +842,7 @@ TOOL_CATALOG = {
             'give_and_get',
             'round_one',
             'round_two',
-            'round_three',
-            'word_count',
+            'round_three'
         ],
         'timer_seconds': 1200,
     },
@@ -890,15 +877,14 @@ TOOL_CATALOG = {
             'self_reflection',
             'pair_ideas',
             'foursome_ideas',
-            'standout_idea',
-            'word_count',
+            'standout_idea'
         ],
         'timer_seconds': 720,
         'phases': [
             {'label': 'Phase 1 — Self-reflection', 'seconds': 60},
             {'label': 'Phase 2 — Pair ideas', 'seconds': 120},
             {'label': 'Phase 3 — Foursome ideas', 'seconds': 240},
-            {'label': 'Phase 4 — Standout idea', 'seconds': 300},
+            {'label': 'Phase 4 — Standout idea', 'seconds': 300}
         ],
     },
     'i-am-and-i-like': {
@@ -920,7 +906,7 @@ TOOL_CATALOG = {
             'i_like': 'walking in the rain',
             'i_do_not_like': 'cold coffee',
         },
-        'display_fields': ['statement', 'i_like', 'i_do_not_like', 'word_count'],
+        'display_fields': ['statement', 'i_like', 'i_do_not_like'],
         'timer_seconds': 60,
     },
     'idea-generation': {
@@ -937,7 +923,7 @@ TOOL_CATALOG = {
         'example_input': {
             'initial_thought': 'A challenge I keep noticing is...',
         },
-        'display_fields': ['initial_thought', 'word_count'],
+        'display_fields': ['initial_thought'],
         'timer_seconds': 60,
     },
     'five-structural-elements': {
@@ -959,8 +945,7 @@ TOOL_CATALOG = {
         },
         'display_fields': [
             'pair_one_challenge', 'pair_one_hope',
-            'pair_two_challenge', 'pair_two_hope',
-            'word_count',
+            'pair_two_challenge', 'pair_two_hope'
         ],
         'timer_seconds': 1200,
     },
@@ -1011,7 +996,7 @@ TOOL_CATALOG = {
         },
         'display_fields': [
             'challenge', 'has_drawing',
-            'interpretation', 'insights', 'word_count',
+            'interpretation', 'insights'
         ],
         'timer_seconds': 2400,
     },
@@ -1074,8 +1059,7 @@ TOOL_CATALOG = {
             'small_group_consensus',
             'results_type',
             'action_steps',
-            'first_steps',
-            'word_count',
+            'first_steps'
         ],
         'timer_seconds': 1500,
     },
@@ -1151,8 +1135,7 @@ TOOL_CATALOG = {
             'ideal_outcome',
             'success_criteria',
             'best_result',
-            'worst_result',
-            'word_count',
+            'worst_result'
         ],
         'timer_seconds': 1620,
     },
