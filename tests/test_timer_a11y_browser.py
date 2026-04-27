@@ -1130,6 +1130,116 @@ class TestLongPauseHostReminder:
 # Simple-timer reset-announcement tests
 # ---------------------------------------------------------------------------
 
+class TestTimerDisplayAriaLabelBrowser:
+    """
+    Browser-level verification that the timer-display element's
+    role="timer" and aria-label="Time remaining" attributes are present in
+    the live DOM and do not introduce WCAG 2 AA violations detected by axe-core.
+
+    Rationale
+    ---------
+    The static tests in test_timer_a11y.py confirm that role="timer" and
+    aria-label="Time remaining" appear in the rendered HTML, but they cannot
+    catch ARIA conflicts that only surface at runtime (e.g. an unexpected
+    aria-live on the same element, or a hidden parent that masks the label).
+    These tests exercise the same attributes in a real Chromium browser with
+    axe-core injected, closing that gap.
+
+    Both the phase-timer (``timer_html``) and the simple countdown
+    (``simple_timer_html``) are tested because ``timer-display`` is rendered
+    in both modes.
+    """
+
+    def test_phase_timer_display_has_role_timer_in_browser(self, page, timer_html):
+        """The timer-display element must carry role='timer' in the live DOM."""
+        _load_timer(page, timer_html)
+        role = page.locator(".timer-display").get_attribute("role")
+        assert role == "timer", (
+            f"Expected role='timer' on .timer-display, got: '{role}'"
+        )
+
+    def test_phase_timer_display_has_aria_label_in_browser(self, page, timer_html):
+        """The timer-display element must carry aria-label='Time remaining' in the live DOM."""
+        _load_timer(page, timer_html)
+        label = page.locator(".timer-display").get_attribute("aria-label")
+        assert label == "Time remaining", (
+            f"Expected aria-label='Time remaining' on .timer-display, got: '{label}'"
+        )
+
+    def test_simple_timer_display_has_role_timer_in_browser(self, page, simple_timer_html):
+        """Simple-timer mode: timer-display must carry role='timer' in the live DOM."""
+        _load_timer(page, simple_timer_html)
+        role = page.locator(".timer-display").get_attribute("role")
+        assert role == "timer", (
+            f"Expected role='timer' on .timer-display (simple mode), got: '{role}'"
+        )
+
+    def test_simple_timer_display_has_aria_label_in_browser(self, page, simple_timer_html):
+        """Simple-timer mode: timer-display must carry aria-label='Time remaining' in the live DOM."""
+        _load_timer(page, simple_timer_html)
+        label = page.locator(".timer-display").get_attribute("aria-label")
+        assert label == "Time remaining", (
+            f"Expected aria-label='Time remaining' on .timer-display (simple mode), got: '{label}'"
+        )
+
+    def test_phase_timer_display_aria_label_no_axe_violations_initial(self, page, timer_html):
+        """
+        axe-core must report no WCAG 2 AA violations for the timer widget at
+        rest — confirming role='timer' / aria-label='Time remaining' do not
+        conflict with any other ARIA attributes on the element or its parents.
+        """
+        _load_timer(page, timer_html)
+        results = _run_axe(page)
+        _assert_no_violations(results, "phase timer — initial state (role=timer aria-label check)")
+
+    def test_phase_timer_display_aria_label_no_axe_violations_running(self, page, timer_html):
+        """
+        axe-core must pass while the timer is actively counting down — the
+        textContent of .timer-display changes every second, so this confirms
+        that the dynamic updates do not invalidate the ARIA attributes.
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 500)
+        results = _run_axe(page)
+        _assert_no_violations(results, "phase timer — running (role=timer aria-label check)")
+
+    def test_simple_timer_display_aria_label_no_axe_violations_initial(self, page, simple_timer_html):
+        """
+        axe-core must report no violations for the simple-timer widget at rest,
+        confirming role='timer' / aria-label='Time remaining' are valid in the
+        no-phases rendering path as well.
+        """
+        _load_timer(page, simple_timer_html)
+        results = _run_axe(page)
+        _assert_no_violations(results, "simple timer — initial state (role=timer aria-label check)")
+
+    def test_simple_timer_display_aria_label_no_axe_violations_running(self, page, simple_timer_html):
+        """
+        axe-core must pass while the simple timer is counting down, confirming
+        the attributes remain valid during live textContent updates.
+        """
+        _load_timer(page, simple_timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 500)
+        results = _run_axe(page)
+        _assert_no_violations(results, "simple timer — running (role=timer aria-label check)")
+
+    def test_timer_display_has_no_aria_live_in_browser(self, page, timer_html):
+        """
+        The timer-display element must NOT carry aria-live in the live DOM.
+        Announcements are routed through #phase-announcer; an aria-live on the
+        display itself would cause every second-tick textContent update to be
+        announced by the screen reader, flooding the AT queue.
+        """
+        _load_timer(page, timer_html)
+        aria_live = page.locator(".timer-display").get_attribute("aria-live")
+        assert aria_live is None, (
+            "timer-display must not have aria-live — every-second tick updates "
+            f"would flood the screen-reader queue; got aria-live='{aria_live}'"
+        )
+
+
 class TestSimpleTimerResetAnnouncement:
     """
     Verify that resetting the **simple timer** (``timer_seconds`` only, no
