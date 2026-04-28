@@ -189,6 +189,26 @@ class TestOfflineDetection:
             "(no session listeners are attached)"
         )
 
+    def test_offline_event_ignored_in_simple_timer_standalone_mode(
+        self, page, simple_timer_html
+    ):
+        """
+        In simple-timer standalone mode (no session ID, no status-poll URL)
+        the ``offline``/``online`` listeners are never attached, so the
+        ``offline`` event must NOT show the stale badge.
+        """
+        page.clock.install()
+        # Standalone mode — no route needed.
+        page.set_content(simple_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        _go_offline(page)
+
+        assert not page.locator(".timer-stale-badge").is_visible(), (
+            "Stale badge must stay hidden in simple-timer standalone mode after "
+            "'offline' event (no session listeners are attached)"
+        )
+
     # ------------------------------------------------------------------
     # Online recovery — phase timer
     # ------------------------------------------------------------------
