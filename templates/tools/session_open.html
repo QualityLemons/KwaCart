@@ -5,43 +5,55 @@
 {% block content %}
 <h1>{{ tool_meta.title }} <small style="color:#64748b;">— live session</small></h1>
 
-<div style="background:#eef6ff; border:1px solid #cfe2ff; padding:0.8rem 1rem;
-            border-radius:6px; margin: 0.5rem 0 1rem;">
-    <strong>Share this link with participants:</strong>
-    <input type="text" readonly value="{{ share_url }}"
-           aria-label="Session invite link"
-           onclick="this.select()"
-           style="width:100%; padding:0.4rem; margin-top:0.4rem;
-                  font-family: ui-monospace, Menlo, monospace;">
-    <details style="margin-top:0.6rem; display:inline-block;">
-        <summary style="cursor:pointer; color:#1d4ed8; font-size:0.875rem; list-style:none;">
-            &#9654; Show QR code
-        </summary>
-        <div id="session-qrcode" style="margin-top:0.5rem; line-height:0;"></div>
-    </details>
-    <p style="margin:0.5rem 0 0;"><small>Anyone signed in who opens this link can join.</small></p>
-</div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
         integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
         crossorigin="anonymous"></script>
+
+<div style="background:#eef6ff; border:1px solid #cfe2ff; padding:0.8rem 1rem;
+            border-radius:6px; margin: 0.5rem 0 0.75rem;">
+    <strong>Share with signed-in participants:</strong>
+    <input type="text" readonly value="{{ share_url }}"
+           aria-label="Session invite link (requires login)"
+           onclick="this.select()"
+           style="width:100%; padding:0.4rem; margin-top:0.4rem;
+                  font-family: ui-monospace, Menlo, monospace; box-sizing:border-box;">
+    <p style="margin:0.4rem 0 0;"><small>Anyone already signed in who opens this link can join.</small></p>
+</div>
+
+<div style="background:#f0fdf4; border:1px solid #86efac; padding:0.8rem 1rem;
+            border-radius:6px; margin: 0 0 1rem;">
+    <strong>Guest link (no account needed):</strong>
+    <input type="text" readonly value="{{ guest_join_url }}"
+           aria-label="Guest join link — no login required"
+           onclick="this.select()"
+           style="width:100%; padding:0.4rem; margin-top:0.4rem;
+                  font-family: ui-monospace, Menlo, monospace; box-sizing:border-box;">
+    <details style="margin-top:0.6rem; display:inline-block;" id="guest-qr-details">
+        <summary style="cursor:pointer; color:#15803d; font-size:0.875rem; list-style:none;">
+            &#9654; Show guest QR code
+        </summary>
+        <div id="guest-qrcode" style="margin-top:0.5rem; line-height:0;"></div>
+    </details>
+    <p style="margin:0.5rem 0 0;"><small>Participants who scan this QR code can join by entering their name — no account required.</small></p>
+</div>
+
 <script>
 (function () {
-    var details = document.querySelector('details');
+    var details = document.getElementById('guest-qr-details');
     var generated = false;
     details.addEventListener('toggle', function () {
         if (this.open && !generated) {
-            new QRCode(document.getElementById('session-qrcode'), {
-                text: '{{ share_url }}',
+            new QRCode(document.getElementById('guest-qrcode'), {
+                text: '{{ guest_join_url|escapejs }}',
                 width: 200,
                 height: 200,
                 colorDark: '#0f172a',
                 colorLight: '#ffffff',
             });
             generated = true;
-            details.querySelector('summary').textContent = '\u25BE Hide QR code';
+            details.querySelector('summary').textContent = '\u25BE Hide guest QR code';
         } else if (!this.open) {
-            details.querySelector('summary').innerHTML = '&#9654; Show QR code';
+            details.querySelector('summary').innerHTML = '&#9654; Show guest QR code';
         }
     });
 }());
@@ -88,7 +100,7 @@
 <ul id="participant-list">
     {% for p in participants %}
     <li>
-        {{ p.user.email }}
+        {% if p.user_id %}{{ p.user.email }}{% else %}{{ p.guest_name|default:"Guest" }} <span style="color:#64748b;">(guest)</span>{% endif %}
         {% if p.user_id == session.host_id %}<span style="color:#64748b;">(host)</span>{% endif %}
         {% if p.payload_input %} &mdash; <span style="color:#15803d;">response saved</span>{% endif %}
     </li>
@@ -235,7 +247,7 @@
     let wasReconnecting = false;
     let lastParticipantCount = parseInt(countEl.textContent, 10) || 0;
     const initialResponders = new Set([
-        {% for p in participants %}{% if p.payload_input %}'{{ p.user.email|escapejs }}',{% endif %}{% endfor %}
+        {% for p in participants %}{% if p.payload_input %}'{% if p.user_id %}{{ p.user.email|escapejs }}{% else %}{{ p.guest_name|default:"Guest"|escapejs }}{% endif %}',{% endif %}{% endfor %}
     ]);
     let knownResponders = initialResponders;
 
@@ -274,19 +286,19 @@
                 lastParticipantCount = newCount;
             }
 
-            const currentEmails = new Set(data.participants.map(function (p) { return p.email; }));
+            const currentNames = new Set(data.participants.map(function (p) { return p.display_name; }));
             const newKnownResponders = new Set();
-            knownResponders.forEach(function (e) { if (currentEmails.has(e)) newKnownResponders.add(e); });
+            knownResponders.forEach(function (n) { if (currentNames.has(n)) newKnownResponders.add(n); });
             data.participants.forEach(function (p) {
-                if (p.has_response) { newKnownResponders.add(p.email); }
+                if (p.has_response) { newKnownResponders.add(p.display_name); }
             });
             const totalParticipants = data.participants.length;
             const totalResponded = data.participants.filter(function (p) { return p.has_response; }).length;
             const newResponders = data.participants.filter(function (p) {
-                return p.has_response && !knownResponders.has(p.email);
+                return p.has_response && !knownResponders.has(p.display_name);
             });
             if (newResponders.length === 1) {
-                pollMessages.push(newResponders[0].email + ' saved their response. ' + totalResponded + ' of ' + totalParticipants + ' participants have responded.');
+                pollMessages.push(newResponders[0].display_name + ' saved their response. ' + totalResponded + ' of ' + totalParticipants + ' participants have responded.');
             } else if (newResponders.length > 1) {
                 pollMessages.push(newResponders.length + ' participants saved their responses. ' + totalResponded + ' of ' + totalParticipants + ' participants have responded.');
             }
@@ -299,9 +311,9 @@
                 const hostTag = p.is_host ? ' <span style="color:#64748b;">(host)</span>' : '';
                 const respTag = p.has_response
                     ? ' &mdash; <span style="color:#15803d;">response saved</span>' : '';
-                const safeEmail = p.email
+                const safeName = p.display_name
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return '<li>' + safeEmail + hostTag + respTag + '</li>';
+                return '<li>' + safeName + hostTag + respTag + '</li>';
             }).join('');
         } catch (err) {
             consecutiveErrors += 1;

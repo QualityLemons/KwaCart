@@ -288,6 +288,9 @@ def session_detail(request, session_id):
     share_url = request.build_absolute_uri(
         reverse('tools:session_detail', args=[session.id])
     )
+    guest_join_url = request.build_absolute_uri(
+        reverse('tools:guest_join', args=[session.id, session.guest_token])
+    )
     # timer_started_at and timer_paused_at are serialised as ISO strings for
     # the JavaScript timer widget, which computes elapsed time client-side
     # using these as reference points rather than relying on its own clock.
@@ -312,6 +315,7 @@ def session_detail(request, session_id):
         'is_host': is_host,
         'participants': participants,
         'share_url': share_url,
+        'guest_join_url': guest_join_url,
         'timer_started_at': timer_started_at,
         'timer_paused_at': timer_paused_at,
         'pause_reminder_threshold_sec': threshold,
@@ -355,16 +359,27 @@ def session_close(request, session_id):
     return redirect('tools:session_detail', session_id=session.id)
 
 
-@login_required
 def session_status(request, session_id):
-    """Lightweight JSON endpoint for participant-list / status polling."""
+    """Lightweight JSON endpoint for participant-list / status polling.
+
+    Accessible to authenticated participants and to unauthenticated guests who
+    hold a valid guest_instance_id in their browser session for this session.
+    """
     session = get_object_or_404(ToolSession, id=session_id)
-    is_participant = (
-        session.host_id == request.user.id
-        or ToolInstance.objects.filter(session=session, user=request.user).exists()
-    )
-    if not is_participant:
-        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    if request.user.is_authenticated:
+        is_participant = (
+            session.host_id == request.user.id
+            or ToolInstance.objects.filter(session=session, user=request.user).exists()
+        )
+        if not is_participant:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+    else:
+        guest_instance_id = request.session.get(f'guest_instance_{session_id}')
+        if not guest_instance_id:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        if not ToolInstance.objects.filter(id=guest_instance_id, session=session).exists():
+            return JsonResponse({'error': 'forbidden'}, status=403)
 
     participants = (
         ToolInstance.objects
@@ -388,8 +403,8 @@ def session_status(request, session_id):
         'timer_seconds': tool_meta.get('timer_seconds') or 0,
         'participants': [
             {
-                'email': p.user.email,
-                'is_host': p.user_id == session.host_id,
+                'display_name': p.user.email if p.user_id else (p.guest_name or 'Guest'),
+                'is_host': p.user_id is not None and p.user_id == session.host_id,
                 'has_response': bool(p.payload_input),
             }
             for p in participants
@@ -452,6 +467,125 @@ def session_set_pause_reminder(request, session_id):
     session.save(update_fields=['pause_reminder_threshold_sec'])
     return JsonResponse({
         'pause_reminder_threshold_sec': session.pause_reminder_threshold_sec
+    })
+
+
+# --- Guest participant flow --------------------------------------------------
+# These views allow unauthenticated participants to join a session via a QR
+# code URL that embeds the session's guest_token.  The guest is identified for
+# the duration of their visit by a key stored in the Django browser session.
+
+def guest_join(request, session_id, guest_token):
+    """Show a name-entry form so unauthenticated users can join as guests.
+
+    On POST a ToolInstance is created with user=None and the supplied name, and
+    the instance ID is stored in the browser session so subsequent requests can
+    identify the guest without requiring authentication.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, guest_token=guest_token)
+
+    if session.status == 'closed':
+        return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+
+    # If this browser already joined, skip straight to the form.
+    existing_id = request.session.get(f'guest_instance_{session_id}')
+    if existing_id and ToolInstance.objects.filter(id=existing_id, session=session).exists():
+        return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+
+    error = None
+    if request.method == 'POST':
+        name = request.POST.get('guest_name', '').strip()
+        if not name:
+            error = 'Please enter a name so the host can see who you are.'
+        else:
+            tool_class = get_tool_instance(session.tool_slug)
+            instance = ToolInstance.objects.create(
+                user=None,
+                guest_name=name,
+                session=session,
+                tool_slug=session.tool_slug,
+                tool_version=getattr(tool_class, 'version', session.tool_version),
+                status='draft',
+            )
+            request.session[f'guest_instance_{session_id}'] = instance.id
+            return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+
+    tool_meta = get_tool_metadata(session.tool_slug)
+    return render(request, 'tools/guest_join.html', {
+        'session': session,
+        'tool_meta': tool_meta,
+        'error': error,
+    })
+
+
+def guest_respond(request, session_id, guest_token):
+    """Show and save the tool form for a guest participant.
+
+    The guest is identified via the browser session key set by guest_join.
+    If the session has been closed this view renders the combined results.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, guest_token=guest_token)
+    tool_meta = get_tool_metadata(session.tool_slug)
+
+    # Re-identify the guest via their browser session.
+    instance_id = request.session.get(f'guest_instance_{session_id}')
+    if not instance_id:
+        return redirect('tools:guest_join', session_id=session_id, guest_token=guest_token)
+    instance = get_object_or_404(ToolInstance, id=instance_id, session=session)
+
+    if session.status == 'closed':
+        instances = (
+            ToolInstance.objects
+            .filter(session=session)
+            .select_related('user')
+            .order_by('submitted_at')
+        )
+        return render(request, 'tools/guest_session_closed.html', {
+            'session': session,
+            'tool_meta': tool_meta,
+            'instances': instances,
+            'guest_instance': instance,
+        })
+
+    form_class = get_tool_form_class(session.tool_slug)
+    form = None
+    if form_class is not None:
+        if request.method == 'POST':
+            form = form_class(request.POST)
+            if form.is_valid():
+                # Canvas extraction requires a user ID; skip it for guests.
+                cleaned = {
+                    k: v for k, v in form.cleaned_data.items()
+                    if k != 'canvas_data'
+                }
+                instance.payload_input = cleaned
+                instance.save()
+                messages.success(request, 'Your response was saved.')
+                return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+        else:
+            form = form_class(initial=instance.payload_input or {})
+
+    timer_started_at = (
+        session.timer_started_at.isoformat()
+        if session.timer_started_at else None
+    )
+    timer_paused_at = (
+        session.timer_paused_at.isoformat()
+        if session.timer_paused_at else None
+    )
+    threshold = session.pause_reminder_threshold_sec
+    pause_reminder_threshold_js = 'null' if threshold is None else threshold
+
+    return render(request, 'tools/guest_respond.html', {
+        'session': session,
+        'tool_meta': tool_meta,
+        'instance': instance,
+        'form': form,
+        'guest_token': guest_token,
+        'timer_started_at': timer_started_at,
+        'timer_paused_at': timer_paused_at,
+        'pause_reminder_threshold_sec': threshold,
+        'pause_reminder_threshold_js': pause_reminder_threshold_js,
     })
 
 

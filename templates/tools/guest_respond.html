@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Session &mdash; {{ tool_meta.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ tool_meta.title }} <small style="color:#64748b;">— live session</small></h1>
+
+<p style="color:#475569;">
+    You're joining as <strong>{{ instance.guest_name }}</strong>.
+    Fill in the form below and save your response before the host closes the session.
+</p>
+
+{% if messages %}
+{% for message in messages %}
+<p style="color:{% if message.tags == 'success' %}#15803d{% else %}#dc2626{% endif %}; font-weight:600;">
+    {{ message }}
+</p>
+{% endfor %}
+{% endif %}
+
+{% include "tools/info_box.html" %}
+{% include "tools/_timer.html" with timer_session_id=session.id is_host=False timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js %}
+
+<h2>Your response</h2>
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {% if tool_meta.show_canvas %}
+        {% for field in form %}
+            {% if field.name == 'canvas_data' %}
+                {% comment %}Canvas drawing is not available for guest participants.{% endcomment %}
+            {% elif field.is_hidden %}
+                {{ field }}
+            {% else %}
+                <p>{{ field.label_tag }} {{ field }}
+                {% if field.errors %}<span style="color:#dc2626;">{{ field.errors }}</span>{% endif %}
+                </p>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {{ form.as_p }}
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Save my response</button>
+</form>
+{% else %}
+<p><em>This tool has no input form configured yet.</em></p>
+{% endif %}
+
+<div class="sr-only" aria-live="polite" aria-atomic="true" id="session-announcer"></div>
+
+<p style="margin-top:2rem; color:#64748b;">
+    The host will close the session when everyone is done.
+    This page will refresh automatically once that happens.
+</p>
+
+<script>
+(function () {
+    const ANNOUNCE_DELAY_MS = 50;
+    const _sessionAnnouncer = document.getElementById('session-announcer');
+    function announce(msg) {
+        if (!_sessionAnnouncer) return;
+        _sessionAnnouncer.textContent = '';
+        setTimeout(function () { _sessionAnnouncer.textContent = msg; }, ANNOUNCE_DELAY_MS);
+    }
+
+    const statusUrl = "{% url 'tools:session_status' session.id %}";
+    let consecutiveErrors = 0;
+    let wasReconnecting = false;
+
+    async function poll() {
+        try {
+            const resp = await fetch(statusUrl, { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            if (consecutiveErrors >= 3 || wasReconnecting) {
+                announce('Reconnected');
+                wasReconnecting = false;
+            }
+            consecutiveErrors = 0;
+
+            if (data.status === 'closed') {
+                announce('Session has been closed. Reloading the page.');
+                setTimeout(() => window.location.reload(), 600);
+                return;
+            }
+        } catch (err) {
+            consecutiveErrors += 1;
+            if (consecutiveErrors >= 3 && !wasReconnecting) {
+                announce('Connection lost. Attempting to reconnect.');
+                wasReconnecting = true;
+            }
+        }
+    }
+
+    poll();
+    setInterval(poll, 4000);
+}());
+</script>
+{% endblock %}

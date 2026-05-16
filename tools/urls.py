@@ -31,6 +31,10 @@ urlpatterns = [
     # persists a session-level preference, not a transient timer state.
     path('session/<uuid:session_id>/pause-reminder/', views.session_set_pause_reminder, name='session_set_pause_reminder'),
 
+    # Guest participant flow — no login required; token in URL acts as access key
+    path('session/<uuid:session_id>/guest/<uuid:guest_token>/', views.guest_join, name='guest_join'),
+    path('session/<uuid:session_id>/guest/<uuid:guest_token>/respond/', views.guest_respond, name='guest_respond'),
+
     # Debug/test only — renders a bare timer widget for Playwright a11y tests
     path('_test/timer/', views.timer_test_page, name='timer_test_page'),
 ]
