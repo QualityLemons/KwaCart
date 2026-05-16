@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Try {{ tool_meta.title }} free — Well-Served{% endblock %}
+{% block title %}Try {{ tool_meta.title }} free — KwaCart{% endblock %}
 
 {% block content %}
 
@@ -37,11 +37,6 @@
                       border-radius:5px; padding:0.75rem 1rem; margin:0; color:#1e293b;">{{ value }}</p>
         </div>
     {% endfor %}
-    {% if result.word_count %}
-    <p style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;">
-        Total words: {{ result.word_count }}
-    </p>
-    {% endif %}
 </div>
 
 <!-- ── Sign-up nudge (after result) ── -->

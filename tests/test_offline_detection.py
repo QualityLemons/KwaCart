@@ -47,6 +47,9 @@ import pytest
 
 
 _ROUTE_PATTERN = "http://testhost/**"
+# server_now is included but null — the widget treats null the same as a
+# missing key and leaves clockSkew at 0, which is correct for these tests
+# because we are not testing clock-skew compensation here.
 _SUCCESS_BODY = json.dumps(
     {"status": "open", "timer_started_at": None, "timer_paused_at": None, "server_now": None}
 )
@@ -70,12 +73,22 @@ def _route_success(page) -> None:
 
 
 def _go_offline(page) -> None:
-    """Dispatch a ``window offline`` event inside the browser page."""
+    """Dispatch a ``window offline`` event inside the browser page.
+
+    This triggers the widget's ``window.addEventListener('offline', ...)``
+    listener, which calls ``setStaleIndicator(true)`` immediately — before
+    any poll failure has occurred.
+    """
     page.evaluate("window.dispatchEvent(new Event('offline'))")
 
 
 def _go_online(page) -> None:
-    """Dispatch a ``window online`` event inside the browser page."""
+    """Dispatch a ``window online`` event inside the browser page.
+
+    This triggers the widget's ``window.addEventListener('online', ...)``
+    listener, which calls ``pollTimerState()`` immediately to attempt
+    recovery after an offline period.
+    """
     page.evaluate("window.dispatchEvent(new Event('online'))")
 
 
@@ -189,6 +202,26 @@ class TestOfflineDetection:
             "(no session listeners are attached)"
         )
 
+    def test_offline_event_ignored_in_simple_timer_standalone_mode(
+        self, page, simple_timer_html
+    ):
+        """
+        In simple-timer standalone mode (no session ID, no status-poll URL)
+        the ``offline``/``online`` listeners are never attached, so the
+        ``offline`` event must NOT show the stale badge.
+        """
+        page.clock.install()
+        # Standalone mode — no route needed.
+        page.set_content(simple_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        _go_offline(page)
+
+        assert not page.locator(".timer-stale-badge").is_visible(), (
+            "Stale badge must stay hidden in simple-timer standalone mode after "
+            "'offline' event (no session listeners are attached)"
+        )
+
     # ------------------------------------------------------------------
     # Online recovery — phase timer
     # ------------------------------------------------------------------
@@ -285,4 +318,115 @@ class TestOfflineDetection:
         assert page.locator(".timer-reconnect-toast").is_visible(), (
             "Expected .timer-reconnect-toast after online recovery "
             "(simple-timer session mode)"
+        )
+
+    # ------------------------------------------------------------------
+    # Failed recovery poll — badge must remain visible
+    # ------------------------------------------------------------------
+
+    def test_stale_badge_persists_when_recovery_poll_fails_phase_timer(
+        self, page, session_phase_timer_html
+    ):
+        """
+        If the device comes back online but the server is still unreachable,
+        the recovery ``pollTimerState()`` call will throw in its catch block.
+        The stale badge must remain visible because ``setStaleIndicator(false)``
+        is never called on an error path.
+        """
+        page.clock.install()
+        _route_success(page)
+        _load_session(page, session_phase_timer_html)
+        page.wait_for_timeout(50)
+
+        _go_offline(page)
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Pre-condition: stale badge must be visible after 'offline' event"
+        )
+
+        # Switch the route to simulate a server-side error so the recovery
+        # fetch throws (non-JSON 500 body causes r.json() to reject).
+        page.route(
+            _ROUTE_PATTERN,
+            lambda route: route.fulfill(status=500, body="Internal Server Error"),
+        )
+
+        _go_online(page)
+        # Allow the async fetch to complete and fail.
+        page.wait_for_timeout(100)
+
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Expected .timer-stale-badge to remain visible after 'online' event "
+            "when the recovery poll returns HTTP 500 (phase-timer session mode)"
+        )
+
+    def test_stale_badge_persists_when_recovery_poll_fails_simple_timer(
+        self, page, session_simple_timer_html
+    ):
+        """
+        Same as the phase-timer variant: a failed recovery poll on the
+        simple-timer must not hide the stale badge.
+        """
+        page.clock.install()
+        _route_success(page)
+        _load_session(page, session_simple_timer_html)
+        page.wait_for_timeout(50)
+
+        _go_offline(page)
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Pre-condition: stale badge must be visible after 'offline' event"
+        )
+
+        page.route(
+            _ROUTE_PATTERN,
+            lambda route: route.fulfill(status=500, body="Internal Server Error"),
+        )
+
+        _go_online(page)
+        page.wait_for_timeout(100)
+
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Expected .timer-stale-badge to remain visible after 'online' event "
+            "when the recovery poll returns HTTP 500 (simple-timer session mode)"
+        )
+
+    def test_stale_badge_clears_after_failed_then_successful_recovery_phase_timer(
+        self, page, session_phase_timer_html
+    ):
+        """
+        Full stale → failed-recovery → successful-recovery sequence:
+        1. Go offline  → badge appears.
+        2. Go online while server is unreachable → badge persists.
+        3. Server recovers; go online again → badge clears.
+        This confirms the badge lifecycle is correct end-to-end.
+        """
+        page.clock.install()
+        _route_success(page)
+        _load_session(page, session_phase_timer_html)
+        page.wait_for_timeout(50)
+
+        # Step 1: go offline.
+        _go_offline(page)
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Pre-condition: stale badge must appear after 'offline'"
+        )
+
+        # Step 2: go online but server still errors — badge must stay.
+        page.route(
+            _ROUTE_PATTERN,
+            lambda route: route.fulfill(status=500, body="Internal Server Error"),
+        )
+        _go_online(page)
+        page.wait_for_timeout(100)
+        assert page.locator(".timer-stale-badge").is_visible(), (
+            "Badge must remain visible after failed recovery poll"
+        )
+
+        # Step 3: server recovers — reinstall the success route, then go online.
+        _route_success(page)
+        _go_online(page)
+        page.wait_for_timeout(100)
+
+        assert not page.locator(".timer-stale-badge").is_visible(), (
+            "Expected .timer-stale-badge to clear after a successful recovery poll "
+            "following earlier failures (phase-timer session mode)"
         )

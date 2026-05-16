@@ -1,3 +1,22 @@
+"""Concrete BaseTool implementations for every tool in the catalog.
+
+Each class inherits from ``BaseTool`` and implements the ``validate`` and
+``process`` abstract methods.
+
+PHASES convention
+-----------------
+Most tools define a ``PHASES`` class attribute — a tuple of
+``(field_name, display_label)`` pairs.  The ``field_name`` must match the
+corresponding form field name in ``tools/forms.py`` and is used as the key
+in both ``payload_input`` and ``payload_output`` on the ``ToolInstance``
+model.  The ``display_label`` is shown to the user in the form and in the
+archive detail view.
+
+``IdeaGenerationTool`` and ``IAmAndILikeTool`` predate the ``PHASES``
+convention and handle their fields manually rather than iterating over a
+tuple.
+"""
+
 from .interface import BaseTool
 
 
@@ -15,8 +34,6 @@ class IdeaGenerationTool(BaseTool):
         text = (self.user_input.get('initial_thought') or '').strip()
         return {
             'initial_thought': text,
-            'word_count': len(text.split()),
-            'character_count': len(text),
         }
 
 
@@ -39,11 +56,14 @@ class IAmAndILikeTool(BaseTool):
             parts.append(f'I like {likes}')
         if dislikes:
             parts.append(f'I do not like {dislikes}')
+        # Three possible output cases:
+        #   both filled  → "I like X and I do not like Y"
+        #   likes only   → "I like X"
+        #   dislikes only→ "I do not like Y"
         return {
             'statement': ' and '.join(parts) if parts else '',
             'i_like': likes,
             'i_do_not_like': dislikes,
-            'word_count': len(' '.join(parts).split()),
         }
 
 
@@ -66,19 +86,18 @@ class UserExperienceFishbowlTool(BaseTool):
     def validate(self):
         for field, label in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
+            # 3-character minimum intentionally keeps the barrier low while
+            # rejecting completely empty or trivially short (e.g. "ok") answers.
             if len(value) < 3:
                 self.errors[field] = f'{label}: please write a slightly longer response.'
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
+            # Returned dict keys match PHASES field names and are stored
+            # verbatim as payload_output on the ToolInstance.
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -107,14 +126,9 @@ class ConversationCafeTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -144,14 +158,9 @@ class HelpingHeuristicsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -179,14 +188,9 @@ class ImprovPrototypingTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -213,14 +217,9 @@ class MinSpecsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -250,14 +249,9 @@ class WiseCrowdsLargeGroupTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -286,14 +280,9 @@ class WiseCrowdsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -320,14 +309,9 @@ class TwentyFiveTenCrowdSourcingTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -354,14 +338,9 @@ class ShiftAndShareTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -392,14 +371,9 @@ class DiscoveryActionDialogueTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -426,14 +400,9 @@ class WhatSoWhatNowWhatTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -460,14 +429,9 @@ class TroikaConsultingTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -493,14 +457,9 @@ class FifteenPercentSolutionsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -526,14 +485,9 @@ class TrizTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -562,14 +516,9 @@ class AppreciativeInterviewsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -595,14 +544,9 @@ class WickedQuestionsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -631,14 +575,9 @@ class NineWhysTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -666,14 +605,9 @@ class ImpromptNetworkingTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -701,14 +635,9 @@ class OneTwoFourAllTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -735,17 +664,12 @@ class DrawingTogetherTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.TEXT_FIELDS:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
         canvas_data = (self.user_input.get('canvas_data') or '').strip()
         result['canvas_data'] = canvas_data
         result['has_drawing'] = canvas_data.startswith('data:image/')
-        result['word_count'] = total_words
         return result
 
 
@@ -769,14 +693,9 @@ class FiveStructuralElementsTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field in self.FIELDS:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -807,14 +726,9 @@ class ProjectileManagerTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
 
 
@@ -842,14 +756,7 @@ class GenRelStarTool(BaseTool):
 
     def process(self):
         result = {}
-        total_words = 0
         for field, _ in self.PHASES:
             value = (self.user_input.get(field) or '').strip()
-            words = len(value.split())
             result[field] = value
-            result[f'{field}_word_count'] = words
-            total_words += words
-        result['word_count'] = total_words
         return result
-
-

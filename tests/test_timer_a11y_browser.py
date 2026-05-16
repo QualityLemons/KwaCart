@@ -100,6 +100,64 @@ def _load_timer(page, timer_html: str) -> None:
     page.wait_for_selector(".timer-widget")
 
 
+_HOST_SESSION_ROUTE = "http://testhost/**"
+
+
+def _load_host_session_timer(page, timer_html: str) -> None:
+    """
+    Load the host-session timer HTML with fake clock and HTTP route interception.
+
+    The host-session timer uses session-mode JS (``sessionMode = true``) so
+    button clicks POST to start/reset URLs.  A Playwright route intercepts all
+    ``http://testhost/**`` requests:
+
+    - POST to the start URL: responds with ``timer_started_at = T`` (the
+      frozen ``Date.now()`` value) so ``applyServerTimestamp()`` runs and
+      disables the Start button as expected.
+    - All other requests (status polls via GET, Reset POST): respond with an
+      idle-state payload; the reset handler ignores the response body entirely.
+
+    The status poll fires on a 4 000 ms setInterval.  Because all
+    ``_advance()`` calls in the host keyboard tests are well under 4 000 ms,
+    the poll never fires and cannot interfere with state set by the start
+    response.
+    """
+    import datetime
+    import json
+
+    page.clock.install()
+    T = page.evaluate("Date.now()")
+
+    started_at_iso = (
+        datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+        + datetime.timedelta(milliseconds=T)
+    ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+    def _handle(route):
+        if route.request.method == "POST" and "/start" in route.request.url:
+            route.fulfill(
+                content_type="application/json",
+                body=json.dumps(
+                    {"timer_started_at": started_at_iso, "timer_paused_at": None}
+                ),
+            )
+        else:
+            route.fulfill(
+                content_type="application/json",
+                body=json.dumps(
+                    {
+                        "status": "open",
+                        "timer_started_at": None,
+                        "timer_paused_at": None,
+                    }
+                ),
+            )
+
+    page.route(_HOST_SESSION_ROUTE, _handle)
+    page.set_content(timer_html, wait_until="domcontentloaded")
+    page.wait_for_selector(".timer-widget")
+
+
 def _advance(page, milliseconds: int) -> None:
     """
     Advance the fake clock *and* flush any pending requestAnimationFrame
@@ -583,6 +641,197 @@ class TestTimerA11yBrowserKeyboard:
         text = _announcer_text(page)
         assert "Timer reset" in text, (
             f"Expected 'Timer reset' in live region after keyboard reset, got: '{text}'"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Keyboard tests — host session view (Start + Reset only, no Pause button)
+# ---------------------------------------------------------------------------
+
+class TestTimerA11yBrowserKeyboardHost:
+    """
+    Keyboard-only tests for the host session view of the timer widget.
+
+    In host session mode the ``{% elif is_host %}`` template branch renders
+    only Start and Reset buttons — the Pause button is absent entirely.
+    This branch is active when ``timer_session_id`` is truthy **and**
+    ``is_host=True``; the standalone branch (``{% if not timer_session_id %}``)
+    always renders all three buttons regardless of ``is_host``.
+
+    These tests therefore use the ``host_session_timer_html`` fixture (which
+    supplies a real fake session ID alongside ``is_host=True``) and the
+    ``_load_host_session_timer`` helper that intercepts HTTP calls via
+    ``page.route()`` so button-click fetches resolve correctly.
+
+    Tests verify:
+
+    - The Pause button is absent from the DOM in host session mode.
+    - Tab navigation reaches Start and Reset without a Pause gap.
+    - After Start is activated (Start becomes disabled), a single Tab lands
+      directly on Reset — the key host-mode scenario called out in the task.
+    - Space and Enter activate Start and Reset as expected.
+    - A live-region "Timer reset" announcement fires on keyboard reset.
+
+    No mouse or .click() interaction is used anywhere in this class.
+    """
+
+    # ------------------------------------------------------------------
+    # DOM structure — Pause button must be absent
+    # ------------------------------------------------------------------
+
+    def test_pause_button_absent_in_host_session_view(self, page, host_session_timer_html):
+        """The Pause button must not exist in the DOM for the host session view."""
+        _load_host_session_timer(page, host_session_timer_html)
+        assert page.locator(".timer-pause").count() == 0, (
+            "Pause button should not be rendered in host session mode"
+        )
+
+    # ------------------------------------------------------------------
+    # Tab-order / focus reachability
+    # ------------------------------------------------------------------
+
+    def test_start_button_reachable_by_tab_host(self, page, host_session_timer_html):
+        """A single Tab from the document body must land on the Start button."""
+        _load_host_session_timer(page, host_session_timer_html)
+        page.keyboard.press("Tab")
+        focused_class = page.evaluate("document.activeElement.className")
+        assert "timer-start" in focused_class, (
+            f"Expected Start button to receive first Tab focus (host session view), "
+            f"got class: '{focused_class}'"
+        )
+
+    def test_reset_button_reachable_by_tab_host(self, page, host_session_timer_html):
+        """
+        Without a Pause button the Reset button must be reached after exactly
+        two Tabs from the document body (Start → Reset, Pause absent).
+        """
+        _load_host_session_timer(page, host_session_timer_html)
+        page.keyboard.press("Tab")
+        page.keyboard.press("Tab")
+        focused_class = page.evaluate("document.activeElement.className")
+        assert "timer-reset" in focused_class, (
+            f"Expected Reset button after two Tabs from body (host session view, no Pause), "
+            f"got class: '{focused_class}'"
+        )
+
+    def test_reset_reachable_by_tab_after_start(self, page, host_session_timer_html):
+        """
+        After Start is activated and the Start button becomes disabled, a
+        single Tab must land on Reset — with no Pause button in between.
+
+        This is the host-session-specific scenario: in the standalone view
+        there is a disabled-but-present Pause button between Start and Reset;
+        in host session mode that element is absent, so Reset is one Tab away
+        from wherever focus lands after Start is disabled.
+        """
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        assert start_btn.is_disabled(), (
+            "Start button must be disabled after keyboard activation"
+        )
+        page.keyboard.press("Tab")
+        focused_class = page.evaluate("document.activeElement.className")
+        assert "timer-reset" in focused_class, (
+            f"Expected Tab after Start activation to land on Reset (no Pause gap "
+            f"in host session view), got class: '{focused_class}'"
+        )
+
+    # ------------------------------------------------------------------
+    # Start button — Space and Enter activation
+    # ------------------------------------------------------------------
+
+    def test_start_button_activates_with_space_host(self, page, host_session_timer_html):
+        """Space on the focused Start button must start the timer (host session view)."""
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+        assert start_btn.is_disabled(), (
+            "Start button should be disabled while running (host session view)"
+        )
+        assert start_btn.inner_text() == "Running\u2026"
+
+    def test_start_button_activates_with_enter_host(self, page, host_session_timer_html):
+        """Enter on the focused Start button must start the timer (host session view)."""
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Enter")
+        _advance(page, 200)
+        assert start_btn.is_disabled(), (
+            "Start button should be disabled while running (host session view)"
+        )
+        assert start_btn.inner_text() == "Running\u2026"
+
+    # ------------------------------------------------------------------
+    # Reset button — Space and Enter activation
+    # ------------------------------------------------------------------
+
+    def test_reset_button_activates_with_space_host(self, page, host_session_timer_html):
+        """Space on the Reset button must reset the timer to its initial state (host session view)."""
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        reset_btn = page.locator(".timer-reset")
+        reset_btn.focus()
+        focused_class = page.evaluate("document.activeElement.className")
+        assert "timer-reset" in focused_class, (
+            "Reset button should hold focus before activation (host session view)"
+        )
+
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        label = page.locator(".timer-phase-label").inner_text()
+        assert label == "Alpha", (
+            f"Expected 'Alpha' after keyboard reset (host session view), got: '{label}'"
+        )
+        assert start_btn.inner_text() == "Start"
+
+    def test_reset_button_activates_with_enter_host(self, page, host_session_timer_html):
+        """Enter on the Reset button must reset the timer to its initial state (host session view)."""
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        reset_btn = page.locator(".timer-reset")
+        reset_btn.focus()
+        page.keyboard.press("Enter")
+        _advance(page, 200)
+
+        label = page.locator(".timer-phase-label").inner_text()
+        assert label == "Alpha", (
+            f"Expected 'Alpha' after keyboard reset (host session view), got: '{label}'"
+        )
+        assert start_btn.inner_text() == "Start"
+
+    def test_reset_announces_via_live_region_host(self, page, host_session_timer_html):
+        """Resetting via keyboard must trigger a 'Timer reset' live-region announcement (host session view)."""
+        _load_host_session_timer(page, host_session_timer_html)
+        start_btn = page.locator(".timer-start")
+        start_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        reset_btn = page.locator(".timer-reset")
+        reset_btn.focus()
+        page.keyboard.press("Space")
+        _advance(page, 200)
+
+        text = _announcer_text(page)
+        assert "Timer reset" in text, (
+            f"Expected 'Timer reset' in live region after keyboard reset "
+            f"(host session view), got: '{text}'"
         )
 
 
@@ -1109,6 +1358,41 @@ class TestLongPauseHostReminder:
             "After resume, the .timer-paused-badge must be hidden (hidden attribute present)"
         )
 
+    def test_host_badge_text_resets_to_paused_after_resume_and_repause(
+        self, page, host_timer_html
+    ):
+        """
+        Full pause → long-pause → resume → re-pause cycle.
+
+        After a host resumes from a long pause and immediately re-pauses the
+        timer, ``setPausedIndicator(false)`` resets the badge text to the
+        neutral "▮▮ Paused" value before ``setPausedIndicator(true)`` fires.
+        The badge must therefore show "Paused ·" (neutral) — not "Still
+        paused" — because the new pause has not yet reached the threshold.
+        """
+        self._pause_and_advance(page, host_timer_html, self._THRESHOLD_MS)
+
+        has_class = page.locator(".timer-paused-badge.long-paused").count() > 0
+        assert has_class, (
+            "Prerequisite: badge must show 'long-paused' before resume so "
+            "the reset is meaningful"
+        )
+
+        page.locator(".timer-start").click()
+        _advance(page, self._SETTLE_MS)
+
+        page.locator(".timer-pause").click()
+        _advance(page, 2_000)
+
+        text = page.locator(".timer-paused-badge").inner_text()
+        assert "Still paused" not in text, (
+            "Badge must not show 'Still paused' immediately after re-pause "
+            f"(threshold not yet reached); got: '{text}'"
+        )
+        assert "Paused \u00b7" in text, (
+            f"Badge must show neutral 'Paused ·' text after re-pause; got: '{text}'"
+        )
+
     def test_host_no_long_paused_class_before_threshold(
         self, page, host_timer_html
     ):
@@ -1125,10 +1409,397 @@ class TestLongPauseHostReminder:
             f"(only {self._BELOW_THRESHOLD_MS // 1000} s elapsed)"
         )
 
+    def test_custom_threshold_120_triggers_long_paused(
+        self, page, host_timer_html_threshold_120
+    ):
+        """
+        When ``PAUSE_REMINDER_THRESHOLD_SEC`` is set to 120, the host badge
+        must gain the ``long-paused`` class after exactly 120 s of pause time,
+        not the default 300 s.
+        """
+        self._pause_and_advance(page, host_timer_html_threshold_120, 120_000)
+
+        has_class = page.locator(".timer-paused-badge.long-paused").count() > 0
+        assert has_class, (
+            "Expected .timer-paused-badge to have 'long-paused' class after "
+            "120 s when PAUSE_REMINDER_THRESHOLD_SEC = 120"
+        )
+
+    def test_custom_threshold_120_does_not_trigger_before_threshold(
+        self, page, host_timer_html_threshold_120
+    ):
+        """
+        With a 120 s threshold, only 60 s elapsed — ``long-paused`` must
+        *not* appear yet.
+        """
+        self._pause_and_advance(page, host_timer_html_threshold_120, 60_000)
+
+        has_class = page.locator(".timer-paused-badge.long-paused").count() > 0
+        assert not has_class, (
+            "Host badge should not show 'long-paused' class after only 60 s "
+            "when PAUSE_REMINDER_THRESHOLD_SEC = 120"
+        )
+
+    def test_null_threshold_never_shows_long_paused(
+        self, page, host_timer_html_threshold_null
+    ):
+        """
+        When ``PAUSE_REMINDER_THRESHOLD_SEC`` is ``null`` (disabled), the
+        host badge must *never* gain the ``long-paused`` class, even after a
+        very long pause (600 s — well past the default 300 s threshold).
+        """
+        self._pause_and_advance(page, host_timer_html_threshold_null, 600_000)
+
+        has_class = page.locator(".timer-paused-badge.long-paused").count() > 0
+        assert not has_class, (
+            "Host badge must not show 'long-paused' class when "
+            "PAUSE_REMINDER_THRESHOLD_SEC = null (reminder disabled), "
+            "even after 600 s of pause time"
+        )
+
 
 # ---------------------------------------------------------------------------
 # Simple-timer reset-announcement tests
 # ---------------------------------------------------------------------------
+
+class TestTimerDisplayAriaLabelBrowser:
+    """
+    Browser-level verification that the timer-display element's
+    role="timer" and aria-label="Time remaining" attributes are present in
+    the live DOM and do not introduce WCAG 2 AA violations detected by axe-core.
+
+    Rationale
+    ---------
+    The static tests in test_timer_a11y.py confirm that role="timer" and
+    aria-label="Time remaining" appear in the rendered HTML, but they cannot
+    catch ARIA conflicts that only surface at runtime (e.g. an unexpected
+    aria-live on the same element, or a hidden parent that masks the label).
+    These tests exercise the same attributes in a real Chromium browser with
+    axe-core injected, closing that gap.
+
+    Both the phase-timer (``timer_html``) and the simple countdown
+    (``simple_timer_html``) are tested because ``timer-display`` is rendered
+    in both modes.
+    """
+
+    def test_phase_timer_display_has_role_timer_in_browser(self, page, timer_html):
+        """The timer-display element must carry role='timer' in the live DOM."""
+        _load_timer(page, timer_html)
+        role = page.locator(".timer-display").get_attribute("role")
+        assert role == "timer", (
+            f"Expected role='timer' on .timer-display, got: '{role}'"
+        )
+
+    def test_phase_timer_display_has_aria_label_in_browser(self, page, timer_html):
+        """The timer-display element must carry aria-label='Time remaining' in the live DOM."""
+        _load_timer(page, timer_html)
+        label = page.locator(".timer-display").get_attribute("aria-label")
+        assert label == "Time remaining", (
+            f"Expected aria-label='Time remaining' on .timer-display, got: '{label}'"
+        )
+
+    def test_simple_timer_display_has_role_timer_in_browser(self, page, simple_timer_html):
+        """Simple-timer mode: timer-display must carry role='timer' in the live DOM."""
+        _load_timer(page, simple_timer_html)
+        role = page.locator(".timer-display").get_attribute("role")
+        assert role == "timer", (
+            f"Expected role='timer' on .timer-display (simple mode), got: '{role}'"
+        )
+
+    def test_simple_timer_display_has_aria_label_in_browser(self, page, simple_timer_html):
+        """Simple-timer mode: timer-display must carry aria-label='Time remaining' in the live DOM."""
+        _load_timer(page, simple_timer_html)
+        label = page.locator(".timer-display").get_attribute("aria-label")
+        assert label == "Time remaining", (
+            f"Expected aria-label='Time remaining' on .timer-display (simple mode), got: '{label}'"
+        )
+
+    def test_phase_timer_display_aria_label_no_axe_violations_initial(self, page, timer_html):
+        """
+        axe-core must report no WCAG 2 AA violations for the timer widget at
+        rest — confirming role='timer' / aria-label='Time remaining' do not
+        conflict with any other ARIA attributes on the element or its parents.
+        """
+        _load_timer(page, timer_html)
+        results = _run_axe(page)
+        _assert_no_violations(results, "phase timer — initial state (role=timer aria-label check)")
+
+    def test_phase_timer_display_aria_label_no_axe_violations_running(self, page, timer_html):
+        """
+        axe-core must pass while the timer is actively counting down — the
+        textContent of .timer-display changes every second, so this confirms
+        that the dynamic updates do not invalidate the ARIA attributes.
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 500)
+        results = _run_axe(page)
+        _assert_no_violations(results, "phase timer — running (role=timer aria-label check)")
+
+    def test_simple_timer_display_aria_label_no_axe_violations_initial(self, page, simple_timer_html):
+        """
+        axe-core must report no violations for the simple-timer widget at rest,
+        confirming role='timer' / aria-label='Time remaining' are valid in the
+        no-phases rendering path as well.
+        """
+        _load_timer(page, simple_timer_html)
+        results = _run_axe(page)
+        _assert_no_violations(results, "simple timer — initial state (role=timer aria-label check)")
+
+    def test_simple_timer_display_aria_label_no_axe_violations_running(self, page, simple_timer_html):
+        """
+        axe-core must pass while the simple timer is counting down, confirming
+        the attributes remain valid during live textContent updates.
+        """
+        _load_timer(page, simple_timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 500)
+        results = _run_axe(page)
+        _assert_no_violations(results, "simple timer — running (role=timer aria-label check)")
+
+    def test_timer_display_has_no_aria_live_in_browser(self, page, timer_html):
+        """
+        The timer-display element must NOT carry aria-live in the live DOM.
+        Announcements are routed through #phase-announcer; an aria-live on the
+        display itself would cause every second-tick textContent update to be
+        announced by the screen reader, flooding the AT queue.
+        """
+        _load_timer(page, timer_html)
+        aria_live = page.locator(".timer-display").get_attribute("aria-live")
+        assert aria_live is None, (
+            "timer-display must not have aria-live — every-second tick updates "
+            f"would flood the screen-reader queue; got aria-live='{aria_live}'"
+        )
+
+
+class TestMilestoneAnnouncementCount:
+    """
+    Verify that each milestone reminder ("30 seconds remaining", etc.) is
+    emitted by ``#phase-announcer`` exactly once — and does not repeat if the
+    ``announcedMilestones`` guard were accidentally cleared.
+
+    Background
+    ----------
+    ``checkMilestones()`` runs on every tick.  A guard Set (``announcedMilestones``)
+    prevents the same milestone from firing twice.  A MutationObserver
+    count test catches any regression where the guard is cleared mid-phase
+    and the announcement fires a second time.
+
+    Fixtures used
+    -------------
+    * ``simple_timer_html`` — 60 s simple timer; only the 30 s milestone is
+      reachable within the test window.
+    * ``phase_timer_milestone_html`` — single 15 s phase; only the 10 s
+      milestone fires.
+    """
+
+    _SETTLE_MS = 200
+
+    def test_simple_timer_30s_milestone_fires_exactly_once(
+        self, page, simple_timer_html
+    ):
+        """
+        Simple timer: the 30-second milestone must produce exactly one
+        non-empty announcement — "30 seconds remaining".
+
+        Approach
+        --------
+        1. Start the timer and advance 29 s (remaining = 31, no milestone yet).
+        2. Install the MutationObserver.
+        3. Advance 1 s (remaining → 30, milestone fires) + 200 ms settle.
+        4. Assert exactly 1 non-empty change: "30 seconds remaining".
+        5. Advance 1 s more (remaining → 29) and confirm the list has not grown.
+        """
+        _load_timer(page, simple_timer_html)
+        page.locator(".timer-start").click()
+
+        _advance(page, 29_000)
+
+        _install_announcer_observer(page)
+
+        _advance(page, 1_000 + self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 announcement at 30-second milestone, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "30 seconds remaining", (
+            f"Expected '30 seconds remaining', got: '{non_empty[0]}'"
+        )
+
+        _advance(page, 1_000)
+
+        changes_after = _get_announcer_changes(page)
+        non_empty_after = [c for c in changes_after if c]
+        assert len(non_empty_after) == 1, (
+            f"Milestone must not re-announce after the tick has passed; "
+            f"got {len(non_empty_after)}: {non_empty_after}"
+        )
+
+    def test_phase_timer_10s_milestone_fires_exactly_once(
+        self, page, phase_timer_milestone_html
+    ):
+        """
+        Phase timer: the 10-second milestone in a 15 s phase must produce
+        exactly one non-empty announcement — "10 seconds remaining in Alpha".
+
+        Approach
+        --------
+        1. Start the timer and advance 4 s (remaining = 11, no milestone yet).
+        2. Install the MutationObserver.
+        3. Advance 1 s (remaining → 10, milestone fires) + 200 ms settle.
+        4. Assert exactly 1 non-empty change: "10 seconds remaining in Alpha".
+        5. Advance 1 s more (remaining → 9) and confirm no repeat.
+        """
+        _load_timer(page, phase_timer_milestone_html)
+        page.locator(".timer-start").click()
+
+        _advance(page, 4_000)
+
+        _install_announcer_observer(page)
+
+        _advance(page, 1_000 + self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 announcement at 10-second milestone, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "10 seconds remaining in Alpha", (
+            f"Expected '10 seconds remaining in Alpha', got: '{non_empty[0]}'"
+        )
+
+        _advance(page, 1_000)
+
+        changes_after = _get_announcer_changes(page)
+        non_empty_after = [c for c in changes_after if c]
+        assert len(non_empty_after) == 1, (
+            f"Milestone must not re-announce after the tick has passed; "
+            f"got {len(non_empty_after)}: {non_empty_after}"
+        )
+
+    def test_phase_timer_5min_milestone_fires_exactly_once(
+        self, page, phase_timer_long_milestone_html
+    ):
+        """
+        Phase timer: the 5-minute (300 s) milestone in a 360 s phase must
+        produce exactly one non-empty announcement —
+        "5 minutes remaining in Alpha".
+
+        This is the highest-priority milestone in MILESTONES = [300, 120, 60,
+        30, 10].  A regression in the announcedMilestones guard (e.g. the Set
+        being accidentally cleared mid-phase) would cause the announcement to
+        fire on every subsequent tick, which this test catches.
+
+        Approach
+        --------
+        1. Start the timer and advance 59 s (remaining = 301, no milestone
+           yet — the 300 s milestone has not been crossed).
+        2. Install the MutationObserver.
+        3. Advance 1 s (remaining → 300, milestone fires) + 200 ms settle.
+        4. Assert exactly 1 non-empty change: "5 minutes remaining in Alpha".
+        5. Advance 1 s more (remaining → 299) and confirm no repeat.
+        """
+        _load_timer(page, phase_timer_long_milestone_html)
+        page.locator(".timer-start").click()
+
+        _advance(page, 59_000)
+
+        _install_announcer_observer(page)
+
+        _advance(page, 1_000 + self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 announcement at 5-minute milestone, "
+            f"got {len(non_empty)}: {non_empty}"
+        )
+        assert non_empty[0] == "5 minutes remaining in Alpha", (
+            f"Expected '5 minutes remaining in Alpha', got: '{non_empty[0]}'"
+        )
+
+        _advance(page, 1_000)
+
+        changes_after = _get_announcer_changes(page)
+        non_empty_after = [c for c in changes_after if c]
+        assert len(non_empty_after) == 1, (
+            f"5-minute milestone must not re-announce on the next tick; "
+            f"got {len(non_empty_after)}: {non_empty_after}"
+        )
+
+
+class TestBadgeTextResetAfterLongPauseResume:
+    """
+    Confirm that the pause badge text resets to the neutral "▮▮ Paused" value
+    when the host resumes from a long pause and then pauses again.
+
+    Background
+    ----------
+    After a long pause (>= PAUSE_REMINDER_THRESHOLD_SEC), ``updatePausedText``
+    sets the badge text to "▮▮ Still paused — X min".  When the host resumes,
+    ``setPausedIndicator(false)`` sets ``textContent = '▮▮ Paused'`` before
+    hiding the badge.  If this reset were missing, the next pause would
+    immediately show the stale "▮▮ Still paused" text rather than the neutral
+    "▮▮ Paused · 0s" / "▮▮ Paused · 1s" progression.
+
+    Test sequence
+    -------------
+    1. Load ``host_timer_html`` (IS_HOST = true, default 300 s threshold).
+    2. Start timer, pause, advance 300 s → badge shows "Still paused".
+    3. Resume → badge is hidden and textContent is reset to "▮▮ Paused".
+    4. Pause immediately → badge reappears with "▮▮ Paused · 0s" or
+       "▮▮ Paused · 1s" (NOT "Still paused"), confirming the reset held.
+    """
+
+    _THRESHOLD_MS = 300_000
+    _SETTLE_MS = 200
+
+    def test_badge_text_resets_to_paused_after_long_pause_resume(
+        self, page, host_timer_html
+    ):
+        """
+        After a long-pause reminder and a subsequent resume, re-pausing the
+        timer must show the neutral 'Paused' badge text, not 'Still paused'.
+        """
+        _load_timer(page, host_timer_html)
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+        page.locator(".timer-pause").click()
+        _advance(page, self._THRESHOLD_MS)
+
+        badge_text_before = page.locator(".timer-paused-badge").inner_text()
+        assert "Still paused" in badge_text_before, (
+            f"Prerequisite: badge must show 'Still paused' at threshold, "
+            f"got: '{badge_text_before}'"
+        )
+
+        page.locator(".timer-start").click()
+        _advance(page, self._SETTLE_MS)
+
+        assert not page.locator(".timer-paused-badge").is_visible(), (
+            "Badge must be hidden immediately after resume"
+        )
+
+        page.locator(".timer-pause").click()
+        _advance(page, 1_000)
+
+        badge_text_after = page.locator(".timer-paused-badge").inner_text()
+        assert "Still paused" not in badge_text_after, (
+            f"After resume + re-pause, badge must NOT show 'Still paused'; "
+            f"got: '{badge_text_after}'"
+        )
+        assert "Paused" in badge_text_after, (
+            f"After re-pause, badge must show 'Paused', got: '{badge_text_after}'"
+        )
+
 
 class TestSimpleTimerResetAnnouncement:
     """
@@ -1240,4 +1911,257 @@ class TestSimpleTimerResetAnnouncement:
         )
         assert not start_btn.is_disabled(), (
             "Start button should be enabled after simple-timer reset"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Tab-return announcement-count tests
+# ---------------------------------------------------------------------------
+
+class TestTabReturnAnnouncementCount:
+    """
+    Verify that returning to a tab where a phase transition occurred while the
+    tab was hidden causes ``#phase-announcer`` to emit **exactly one** non-empty
+    announcement — not two.
+
+    Background
+    ----------
+    The standalone-mode ``visibilitychange`` handler calls
+    ``applyServerTimestamp()`` (which announces "Now entering Phase N" when it
+    detects a new phase) and then also explicitly calls ``announce()`` a second
+    time if the timer is running.  If a phase transition happened between the
+    two calls, both would fire — giving screen-reader users two announcements.
+
+    The bug is avoided in practice because Playwright's fake clock continues
+    to fire all ``setInterval`` callbacks (including ``tick()``) even while
+    the tab is logically "hidden".  ``tick()`` therefore advances ``phaseIdx``
+    before the visibility handler runs, so ``applyServerTimestamp`` sees no new
+    transition on return and emits no extra cue.
+
+    For the session-mode timer, the ``announceOnReturn`` flag is set on return.
+    After ``tick()`` advances ``phaseIdx`` while the tab is hidden, the server
+    poll on return also calculates the same phase index.  ``applyServerTimestamp``
+    therefore detects no phase change; only the ``announceOnReturn`` path fires
+    — one announcement.
+
+    These tests pin both behaviours so that any regression that causes a double
+    announcement is caught immediately.
+
+    Test approach (both variants)
+    -----------------------------
+    1. Start the timer, advance 100 ms to stabilise the tick loop.
+    2. Simulate tab-hide via ``Object.defineProperty(document, 'hidden', …)``
+       + ``dispatchEvent(new Event('visibilitychange'))``.
+    3. Advance the fake clock by ``TICK_MS`` (phase duration + 500 ms).
+       ``tick()`` fires during this period and crosses the phase 1 → 2 boundary,
+       updating ``phaseIdx`` and ``remaining`` in place.
+    4. Install the MutationObserver on ``#phase-announcer``.
+    5. Simulate tab-return (restore ``document.hidden = false``, dispatch
+       ``visibilitychange``).  The handler sees ``phaseIdx`` already at 1 and
+       emits one "about X remaining in Beta" cue.
+    6. Advance the fake clock by ``_SETTLE_MS`` so the ``ANNOUNCE_DELAY_MS``
+       setTimeout fires and the observer records the final text.
+    7. Assert exactly one non-empty change on ``#phase-announcer``.
+    """
+
+    _SETTLE_MS = 200
+
+    @staticmethod
+    def _hide_tab(page) -> None:
+        """Set document.hidden = true and dispatch visibilitychange."""
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => true, configurable: true
+                });
+                Object.defineProperty(document, 'visibilityState', {
+                    get: () => 'hidden', configurable: true
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+            }
+        """)
+
+    @staticmethod
+    def _show_tab(page) -> None:
+        """Set document.hidden = false and dispatch visibilitychange."""
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => false, configurable: true
+                });
+                Object.defineProperty(document, 'visibilityState', {
+                    get: () => 'visible', configurable: true
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+            }
+        """)
+
+    # ------------------------------------------------------------------
+    # Standalone timer
+    # ------------------------------------------------------------------
+
+    def test_standalone_tab_return_after_phase_transition_fires_exactly_once(
+        self, page, timer_html
+    ):
+        """
+        Standalone timer: returning to the tab after a phase transition
+        occurred while hidden must produce exactly one non-empty announcement
+        on ``#phase-announcer``.
+
+        The standalone visibility handler calls ``applyServerTimestamp()``
+        (which would announce a phase transition if it detects one) and then
+        explicitly calls ``announce()`` once more if the timer is running.
+        Because ``tick()`` already advanced ``phaseIdx`` during the fake-clock
+        advance, ``applyServerTimestamp`` sees no new transition and only the
+        second explicit ``announce()`` fires — giving exactly one cue.
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        self._hide_tab(page)
+        _advance(page, TICK_MS)
+
+        _install_announcer_observer(page)
+        self._show_tab(page)
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on standalone tab-return "
+            f"after phase transition, got {len(non_empty)}: {non_empty}"
+        )
+
+    def test_standalone_tab_return_announcement_mentions_current_phase(
+        self, page, timer_html
+    ):
+        """
+        The tab-return announcement must reference the phase the timer entered
+        while hidden ('Beta'), not the phase it was in when hidden ('Alpha').
+        This confirms that ``applyServerTimestamp`` correctly re-synced the
+        phase index from the virtual start timestamp before the cue was built.
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        self._hide_tab(page)
+        _advance(page, TICK_MS)
+
+        _install_announcer_observer(page)
+        self._show_tab(page)
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert non_empty, "Expected at least one announcement on tab-return"
+        assert "Beta" in non_empty[0], (
+            f"Tab-return announcement must reference the current phase 'Beta', "
+            f"got: '{non_empty[0]}'"
+        )
+
+    def test_standalone_tab_return_no_phase_transition_fires_exactly_once(
+        self, page, timer_html
+    ):
+        """
+        Standalone timer, no phase transition while hidden: returning to the
+        tab must still produce exactly one non-empty announcement.
+
+        This baseline confirms that even without a phase boundary being
+        crossed, the visibility handler emits a single "about X remaining in
+        Alpha" cue and nothing else.
+        """
+        _load_timer(page, timer_html)
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        self._hide_tab(page)
+        _advance(page, 1_000)
+
+        _install_announcer_observer(page)
+        self._show_tab(page)
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on tab-return "
+            f"(no phase transition), got {len(non_empty)}: {non_empty}"
+        )
+
+    # ------------------------------------------------------------------
+    # Session-mode timer
+    # ------------------------------------------------------------------
+
+    def test_session_tab_return_after_phase_transition_fires_exactly_once(
+        self, page, session_phase_timer_html
+    ):
+        """
+        Session-mode timer: returning to the tab after a phase transition
+        occurred while hidden must produce exactly one non-empty announcement
+        on ``#phase-announcer``.
+
+        When the tab returns, the ``visibilitychange`` handler sets
+        ``announceOnReturn = true`` and calls ``pollTimerState()``.  The poll
+        response carries the original ``timer_started_at`` timestamp, so
+        ``applyServerTimestamp`` recalculates the current phase.  Because
+        ``tick()`` already advanced ``phaseIdx`` to 1 during the fake-clock
+        advance, ``applyServerTimestamp`` sees no new transition and skips the
+        "Now entering Phase 2" cue.  Only the ``announceOnReturn`` path fires —
+        one announcement.
+        """
+        import datetime
+        import json
+
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+        started_at_iso = (
+            datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+            + datetime.timedelta(milliseconds=T)
+        ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+        def _handle(route):
+            if route.request.method == "POST" and "/start" in route.request.url:
+                route.fulfill(
+                    content_type="application/json",
+                    body=json.dumps(
+                        {"timer_started_at": started_at_iso, "timer_paused_at": None}
+                    ),
+                )
+            else:
+                route.fulfill(
+                    content_type="application/json",
+                    body=json.dumps(
+                        {
+                            "status": "open",
+                            "timer_started_at": started_at_iso,
+                            "timer_paused_at": None,
+                        }
+                    ),
+                )
+
+        page.route(_HOST_SESSION_ROUTE, _handle)
+        page.set_content(session_phase_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        page.locator(".timer-start").click()
+        _advance(page, 100)
+
+        self._hide_tab(page)
+        _advance(page, TICK_MS)
+
+        _install_announcer_observer(page)
+        self._show_tab(page)
+        _advance(page, self._SETTLE_MS)
+
+        changes = _get_announcer_changes(page)
+        non_empty = [c for c in changes if c]
+
+        assert len(non_empty) == 1, (
+            f"Expected exactly 1 non-empty announcement on session-mode "
+            f"tab-return after phase transition, got {len(non_empty)}: {non_empty}"
         )

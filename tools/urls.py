@@ -21,9 +21,19 @@ urlpatterns = [
     path('session/<uuid:session_id>/', views.session_detail, name='session_detail'),
     path('session/<uuid:session_id>/close/', views.session_close, name='session_close'),
     path('session/<uuid:session_id>/status/', views.session_status, name='session_status'),
+
+    # Timer control — host only, POST required.
+    # Host-only access is enforced in the view via get_object_or_404(host=request.user).
     path('session/<uuid:session_id>/timer/start/', views.timer_start, name='timer_start'),
     path('session/<uuid:session_id>/timer/reset/', views.timer_reset, name='timer_reset'),
+
+    # Pause-reminder setting — separate from timer start/reset because it
+    # persists a session-level preference, not a transient timer state.
     path('session/<uuid:session_id>/pause-reminder/', views.session_set_pause_reminder, name='session_set_pause_reminder'),
+
+    # Guest participant flow — no login required; token in URL acts as access key
+    path('session/<uuid:session_id>/guest/<uuid:guest_token>/', views.guest_join, name='guest_join'),
+    path('session/<uuid:session_id>/guest/<uuid:guest_token>/respond/', views.guest_respond, name='guest_respond'),
 
     # Debug/test only — renders a bare timer widget for Playwright a11y tests
     path('_test/timer/', views.timer_test_page, name='timer_test_page'),

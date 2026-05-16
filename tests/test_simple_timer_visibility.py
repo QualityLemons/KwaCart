@@ -174,6 +174,183 @@ class TestSimpleTimerVisibilityResync:
             "Start button must still be disabled after visibility re-sync"
         )
 
+    def test_expires_cleanly_on_tab_return_after_full_countdown(self, page, simple_timer_html):
+        """
+        Edge case: the tab returns *after* the full 60 s countdown has elapsed
+        while hidden.
+
+        The visibilitychange handler must call applyServerTimestamp, which
+        should set the display to 00:00, re-enable the Start button (clearing
+        the stale interval reference), and fire the 'Timer complete'
+        announcement exactly once.
+        """
+        _load_simple_timer(page, simple_timer_html)
+
+        page.evaluate("""
+            () => {
+                const _orig = window.setInterval;
+                window.setInterval = function (fn, delay, ...rest) {
+                    const id = _orig(fn, delay, ...rest);
+                    window._capturedIntervalId = id;
+                    return id;
+                };
+                window._announceCount = 0;
+                const announcer = document.getElementById('phase-announcer');
+                if (announcer) {
+                    new MutationObserver(function (mutations) {
+                        mutations.forEach(function (m) {
+                            if (announcer.textContent === 'Timer complete') {
+                                window._announceCount += 1;
+                            }
+                        });
+                    }).observe(announcer, { childList: true, subtree: true, characterData: true });
+                }
+            }
+        """)
+
+        page.locator(".timer-start").click()
+
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => true,
+                    configurable: true,
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+                if (window._capturedIntervalId !== undefined) {
+                    clearInterval(window._capturedIntervalId);
+                }
+            }
+        """)
+
+        page.clock.run_for(65_000)
+
+        assert _display(page) == "01:00", (
+            "While hidden the display must stay frozen at the start value, "
+            f"got '{_display(page)}'"
+        )
+
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => false,
+                    configurable: true,
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+            }
+        """)
+
+        page.clock.run_for(100)
+
+        assert _display(page) == "00:00", (
+            "After tab return with 65 s elapsed, display must show 00:00, "
+            f"got '{_display(page)}'"
+        )
+
+        start_btn = page.locator(".timer-start")
+        assert not start_btn.is_disabled(), (
+            "Start button must be re-enabled once the timer has expired on tab return"
+        )
+
+        announce_count = page.evaluate("() => window._announceCount")
+        assert announce_count == 1, (
+            f"'Timer complete' must be announced exactly once, got {announce_count}"
+        )
+
+        announcer_text = page.locator("#phase-announcer").inner_text()
+        assert announcer_text == "Timer complete", (
+            f"#phase-announcer must read 'Timer complete', got '{announcer_text}'"
+        )
+
+    def test_phase_timer_expires_cleanly_on_tab_return(self, page, timer_html):
+        """
+        Phase-timer variant: the tab returns *after* all 9 s of phases have
+        elapsed while hidden.
+
+        The visibilitychange handler calls applyServerTimestamp, which must:
+        - set display to '00:00' (last phase exhausted)
+        - re-enable the Start button
+        - announce 'All phases complete' exactly once via #phase-announcer
+
+        The '&& intervalId' guard inside applyServerTimestamp ensures that
+        if this path is somehow reached when the interval is already cleared
+        (impossible in practice but defensive), no double-announcement fires.
+        """
+        page.clock.install()
+        page.set_content(timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        page.evaluate("""
+            () => {
+                const _orig = window.setInterval;
+                window.setInterval = function (fn, delay, ...rest) {
+                    const id = _orig(fn, delay, ...rest);
+                    window._capturedIntervalId = id;
+                    return id;
+                };
+                window._allPhasesCount = 0;
+                const announcer = document.getElementById('phase-announcer');
+                if (announcer) {
+                    new MutationObserver(function (mutations) {
+                        mutations.forEach(function (m) {
+                            if (announcer.textContent === 'All phases complete') {
+                                window._allPhasesCount += 1;
+                            }
+                        });
+                    }).observe(announcer, { childList: true, subtree: true, characterData: true });
+                }
+            }
+        """)
+
+        page.locator(".timer-start").click()
+
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => true,
+                    configurable: true,
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+                if (window._capturedIntervalId !== undefined) {
+                    clearInterval(window._capturedIntervalId);
+                }
+            }
+        """)
+
+        page.clock.run_for(15_000)
+
+        page.evaluate("""
+            () => {
+                Object.defineProperty(document, 'hidden', {
+                    get: () => false,
+                    configurable: true,
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+            }
+        """)
+
+        page.clock.run_for(100)
+
+        assert _display(page) == "00:00", (
+            "After tab return with 15 s elapsed (> 9 s total), display must show 00:00, "
+            f"got '{_display(page)}'"
+        )
+
+        start_btn = page.locator(".timer-start")
+        assert not start_btn.is_disabled(), (
+            "Start button must be re-enabled once all phases have expired on tab return"
+        )
+
+        count = page.evaluate("() => window._allPhasesCount")
+        assert count == 1, (
+            f"'All phases complete' must be announced exactly once on tab return, got {count}"
+        )
+
+        announcer_text = page.locator("#phase-announcer").inner_text()
+        assert announcer_text == "All phases complete", (
+            f"#phase-announcer must read 'All phases complete', got '{announcer_text}'"
+        )
+
     def test_no_resync_when_paused(self, page, simple_timer_html):
         """
         When the timer is paused, virtualStartedAt is null.  The

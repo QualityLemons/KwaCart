@@ -26,8 +26,13 @@
 <section style="margin-top:1.5rem; padding:1rem 1.25rem;
                 border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc;">
     <h2 style="margin-top:0; font-size:1.1rem;">
-        {{ inst.user.email }}
-        {% if inst.user_id == session.host_id %}<span style="color:#64748b; font-weight:normal;">(host)</span>{% endif %}
+        {% if inst.user_id %}
+            {{ inst.user.email }}
+            {% if inst.user_id == session.host_id %}<span style="color:#64748b; font-weight:normal;">(host)</span>{% endif %}
+        {% else %}
+            {{ inst.guest_name|default:"Guest" }}
+            <span style="color:#64748b; font-weight:normal;">(guest)</span>
+        {% endif %}
     </h2>
     {% if inst.payload_output %}
         {% for key, value in inst.payload_output.items %}

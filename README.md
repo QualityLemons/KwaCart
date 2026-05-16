@@ -10,21 +10,22 @@ KwaCart is a Django-based facilitation platform built around **Liberating Struct
 
 1. [Purpose](#purpose)
 2. [Tech Stack](#tech-stack)
-3. [Site Wireframe](#site-wireframe)
-4. [Project Structure](#project-structure)
-5. [Public Pages (no account required)](#public-pages-no-account-required)
-6. [Key Features](#key-features)
-7. [Facilitation Tools](#facilitation-tools)
-8. [Collaborative Sessions](#collaborative-sessions)
-9. [Archive & Exports](#archive--exports)
-10. [Data Models](#data-models)
-11. [User Accounts](#user-accounts)
-12. [Running Locally](#running-locally)
-13. [Deployment](#deployment)
-14. [Security](#security)
-15. [Admin](#admin)
-16. [Adding a New Tool](#adding-a-new-tool)
-17. [Credits](#credits)
+3. [User Stories](#user-stories)
+4. [Site Wireframe](#site-wireframe)
+5. [Project Structure](#project-structure)
+6. [Public Pages (no account required)](#public-pages-no-account-required)
+7. [Key Features](#key-features)
+8. [Facilitation Tools](#facilitation-tools)
+9. [Collaborative Sessions](#collaborative-sessions)
+10. [Archive & Exports](#archive--exports)
+11. [Data Models](#data-models)
+12. [User Accounts](#user-accounts)
+13. [Running Locally](#running-locally)
+14. [Deployment](#deployment)
+15. [Security](#security)
+16. [Admin](#admin)
+17. [Adding a New Tool](#adding-a-new-tool)
+18. [Credits](#credits)
 
 ---
 
@@ -47,28 +48,108 @@ Organisations often struggle to create the conditions for honest, constructive d
 
 ---
 
+## User Stories
+
+| # | As a… | I want to… | So that… |
+|---|---|---|---|
+| 1 | Visitor | browse the landing page without logging in | I can understand what the platform offers before committing to an account |
+| 2 | Visitor | use a free tool (Min Specs or 15% Solutions) without an account | I can experience the platform's value before signing up |
+| 3 | Visitor | join the waiting list with my email | I am notified when the platform opens more widely |
+| 4 | Visitor | submit a feature request | I can influence the product roadmap |
+| 5 | New user | register for an account with my email and a password | I can save my work and participate in sessions |
+| 6 | Returning user | log in to my account | I can access my archive and join live sessions |
+| 7 | Logged-in user | browse the full tool catalog | I can choose the right facilitation tool for my situation |
+| 8 | Logged-in user | draft a tool response at my own pace, with autosave | I can refine my thinking without losing progress |
+| 9 | Logged-in user | submit a solo draft and receive a downloadable Markdown and RTF export | I have a portable record of my thinking |
+| 10 | Facilitator (host) | start a collaborative session for any tool | I can run a real-time group activity |
+| 11 | Facilitator | share a session link with signed-in participants | Colleagues who already have accounts can join immediately |
+| 12 | Facilitator | display a guest QR code that participants scan to join without an account | I can include participants who haven't registered, such as external guests or workshop attendees |
+| 13 | Guest participant | scan a QR code, enter only my name, and fill in a session form | I can contribute to a live session without creating an account |
+| 14 | Facilitator | see participant names (including guests) update in real time as people join | I can gauge readiness before starting |
+| 15 | Facilitator | start, pause, and reset a countdown timer that all participants see in sync | I can time-box each phase of the activity |
+| 16 | Facilitator | close the session when everyone has responded | All contributions are locked and a combined export is generated automatically |
+| 17 | Participant (signed-in or guest) | be redirected automatically when the host closes the session | I see the combined results without needing to refresh |
+| 18 | Logged-in user | view my archive of solo submissions and sessions | I can revisit and reflect on past work |
+| 19 | Logged-in user | download Markdown and RTF exports for any archived record | I can share outputs or store them outside the platform |
+| 20 | Staff user | view the waiting-list table in the archive dashboard | I can manage the rollout and follow up with prospective users |
+| 21 | CEO | run structured dialogue sessions across teams and levels of my organisation using a shared facilitation tool | I can break down communication barriers, surface what people actually think, and replace top-down messaging with genuine two-way conversation |
+| 22 | Middle manager | deploy a live session tool so that everyone involved in a stalled project can contribute their perspective in real time and see each other's responses immediately when the session closes | the process feels transparent and trustworthy, and the team can move forward together based on evidence rather than assumption |
+| 23 | Youth worker | guide a group of young people through a series of facilitation tools, saving every session's responses to a growing archive | the group builds a real record of their collective thinking while also developing practical skills in scribing, facilitation, and working with structured data |
+
+---
+
 ## Site Wireframe
 
-A full site-map wireframe is available on the **Replit Canvas board** for this project. It covers all pages colour-coded by access level:
+### Landing Page
+The public homepage — introduces the platform, links to free tools, registration, and the waiting list.
+
+![Landing page](docs/screenshots/landing.jpg)
+
+---
+
+### About Page
+Explains Liberating Structures, the 23 tools, and the project background.
+
+![About page](docs/screenshots/about.jpg)
+
+---
+
+### Register
+New account creation — email address and password. Redirects to login on success.
+
+![Register page](docs/screenshots/register.jpg)
+
+---
+
+### Log In
+Email-based login. Redirects authenticated users directly to the tool catalog.
+
+![Login page](docs/screenshots/login.jpg)
+
+---
+
+### Free Tool — Min Specs
+Try Min Specs without an account. Includes a 5-minute countdown timer, structured form, and instant output.
+
+![Min Specs free try](docs/screenshots/tool-min-specs.jpg)
+
+---
+
+### Free Tool — 15% Solutions
+Try 15% Solutions without an account. Same timer and structured output experience.
+
+![15% Solutions free try](docs/screenshots/tool-15-percent.jpg)
+
+---
+
+### Waiting List Signup
+Visitors can register their interest before accounts open publicly.
+
+![Waiting list](docs/screenshots/waiting-list.jpg)
+
+---
+
+### Feature Request
+Visitors and users can submit ideas for new tools or platform improvements.
+
+![Feature request](docs/screenshots/feature-request.jpg)
+
+---
+
+### Guest Join
+Participants who scan the QR code land here. They enter only their name — no account needed — and go straight to the session form.
+
+![Guest join](docs/screenshots/guest-join.jpg)
+
+---
+
+### Page Access Map
 
 | Colour | Meaning |
 |---|---|
-| Light blue | Public — no login required |
-| Yellow | Authentication pages (login / signup) |
-| Green | Login required (Tools and Archive) |
-| Red | Admin only |
-| Grey | API / redirect endpoints |
-
-**Pages mapped:**
-
-- Public: Landing, About, Waiting List Signup, Feature Request
-- Auth: Login, Signup
-- Tools: Catalog, Tool Try, Draft Editor (new & edit), Session (open), Session (closed)
-- Archive: Dashboard, Detail, File Download
-- Admin: Django Admin
-- API endpoints: Autosave, Submit, Session Status, Session Close, Pause Reminder, Timer Start, Timer Reset, Session Download
-
-To view it, open the Canvas tab in the Replit workspace.
+| Public (no login) | Landing, About, Free Tools, Waiting List, Feature Request, Login, Register |
+| Login required | Tool Catalog, Draft Editor, Session pages, Archive Dashboard, Archive Detail, Downloads |
+| Staff / Admin only | Waiting list table in dashboard, Django Admin (`/admin/`) |
 
 ---
 
@@ -181,6 +262,14 @@ Any logged-in user can pick a tool from the catalog, draft at their own pace (au
 
 ### Collaborative sessions
 A facilitator creates a **session** for any tool. Participants join via a shared URL or **QR code** displayed on the session page. Every four seconds, the page polls for participant list updates, timer state, and session-closed redirects. When the facilitator closes the session, all responses are processed and a combined export is generated.
+
+#### Guest QR code access (no account needed)
+The session page shows two share options:
+
+- **Signed-in link** — for participants who already have an account.
+- **Guest QR code** — a separate link (and scannable QR code) that lets anyone join without creating an account. Scanning the code takes the participant to a name-entry page; after entering their name they go straight to the form. The host sees all participants — including guests — listed by name in real time.
+
+Guest responses are saved alongside signed-in responses and appear in the combined results when the session closes. Guests see a prompt to create an account at the end if they'd like to keep a personal archive in future.
 
 ### Drawing canvas
 Tools with `show_canvas: True` in the registry include a freehand drawing canvas. Drawings are saved as PNG files in `media/drawings/` using SHA-256 content-based filenames. The file path (not the data URL) is stored in `payload_input`. The canvas includes keyboard and screen-reader accessibility support with ARIA live announcements for every toolbar action.

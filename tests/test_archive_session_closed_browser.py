@@ -277,6 +277,91 @@ class TestSessionClosedBrowser:
 
 
 # ---------------------------------------------------------------------------
+# Archive detail page — with payload data (task #77)
+# ---------------------------------------------------------------------------
+
+class TestArchiveDetailWithPayloadBrowser:
+    """
+    Live-browser checks for the archive detail page when ``payload_output``
+    and ``payload_input`` are both present.
+
+    The empty-payload state is already covered by ``TestArchiveDetailBrowser``.
+    This class exercises the additional template branches that render the
+    "Results" and "Your input" sections — including extra ``<h2>`` headings
+    and key/value blocks — to confirm they do not introduce heading-level
+    skips or WCAG 2 AA violations.
+    """
+
+    def test_no_axe_violations_with_payload(self, page, archive_detail_with_payload_html):
+        """The archive detail page with payload data must pass axe-core WCAG 2 AA audit."""
+        _load_page(page, archive_detail_with_payload_html)
+        results = _run_axe(page)
+        _assert_no_violations(results, "archive detail — with payload")
+
+    def test_single_h1_with_payload(self, page, archive_detail_with_payload_html):
+        """Exactly one <h1> must be present even when payload sections are rendered."""
+        _load_page(page, archive_detail_with_payload_html)
+        h1_count = page.locator("h1").count()
+        assert h1_count == 1, (
+            f"Archive detail with payload: expected 1 <h1>, found {h1_count}"
+        )
+
+    def test_results_h2_present_with_payload(self, page, archive_detail_with_payload_html):
+        """
+        When ``payload_output`` is non-empty the 'Results' <h2> must be rendered,
+        confirming the conditional branch fires correctly.
+        """
+        _load_page(page, archive_detail_with_payload_html)
+        h2_texts = page.evaluate("""
+            () => Array.from(document.querySelectorAll('h2')).map(el => el.textContent.trim())
+        """)
+        assert "Results" in h2_texts, (
+            f"Archive detail with payload_output: expected an <h2>Results</h2>, got h2s: {h2_texts}"
+        )
+
+    def test_input_h2_present_with_payload(self, page, archive_detail_with_payload_html):
+        """
+        When ``payload_input`` is non-empty the 'Your input' <h2> must be rendered.
+        """
+        _load_page(page, archive_detail_with_payload_html)
+        h2_texts = page.evaluate("""
+            () => Array.from(document.querySelectorAll('h2')).map(el => el.textContent.trim())
+        """)
+        assert "Your input" in h2_texts, (
+            f"Archive detail with payload_input: expected an <h2>Your input</h2>, got h2s: {h2_texts}"
+        )
+
+    def test_no_heading_level_skips_with_payload(self, page, archive_detail_with_payload_html):
+        """
+        Heading levels must not skip (e.g. h1 → h3 without h2) even when
+        the extra 'Results' and 'Your input' sections are present.
+        """
+        _load_page(page, archive_detail_with_payload_html)
+        levels = _heading_levels(page)
+        for i in range(1, len(levels)):
+            prev, curr = levels[i - 1], levels[i]
+            assert curr - prev <= 1, (
+                f"Archive detail with payload: heading hierarchy skips from h{prev} to "
+                f"h{curr} (all levels: {levels})"
+            )
+
+    def test_payload_content_visible_in_main(self, page, archive_detail_with_payload_html):
+        """
+        The payload_output values from the fixture must appear inside <main>,
+        confirming the template loops rendered correctly and the content is
+        accessible to screen reader users.
+        """
+        _load_page(page, archive_detail_with_payload_html)
+        main_text = page.locator("main").inner_text()
+        assert "three key patterns" in main_text, (
+            "Archive detail with payload: payload_output value not found in <main>"
+        )
+        assert "cross-team collaboration" in main_text, (
+            "Archive detail with payload: payload_input value not found in <main>"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Live-server smoke tests — real URLs, route wiring, full-stack rendering
 # ---------------------------------------------------------------------------
 

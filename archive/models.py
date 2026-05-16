@@ -52,6 +52,14 @@ class ToolSession(models.Model):
         ),
     )
 
+    guest_token = models.UUIDField(
+        default=uuid.uuid4,
+        help_text=(
+            'Token embedded in the guest QR code URL. '
+            'Anyone with this token can join as an unauthenticated guest.'
+        ),
+    )
+
     md_file = models.FileField(upload_to='archives/md/', null=True, blank=True)
     rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True)
 
@@ -63,12 +71,25 @@ class ToolSession(models.Model):
 
 
 class ToolInstance(models.Model):
-    """A user-scoped record of a tool draft / submission."""
+    """A user-scoped record of a tool draft / submission.
+
+    ``user`` is nullable to support guest participants who join a session via
+    the QR-code guest link without creating an account.  For guest instances
+    ``guest_name`` holds the name the participant entered on the join page.
+    """
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='tool_instances',
+        null=True,
+        blank=True,
+        help_text='Null for unauthenticated guest participants.',
+    )
+    guest_name = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Display name entered by a guest participant (user is null).',
     )
 
     session = models.ForeignKey(
@@ -113,9 +134,17 @@ class ToolInstance(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} - {self.tool_slug} ({self.status})'
+        identity = self.user if self.user_id else (self.guest_name or 'Guest')
+        return f'{identity} - {self.tool_slug} ({self.status})'
 
     def archive_record(self):
+        """Transition this draft to 'archived' status.
+
+        Convenience method for direct use in views or management commands.
+        The session-close flow (``session_close`` view) bypasses this method
+        and sets fields directly for performance, since it processes many
+        instances in a single transaction.
+        """
         if self.status == 'draft':
             self.status = 'archived'
             self.submitted_at = now()
@@ -171,6 +200,19 @@ class FeatureRequest(models.Model):
 
 
 class AuditLog(models.Model):
+    """Append-only security log for significant user actions.
+
+    Rows are never updated after creation.  New entries are created
+    exclusively via ``accounts.utils.log_action``; direct ``AuditLog.objects.create``
+    calls are used only in ``accounts.signals`` to avoid an import of
+    ``log_action`` from within the ``archive`` app itself.
+    """
+
+    # When each action is recorded:
+    #   'login'        — by the user_logged_in signal in accounts/signals.py
+    #   'submit'       — not currently triggered (reserved for future use)
+    #   'download'     — by secure_download and secure_session_download in views_downloads.py
+    #   'access_denied'— not currently triggered (reserved for future use)
     ACTION_CHOICES = [
         ('login', 'User Login'),
         ('submit', 'Tool Submission'),

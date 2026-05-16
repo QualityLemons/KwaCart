@@ -44,7 +44,13 @@ _ROUTE_PATTERN = "http://testhost/**"
 # ---------------------------------------------------------------------------
 
 def _iso(ms_from_epoch: int) -> str:
-    """Convert an integer ms-from-epoch value to an ISO-8601 UTC string."""
+    """Convert an integer ms-from-epoch value to an ISO-8601 UTC string.
+
+    The output is formatted as ``YYYY-MM-DDTHH:MM:SS.mmmZ`` — the same
+    shape that Django's ``timezone.now().isoformat()`` produces, plus a
+    trailing 'Z' suffix so it is accepted by the JS ``new Date(...)``
+    constructor.
+    """
     dt = (
         datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
         + datetime.timedelta(milliseconds=ms_from_epoch)
@@ -84,6 +90,8 @@ def _setup(page, html, *, elapsed_ms: int, skew_ms: int = 0):
     ))
 
     page.set_content(html, wait_until="domcontentloaded")
+    # wait_for_selector ensures the JS has initialised the widget before
+    # the test begins querying .timer-display text or advancing the clock.
     page.wait_for_selector(".timer-widget")
 
 
@@ -207,6 +215,9 @@ class TestClockSkewUpdatedEachPoll:
         page.clock.install()
         T = page.evaluate("Date.now()")
 
+        # A mutable list is used instead of a plain variable so the inner
+        # lambda/def can read and update the value without a nonlocal
+        # declaration (nonlocal is not available to lambdas in Python).
         call_count = [0]
 
         def _handler(route):
@@ -671,4 +682,145 @@ class TestLongSleepWakeup:
         page.wait_for_timeout(100)
         assert display.inner_text() == "00:00", (
             "Timer display changed after expiry — tick interval was not cleared"
+        )
+
+    def test_phase_timer_wakeup_announces_expiry_to_screen_reader(
+        self, page, session_phase_timer_html
+    ):
+        """
+        Phase timer (3 × 3 s = 9 s total): after a long-sleep wake-up poll
+        returns elapsed >= total, the aria-live region (#phase-announcer) must
+        receive the text 'All phases complete' so screen-reader users know the
+        timer has ended.
+
+        The announce() helper uses a 50 ms setTimeout (ANNOUNCE_DELAY_MS) that
+        is under the fake clock's control; the test advances the fake clock by
+        100 ms to allow that callback to fire.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        call_count = [0]
+
+        def _handler(route):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                # Initial: server 2 s ahead, 1 s elapsed → Alpha, 2 s remaining
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T + 2_000 - 1_000),
+                    "timer_paused_at": None,
+                    "server_now": _iso(T + 2_000),
+                }
+            else:
+                # Wake-up: all 9 s have elapsed server-side (elapsed >= total)
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T + self._SLEEP_MS + 2_000 - 9_000),
+                    "timer_paused_at": None,
+                    "server_now": _iso(T + self._SLEEP_MS + 2_000),
+                }
+            route.fulfill(content_type="application/json", body=json.dumps(data))
+
+        page.route(_ROUTE_PATTERN, _handler)
+        page.set_content(session_phase_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        # Initial poll must show Phase Alpha.
+        page.wait_for_function(
+            "document.querySelector('.timer-phase-label').textContent === 'Alpha'"
+        )
+
+        # Simulate tab becoming visible (wake event).
+        page.evaluate("""
+            Object.defineProperty(document, 'hidden', {
+                get: () => false, configurable: true
+            });
+            document.dispatchEvent(new Event('visibilitychange'));
+        """)
+
+        # Wait for the display to reach '00:00' before checking the announcer.
+        page.wait_for_function(
+            "document.querySelector('.timer-display').textContent === '00:00'"
+        )
+
+        # Advance the fake clock past ANNOUNCE_DELAY_MS (50 ms) so that the
+        # setTimeout inside announce() fires and populates #phase-announcer.
+        page.clock.run_for(100)
+        page.wait_for_timeout(50)
+
+        announcer_text = page.locator("#phase-announcer").inner_text()
+        assert announcer_text == "All phases complete", (
+            f"Expected aria-live region to contain 'All phases complete' after "
+            f"wake-up expiry, got '{announcer_text}'"
+        )
+
+    def test_simple_timer_wakeup_announces_expiry_to_screen_reader(
+        self, page, session_simple_timer_html
+    ):
+        """
+        Simple timer (60 s): after a long-sleep wake-up poll returns elapsed
+        > total, the aria-live region (#phase-announcer) must receive the text
+        'Timer complete' so screen-reader users know the timer has ended.
+
+        The announce() helper uses a 50 ms setTimeout (ANNOUNCE_DELAY_MS) that
+        is under the fake clock's control; the test advances the fake clock by
+        100 ms to allow that callback to fire.
+        """
+        page.clock.install()
+        T = page.evaluate("Date.now()")
+
+        call_count = [0]
+
+        def _handler(route):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                # Initial: server 5 s ahead, 10 s elapsed → 50 s remaining
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T + 5_000 - 10_000),
+                    "timer_paused_at": None,
+                    "server_now": _iso(T + 5_000),
+                }
+            else:
+                # Wake-up: 65 s elapsed (> 60 s total) → remaining = 0
+                data = {
+                    "status": "open",
+                    "timer_started_at": _iso(T + self._SLEEP_MS + 5_000 - 65_000),
+                    "timer_paused_at": None,
+                    "server_now": _iso(T + self._SLEEP_MS + 5_000),
+                }
+            route.fulfill(content_type="application/json", body=json.dumps(data))
+
+        page.route(_ROUTE_PATTERN, _handler)
+        page.set_content(session_simple_timer_html, wait_until="domcontentloaded")
+        page.wait_for_selector(".timer-widget")
+
+        # Initial poll shows 50 s remaining.
+        page.wait_for_function(
+            "document.querySelector('.timer-display').textContent === '00:50'"
+        )
+
+        # Simulate tab becoming visible (wake event).
+        page.evaluate("""
+            Object.defineProperty(document, 'hidden', {
+                get: () => false, configurable: true
+            });
+            document.dispatchEvent(new Event('visibilitychange'));
+        """)
+
+        # Wait for the display to reach '00:00' before checking the announcer.
+        page.wait_for_function(
+            "document.querySelector('.timer-display').textContent === '00:00'"
+        )
+
+        # Advance the fake clock past ANNOUNCE_DELAY_MS (50 ms) so that the
+        # setTimeout inside announce() fires and populates #phase-announcer.
+        page.clock.run_for(100)
+        page.wait_for_timeout(50)
+
+        announcer_text = page.locator("#phase-announcer").inner_text()
+        assert announcer_text == "Timer complete", (
+            f"Expected aria-live region to contain 'Timer complete' after "
+            f"wake-up expiry, got '{announcer_text}'"
         )

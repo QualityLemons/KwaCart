@@ -78,9 +78,13 @@ def timer_html() -> str:
 
 @pytest.fixture(scope="session")
 def simple_timer_html() -> str:
-    """
-    Pre-render the timer widget template in simple (no-phases) mode with a
-    60-second countdown.  Used by visibility re-sync tests.
+    """Pre-render the timer widget in simple (no-phases) mode with a 60 s countdown.
+
+    ``phases=None`` selects the plain countdown path inside the timer template.
+    Unlike ``timer_html`` — which is also standalone — this fixture uses a
+    60-second duration (``timer_html`` uses a longer value) so it is suitable
+    for tests that check visibility re-sync behaviour within a short window.
+    No session ID is passed, so the status-poll fetch is never triggered.
     """
     from django.template.loader import render_to_string
 
@@ -101,16 +105,24 @@ def simple_timer_html() -> str:
 
 # A fake session UUID used only for rendering URLs in the template.
 # The value never hits the database; fetch() calls are intercepted by
-# page.route() before they reach any network.
+# page.route() before they reach any network.  It must be a valid UUID4
+# string because Django's URL resolver validates the format before passing
+# it to the view.
 _TEST_SESSION_ID = "00000000-0000-0000-0000-000000000001"
 
 # Base URL injected via a <base> tag so that the relative status-poll URL
-# produced by {% url ... %} resolves to something page.route() can intercept.
+# produced by {% url 'tools:session_status' session_id=... %} resolves to an
+# absolute URL that page.route("http://testhost/**") can intercept.
 _TEST_BASE = "http://testhost"
 
 
 def _inject_base(html: str) -> str:
-    """Insert a <base> tag so relative fetch URLs resolve to _TEST_BASE."""
+    """Insert a ``<base href="http://testhost/">`` tag into the document head.
+
+    Without this, relative fetch URLs such as ``/tools/session/<id>/status/``
+    resolve against the about:blank origin and are never matched by
+    ``page.route(_ROUTE_PATTERN)``.
+    """
     return html.replace("<head>", f'<head><base href="{_TEST_BASE}/">', 1)
 
 
@@ -135,6 +147,100 @@ def host_timer_html() -> str:
         "tools/timer_test_page.html",
         {"tool_meta": tool_meta, "timer_session_id": None, "is_host": True},
     )
+
+
+@pytest.fixture(scope="session")
+def host_timer_html_threshold_120() -> str:
+    """
+    Pre-render the phase timer widget with ``is_host=True`` and a custom
+    ``pause_reminder_threshold_js`` of 120 seconds.
+
+    Used to verify that the ``long-paused`` class appears at 120 s rather
+    than the default 300 s.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=TEST_PHASES,
+        timer_seconds=9,
+        title="Host Timer Threshold 120",
+    )
+    return render_to_string(
+        "tools/timer_test_page.html",
+        {
+            "tool_meta": tool_meta,
+            "timer_session_id": None,
+            "is_host": True,
+            "pause_reminder_threshold_js": "120",
+        },
+    )
+
+
+@pytest.fixture(scope="session")
+def host_timer_html_threshold_null() -> str:
+    """
+    Pre-render the phase timer widget with ``is_host=True`` and
+    ``pause_reminder_threshold_js`` set to ``null`` (disabled).
+
+    Used to verify that the ``long-paused`` class never appears when the
+    reminder threshold is disabled, regardless of elapsed pause time.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=TEST_PHASES,
+        timer_seconds=9,
+        title="Host Timer Threshold Null",
+    )
+    return render_to_string(
+        "tools/timer_test_page.html",
+        {
+            "tool_meta": tool_meta,
+            "timer_session_id": None,
+            "is_host": True,
+            "pause_reminder_threshold_js": "null",
+        },
+    )
+
+
+@pytest.fixture(scope="session")
+def host_session_timer_html() -> str:
+    """
+    Pre-render the phase timer widget with ``is_host=True`` **and** a real
+    fake session ID.
+
+    Summary of rendered branches
+    ----------------------------
+    * ``timer_session_id=None`` → ``{% if not timer_session_id %}`` branch →
+      all three buttons (Start / Pause / Reset) rendered — used by
+      ``timer_html`` / ``host_timer_html`` fixtures.
+    * ``timer_session_id=<uuid>`` AND ``is_host=True`` → ``{% elif is_host %}``
+      branch → only Start and Reset buttons rendered (no Pause) — this fixture.
+    * ``timer_session_id=<uuid>`` AND ``is_host=False`` → participant view,
+      no timer controls — ``session_phase_timer_html`` fixture.
+
+    A ``<base href="http://testhost/">`` tag is injected so that the
+    relative start/reset URLs resolve to absolute URLs that can be
+    intercepted by ``page.route()`` in the tests.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=TEST_PHASES,
+        timer_seconds=9,
+        title="Host Session Timer",
+    )
+    html = render_to_string(
+        "tools/timer_test_page.html",
+        {
+            "tool_meta": tool_meta,
+            "timer_session_id": _TEST_SESSION_ID,
+            "timer_started_at": None,
+            "timer_paused_at": None,
+            "is_host": True,
+        },
+    )
+    return _inject_base(html)
 
 
 @pytest.fixture(scope="session")
@@ -164,10 +270,49 @@ def session_phase_timer_html() -> str:
 
 
 @pytest.fixture(scope="session")
+def session_long_phase_timer_html() -> str:
+    """
+    Phase timer (3 × 120 s = 6 minutes per phase) rendered in session mode.
+
+    Used by pause-resume cycle tests (task #91) where the fake-clock advances
+    across multiple 4 s poll intervals.  The long phases ensure the timer
+    never expires mid-test, avoiding spurious "Now in Beta" / "All phases
+    complete" announcements that would break the observer count assertions.
+    """
+    from django.template.loader import render_to_string
+
+    long_phases = [
+        {"label": "Alpha", "seconds": 120},
+        {"label": "Beta", "seconds": 120},
+        {"label": "Gamma", "seconds": 120},
+    ]
+    tool_meta = SimpleNamespace(
+        phases=long_phases,
+        timer_seconds=360,
+        title="Session Long Phase Timer",
+    )
+    html = render_to_string(
+        "tools/timer_test_page.html",
+        {
+            "tool_meta": tool_meta,
+            "timer_session_id": _TEST_SESSION_ID,
+            "timer_started_at": None,
+            "timer_paused_at": None,
+        },
+    )
+    return _inject_base(html)
+
+
+@pytest.fixture(scope="session")
 def session_simple_timer_html() -> str:
     """
     Simple (no-phases) timer (60 s) rendered in session mode with a fake
     session ID.  The status-poll URL is intercepted by page.route().
+
+    ``simple_timer_html`` and ``timer_html`` are the standalone equivalents
+    of this fixture — they render the same template without a session ID so
+    no polling is set up and the clock-skew / stale-badge code paths are
+    not activated.
     """
     from django.template.loader import render_to_string
 
@@ -237,6 +382,86 @@ def canvas_html() -> str:
         f"<body>{fragment}</body>"
         "</html>"
     )
+
+
+@pytest.fixture(scope="session")
+def phase_timer_milestone_html() -> str:
+    """
+    Pre-render the phase timer with a single 15-second phase.
+
+    This fixture is used by milestone-count tests.  With a 15-second phase the
+    only milestone that fires is the 10-second one (MILESTONES = [300, 120, 60,
+    30, 10]).  After 5 simulated seconds the remaining time reaches 10 s and
+    ``checkMilestones()`` emits "10 seconds remaining in Alpha" exactly once.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=[{"label": "Alpha", "seconds": 15}],
+        timer_seconds=15,
+        title="Milestone Timer",
+    )
+    return render_to_string(
+        "tools/timer_test_page.html",
+        {"tool_meta": tool_meta, "timer_session_id": None},
+    )
+
+
+@pytest.fixture(scope="session")
+def phase_timer_long_milestone_html() -> str:
+    """
+    Pre-render the phase timer with a single 360-second phase.
+
+    This fixture is used by milestone-count tests that must exercise the
+    5-minute (300 s) milestone — the highest-priority entry in MILESTONES =
+    [300, 120, 60, 30, 10].  With a 360-second phase the 300 s milestone fires
+    after 60 simulated seconds of countdown (remaining goes from 361 → 300).
+    ``checkMilestones()`` must emit "5 minutes remaining in Alpha" exactly once.
+    """
+    from django.template.loader import render_to_string
+
+    tool_meta = SimpleNamespace(
+        phases=[{"label": "Alpha", "seconds": 360}],
+        timer_seconds=360,
+        title="Long Milestone Timer",
+    )
+    return render_to_string(
+        "tools/timer_test_page.html",
+        {"tool_meta": tool_meta, "timer_session_id": None},
+    )
+
+
+@pytest.fixture(scope="session")
+def archive_detail_with_payload_html() -> str:
+    """
+    Pre-render the archive detail template with both payload_output and
+    payload_input present.
+
+    The template renders extra <h2> sections ("Results" and "Your input") and
+    key/value pairs when these fields are non-empty.  This fixture exercises
+    those branches so that axe-core and heading-level tests can confirm the
+    additional markup is accessible.
+    """
+    from datetime import datetime
+    from django.template.loader import render_to_string
+
+    record = SimpleNamespace(
+        tool_slug="wise-crowds",
+        tool_version="1.0",
+        submitted_at=datetime(2025, 1, 15, 10, 30),
+        user=SimpleNamespace(email="tester@example.com"),
+        payload_output={
+            "summary": "The group identified three key patterns.",
+            "themes": "Trust, communication, shared goals.",
+        },
+        payload_input={
+            "challenge": "How do we improve cross-team collaboration?",
+            "context": "We are a team of 12 distributed across three time zones.",
+        },
+        md_file=None,
+        rtf_file=None,
+    )
+    return render_to_string("archive/detail.html", {"record": record})
 
 
 @pytest.fixture(scope="session")

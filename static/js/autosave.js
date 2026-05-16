@@ -8,7 +8,12 @@ function debounce(func, timeout = 2000) {
 }
 
 const saveDraft = debounce(() => {
-    const formData = {}; // Collect your inputs here (e.g., using new FormData(form))
+    const formData = {};
+    document.querySelectorAll('.tool-input').forEach(input => {
+        if (input.name) {
+            formData[input.name] = input.value;
+        }
+    });
     const instanceId = document.getElementById('instance-id').value;
     const toolSlug = document.getElementById('tool-slug').value;
 
@@ -16,7 +21,10 @@ const saveDraft = debounce(() => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken') // Django security requirement
+            // getCookie reads the csrftoken cookie set by Django's CsrfViewMiddleware.
+            // Without it, the POST request will be rejected with HTTP 403 Forbidden.
+            // getCookie must be defined by the page before this script runs.
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: JSON.stringify({
             instance_id: instanceId,
@@ -26,7 +34,15 @@ const saveDraft = debounce(() => {
     .then(response => response.json())
     .then(data => {
         document.getElementById('save-status').innerText = `Autosaved at ${data.last_saved}`;
+        const previousId = document.getElementById('instance-id').value;
         document.getElementById('instance-id').value = data.instance_id;
+        // When autosave creates a new draft the URL still lacks the instance id.
+        // Replace it so that a page reload reopens the same draft instead of a
+        // blank new one.
+        if (!previousId && data.instance_id) {
+            const newUrl = `/tools/${toolSlug}/draft/${data.instance_id}/`;
+            history.replaceState(null, '', newUrl);
+        }
     });
 });
 
