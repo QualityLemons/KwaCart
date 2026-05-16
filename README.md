@@ -133,6 +133,13 @@ Visitors and users can submit ideas for new tools or platform improvements.
 
 ---
 
+### Guest Join
+Participants who scan the QR code land here. They enter only their name — no account needed — and go straight to the session form.
+
+![Guest join](docs/screenshots/guest-join.jpg)
+
+---
+
 ### Page Access Map
 
 | Colour | Meaning |
