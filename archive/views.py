@@ -19,7 +19,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
-from .models import ToolInstance, ToolSession, WaitingListEntry
+from .forms import FeatureRequestForm, WaitingListForm
+from .models import FeatureRequest, ToolInstance, ToolSession, WaitingListEntry
 
 
 class ArchiveDashboardView(LoginRequiredMixin, ListView):
@@ -91,20 +92,6 @@ def archive_record_delete(request, pk):
 
 def waiting_list_signup(request):
     """Public page — collect email addresses for the waiting list."""
-    from django import forms as django_forms
-
-    # Defined inside the view because it is used only here.
-    # A module-level class would pollute the forms namespace without benefit.
-    class WaitingListForm(django_forms.Form):
-        name = django_forms.CharField(
-            label='Your name (optional)', max_length=200, required=False,
-            widget=django_forms.TextInput(attrs={'placeholder': 'e.g. Sarah'}),
-        )
-        email = django_forms.EmailField(
-            label='Your email address',
-            widget=django_forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
-        )
-
     result = request.GET.get('result')
     success = result in ('success', 'duplicate')
     already_on_list = result == 'duplicate'
@@ -137,46 +124,12 @@ def waiting_list_signup(request):
 
 def feature_request(request):
     """Public page — collect feature requests."""
-    from django import forms as django_forms
-
-    # Defined inside the view because it is used only here.
-    # A module-level class would pollute the forms namespace without benefit.
-    class FeatureRequestForm(django_forms.Form):
-        name = django_forms.CharField(
-            label='Your name (optional)', max_length=200, required=False,
-            widget=django_forms.TextInput(attrs={'placeholder': 'e.g. Sarah'}),
-        )
-        email = django_forms.EmailField(
-            label='Your email (optional)',
-            required=False,
-            widget=django_forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
-            help_text="We'll only use this to let you know when the feature ships.",
-        )
-        title = django_forms.CharField(
-            label='Feature title',
-            max_length=300,
-            widget=django_forms.TextInput(attrs={
-                'placeholder': 'e.g. Export session results as PDF',
-            }),
-        )
-        description = django_forms.CharField(
-            label='Tell us more',
-            widget=django_forms.Textarea(attrs={
-                'rows': 5,
-                'placeholder': (
-                    'What problem would this solve? '
-                    'How do you imagine it working?'
-                ),
-            }),
-        )
-
     success = request.GET.get('result') == 'success'
     form = FeatureRequestForm()
 
     if request.method == 'POST':
         form = FeatureRequestForm(request.POST)
         if form.is_valid():
-            from .models import FeatureRequest
             try:
                 FeatureRequest.objects.create(
                     name=form.cleaned_data.get('name', '').strip(),
