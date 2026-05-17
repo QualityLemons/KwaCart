@@ -11,7 +11,7 @@ KwaCart is a Django-based facilitation platform built around **Liberating Struct
 1. [Purpose](#purpose)
 2. [Tech Stack](#tech-stack)
 3. [User Stories](#user-stories)
-4. [Site Wireframe](#site-wireframe)
+4. [UX Design](#ux-design)
 5. [Project Structure](#project-structure)
 6. [Public Pages (no account required)](#public-pages-no-account-required)
 7. [Key Features](#key-features)
@@ -79,7 +79,52 @@ Organisations often struggle to create the conditions for honest, constructive d
 
 ---
 
-## Site Wireframe
+## UX Design
+
+### Design goals
+
+The overriding goal was to minimise friction at every step. Facilitation tools are used in workshops and meetings where participants are time-pressed and sometimes unfamiliar with digital tools. The UI therefore prioritises clarity over visual richness: generous whitespace, a single-column form layout, labels above fields (never placeholder-only), and a limited palette applied consistently.
+
+### Information architecture
+
+The site is divided into two clear zones:
+
+- **Public** — landing page, about, two free try-it tools, waiting list, feature request, login, register. Visitors can experience the platform's value before committing to an account.
+- **Authenticated** — tool catalog, draft editor, collaborative sessions, archive dashboard, downloads. Everything that stores or retrieves personal data sits behind login.
+
+This boundary was a deliberate design decision: making the free tools genuinely free (no sign-up wall) reduces the barrier to a first-use experience, which is the primary conversion moment for a platform like this.
+
+Within the authenticated zone a further privilege layer exists: only the session host can close a session; only staff users see the waiting-list table. These role distinctions are surfaced visibly in the UI (the Close Session button only appears to the host; the waiting-list panel is hidden from regular users) so the access model is legible without reading documentation.
+
+### Colour palette rationale
+
+Six colours were chosen and assigned specific semantic roles so the palette carries meaning rather than just decoration:
+
+| Colour | Hex | Semantic role | Reasoning |
+|---|---|---|---|
+| Purple | `#5D3A9B` | Primary brand, buttons, links | Associated with creativity and facilitation; distinctive without being aggressive |
+| Teal | `#40B0A6` | Success states, result borders, open sessions | Calm, positive — signals that something has worked or is live |
+| Gold | `#E1BE6A` | "Free" badges, count labels, CTA highlight | Draws attention without urgency; works alongside purple without clashing |
+| Orange | `#E66100` | Step numbers, running-timer button | Conveys active/in-progress state without the alarm connotations of red |
+| Yellow | `#FEFE62` | "Already on list" duplicate notice | High contrast on light backgrounds; distinct from the success teal |
+| Pink | `#D35FB7` | Accent use | Completes the palette; used sparingly to avoid diluting meaning |
+
+All colour choices were checked for WCAG AA contrast (≥ 4.5:1) against their backgrounds during development.
+
+### Navigation and form design decisions
+
+- **Single-column forms** — all tool forms use a single-column layout so the reading order is linear and keyboard navigation is predictable. This also avoids the ambiguity of multi-column grid forms on narrow screens.
+- **Server-side validation with inline errors** — form errors are rendered next to the offending field and linked via `aria-describedby` (wired by `aria_wiring.js`) so screen readers announce the error when the field is focused. Client-side validation (e.g. `required` attributes) is used only as a first-pass convenience, never as the sole guard.
+- **Autosave on keystroke** — the draft editor saves two seconds after the user stops typing rather than requiring an explicit save action. This removes the cognitive load of remembering to save, which matters in workshop settings where a facilitator may close a laptop lid without warning.
+- **QR code for guest access** — the QR code was chosen specifically to eliminate the friction of typing a URL on a mobile device during a live session. Scanning a code is a single gesture; copying a URL and opening a browser takes five to eight steps on most phones.
+- **Timer server-sync** — rather than each participant's browser running its own clock (which drifts), the timer state is stored server-side and polled every four seconds. All participants and the host see the same remaining time regardless of when they joined the session.
+- **Post/Redirect/Get on all forms** — every form POST that mutates state (submitting a response, signing up to the waiting list, submitting a feature request, running a free try-it tool) redirects to a GET after success. This means pressing the browser back button and then forward never triggers a "Confirm Form Resubmission" dialog and never creates a duplicate record.
+
+### Page designs (implemented UI)
+
+The screenshots below show the implemented design for each key page.
+
+---
 
 ### Landing Page
 The public homepage — introduces the platform, links to free tools, registration, and the waiting list.
@@ -185,7 +230,7 @@ KwaCart/
 │   ├── views.py             Archive dashboard + detail + waiting list signup + feature request
 │   ├── views_downloads.py   Secure file download (solo + session exports)
 │   ├── urls.py
-│   ├── urls_waitinglist.py  Public waiting-list routes
+│   ├── urls_waiting_list.py  Public waiting-list routes
 │   └── urls_feature_request.py  Public feature-request routes
 │
 ├── exporters/
@@ -657,6 +702,42 @@ Issues resolved during this pass:
 
 ## Credits
 
+### Project
+
 Built as Milestone Project 3 for the Level 5 Diploma in Web Software Engineering.
 
-Facilitation methodology draws on **Liberating Structures** — created by Henri Lipmanowicz and Keith McCandless — a collection of microstructures that support including and unleashing everyone in a group. See [liberatingstructures.com](https://www.liberatingstructures.com).
+### Facilitation methodology
+
+Liberating Structures — created by Henri Lipmanowicz and Keith McCandless — a collection of microstructures that support including and unleashing everyone in a group. See [liberatingstructures.com](https://www.liberatingstructures.com). Tool names, descriptions, phases, and facilitation guidance throughout the platform are drawn from this methodology.
+
+### Python / Django ecosystem (installed via `requirements.txt`)
+
+| Package | Licence | Purpose |
+|---|---|---|
+| [Django](https://www.djangoproject.com) | BSD-3-Clause | Web framework — ORM, views, forms, auth, admin |
+| [WhiteNoise](https://whitenoise.readthedocs.io) | MIT | Static file serving in production |
+| [Gunicorn](https://gunicorn.org) | MIT | WSGI HTTP server |
+| [django-environ](https://django-environ.readthedocs.io) | MIT | Environment-variable configuration |
+| [dj-database-url](https://github.com/jazzband/dj-database-url) | BSD-2-Clause | Database URL parsing |
+| [psycopg2-binary](https://www.psycopg.org) | LGPL-3.0 | PostgreSQL adapter (production database) |
+| [Playwright](https://playwright.dev/python/) | Apache-2.0 | Browser automation used in the test suite |
+| [pytest-django](https://pytest-django.readthedocs.io) | BSD-3-Clause | Django integration for pytest |
+| [pytest-playwright](https://github.com/microsoft/playwright-pytest) | Apache-2.0 | Playwright integration for pytest |
+
+### JavaScript libraries (vendored — not installed via a package manager)
+
+| Library | Licence | File | Purpose |
+|---|---|---|---|
+| [qrcode.js](https://github.com/davidshimjs/qrcodejs) by davidshimjs | MIT | `static/js/libraries/qrcode.min.js` | Client-side QR code generation for the guest-join link on the session page |
+
+The file is included verbatim from the upstream release. An attribution comment has been added at the top of the file.
+
+### Learner-written code
+
+All code **not** listed above was written by the project author. This includes:
+
+- All Python source files: `accounts/`, `archive/`, `tools/`, `exporters/`, `config/`
+- All JavaScript files in `static/js/` except the vendored library above
+- All CSS files in `static/css/`
+- All HTML templates in `templates/`
+- All migration files in `*/migrations/`
