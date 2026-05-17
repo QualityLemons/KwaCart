@@ -25,6 +25,9 @@
       data-disable-on-submit
       data-loading-text="Saving&hellip;">
     {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p class="non-field-errors">{{ form.non_field_errors|join:" " }}</p>
+    {% endif %}
     {% if tool_meta.show_canvas %}
         {% for field in form %}
             {% if field.name == 'canvas_data' %}
@@ -33,7 +36,7 @@
                 {{ field }}
             {% else %}
                 <p>{{ field.label_tag }} {{ field }}
-                {% if field.errors %}<span id="{{ field.auto_id }}-error" style="color:#dc2626;">{{ field.errors }}</span>{% endif %}
+                {% if field.errors %}<span id="{{ field.auto_id }}-error" class="field-error">{{ field.errors|join:", " }}</span>{% endif %}
                 </p>
             {% endif %}
         {% endfor %}
@@ -45,7 +48,7 @@
                 <div style="margin-bottom:1.25rem;">
                     {{ field.label_tag }}
                     {{ field }}
-                    {% if field.errors %}<p id="{{ field.auto_id }}-error" style="color:#dc2626; font-size:0.875rem; margin-top:0.3rem;">{{ field.errors|join:", " }}</p>{% endif %}
+                    {% if field.errors %}<p id="{{ field.auto_id }}-error" class="field-error">{{ field.errors|join:", " }}</p>{% endif %}
                 </div>
             {% endif %}
         {% endfor %}

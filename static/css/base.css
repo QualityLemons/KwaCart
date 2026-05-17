@@ -115,6 +115,23 @@ label {
     color: #1e293b;
 }
 
+/* ── Form validation feedback ── */
+.field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.3rem;
+    margin-bottom: 0;
+}
+.non-field-errors {
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.85rem;
+    border-left: 3px solid #dc2626;
+    background: #fef2f2;
+    border-radius: 0 4px 4px 0;
+}
+
 /* ── Skip navigation link ── */
 .skip-link {
     position: absolute;

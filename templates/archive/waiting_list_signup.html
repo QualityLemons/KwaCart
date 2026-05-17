@@ -49,11 +49,15 @@
         <form method="post" novalidate>
             {% csrf_token %}
 
+            {% if form.non_field_errors %}
+            <p class="non-field-errors">{{ form.non_field_errors|join:" " }}</p>
+            {% endif %}
+
             <div style="margin-bottom:1.1rem;">
                 {{ form.name.label_tag }}
                 {{ form.name }}
                 {% if form.name.errors %}
-                <p id="{{ form.name.id_for_label }}-error" style="color:#dc2626; font-size:0.875rem; margin-top:0.3rem;">
+                <p id="{{ form.name.id_for_label }}-error" class="field-error">
                     {{ form.name.errors|join:", " }}
                 </p>
                 {% endif %}
@@ -63,7 +67,7 @@
                 {{ form.email.label_tag }}
                 {{ form.email }}
                 {% if form.email.errors %}
-                <p id="{{ form.email.id_for_label }}-error" style="color:#dc2626; font-size:0.875rem; margin-top:0.3rem;">
+                <p id="{{ form.email.id_for_label }}-error" class="field-error">
                     {{ form.email.errors|join:", " }}
                 </p>
                 {% endif %}

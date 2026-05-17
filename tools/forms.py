@@ -23,10 +23,10 @@ class IdeaGenerationForm(forms.Form):
 
 
 class IAmAndILikeForm(forms.Form):
-    # Both fields are optional at the form level because validation requires
+    # Both fields are optional at the field level because validation requires
     # at least one field to be filled — a constraint that spans fields and
-    # is enforced by IAmAndILikeTool.validate rather than Django's per-field
-    # required=True mechanism.
+    # is enforced by the clean() method below as well as by
+    # IAmAndILikeTool.validate for the range-check (min length).
     i_like = forms.CharField(
         widget=forms.Textarea(attrs={
             'placeholder': 'I like…',
@@ -34,6 +34,7 @@ class IAmAndILikeForm(forms.Form):
         }),
         label="I like…",
         required=False,
+        max_length=5000,
     )
     i_do_not_like = forms.CharField(
         widget=forms.Textarea(attrs={
@@ -42,7 +43,18 @@ class IAmAndILikeForm(forms.Form):
         }),
         label="I do not like…",
         required=False,
+        max_length=5000,
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        likes = (cleaned_data.get('i_like') or '').strip()
+        dislikes = (cleaned_data.get('i_do_not_like') or '').strip()
+        if not likes and not dislikes:
+            raise forms.ValidationError(
+                'Please fill in at least one field before saving.'
+            )
+        return cleaned_data
 
 
 class UserExperienceFishbowlForm(forms.Form):

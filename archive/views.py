@@ -90,13 +90,19 @@ def waiting_list_signup(request):
         if form.is_valid():
             email = form.cleaned_data['email'].lower().strip()
             name = form.cleaned_data.get('name', '').strip()
-            _entry, created = WaitingListEntry.objects.get_or_create(
-                email=email,
-                defaults={'name': name},
-            )
-            success = True
-            already_on_list = not created
-            form = WaitingListForm()
+            try:
+                _entry, created = WaitingListEntry.objects.get_or_create(
+                    email=email,
+                    defaults={'name': name},
+                )
+                success = True
+                already_on_list = not created
+                form = WaitingListForm()
+            except Exception:
+                messages.error(
+                    request,
+                    'Something went wrong on our end — please try again.',
+                )
 
     return render(request, 'archive/waiting_list_signup.html', {
         'form': form,
@@ -147,14 +153,20 @@ def feature_request(request):
         form = FeatureRequestForm(request.POST)
         if form.is_valid():
             from .models import FeatureRequest
-            FeatureRequest.objects.create(
-                name=form.cleaned_data.get('name', '').strip(),
-                email=form.cleaned_data.get('email', '').strip().lower(),
-                title=form.cleaned_data['title'].strip(),
-                description=form.cleaned_data['description'].strip(),
-            )
-            success = True
-            form = FeatureRequestForm()
+            try:
+                FeatureRequest.objects.create(
+                    name=form.cleaned_data.get('name', '').strip(),
+                    email=form.cleaned_data.get('email', '').strip().lower(),
+                    title=form.cleaned_data['title'].strip(),
+                    description=form.cleaned_data['description'].strip(),
+                )
+                success = True
+                form = FeatureRequestForm()
+            except Exception:
+                messages.error(
+                    request,
+                    'Something went wrong on our end — please try again.',
+                )
 
     return render(request, 'archive/feature_request.html', {
         'form': form,

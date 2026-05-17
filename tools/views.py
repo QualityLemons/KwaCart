@@ -102,21 +102,27 @@ def draft_editor(request, tool_slug, instance_id=None):
         if request.method == 'POST':
             form = form_class(request.POST)
             if form.is_valid():
-                tool_class = get_tool_instance(tool_slug)
-                if instance is None:
-                    instance = ToolInstance.objects.create(
-                        user=request.user,
-                        tool_slug=tool_slug,
-                        tool_version=getattr(tool_class, 'version', '1.0'),
-                        status='draft',
+                try:
+                    tool_class = get_tool_instance(tool_slug)
+                    if instance is None:
+                        instance = ToolInstance.objects.create(
+                            user=request.user,
+                            tool_slug=tool_slug,
+                            tool_version=getattr(tool_class, 'version', '1.0'),
+                            status='draft',
+                        )
+                    instance.payload_input = extract_canvas_from_payload(
+                        form.cleaned_data, tool_slug, request.user.id,
                     )
-                instance.payload_input = extract_canvas_from_payload(
-                    form.cleaned_data, tool_slug, request.user.id,
-                )
-                instance.save()
-                messages.success(request, 'Draft saved.')
-                return redirect('tools:draft_edit',
-                                tool_slug=tool_slug, instance_id=instance.id)
+                    instance.save()
+                    messages.success(request, 'Draft saved.')
+                    return redirect('tools:draft_edit',
+                                    tool_slug=tool_slug, instance_id=instance.id)
+                except Exception:
+                    messages.error(
+                        request,
+                        'Unable to save your draft — please try again.',
+                    )
         else:
             initial = (instance.payload_input if instance else None) or {}
             form = form_class(initial=initial)
@@ -138,9 +144,16 @@ def autosave_endpoint(request, tool_slug):
     exists and is updated in place.  Otherwise a new draft is created and
     its ID is returned so the client can reference it on subsequent saves.
     """
-    data = json.loads(request.body or '{}')
+    if tool_slug not in TOOL_CATALOG:
+        return JsonResponse({'error': 'unknown tool'}, status=400)
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid request body'}, status=400)
     instance_id = data.get('instance_id')
     form_data = data.get('form_data') or {}
+    if not isinstance(form_data, dict):
+        return JsonResponse({'error': 'form_data must be an object'}, status=400)
 
     if instance_id:
         instance = get_object_or_404(
@@ -270,12 +283,18 @@ def session_detail(request, session_id):
         if request.method == 'POST':
             form = form_class(request.POST)
             if form.is_valid():
-                instance.payload_input = extract_canvas_from_payload(
-                    form.cleaned_data, session.tool_slug, request.user.id,
-                )
-                instance.save()
-                messages.success(request, 'Your response was saved.')
-                return redirect('tools:session_detail', session_id=session.id)
+                try:
+                    instance.payload_input = extract_canvas_from_payload(
+                        form.cleaned_data, session.tool_slug, request.user.id,
+                    )
+                    instance.save()
+                    messages.success(request, 'Your response was saved.')
+                    return redirect('tools:session_detail', session_id=session.id)
+                except Exception:
+                    messages.error(
+                        request,
+                        'Unable to save your response — please try again.',
+                    )
         else:
             form = form_class(initial=instance.payload_input or {})
 
@@ -360,7 +379,14 @@ def session_close(request, session_id):
             instance.submitted_at = timezone.now()
             instance.save()
 
-        run_session_export_pipeline(session)
+        try:
+            run_session_export_pipeline(session)
+        except Exception:
+            messages.warning(
+                request,
+                'Session closed, but the combined export could not be generated.',
+            )
+            return redirect('tools:session_detail', session_id=session.id)
 
     messages.success(request, 'Session closed. Combined results are now visible.')
     return redirect('tools:session_detail', session_id=session.id)
@@ -504,6 +530,8 @@ def guest_join(request, session_id, guest_token):
         name = request.POST.get('guest_name', '').strip()
         if not name:
             error = 'Please enter a name so the host can see who you are.'
+        elif len(name) > 200:
+            error = 'Name must be 200 characters or fewer.'
         else:
             tool_class = get_tool_instance(session.tool_slug)
             instance = ToolInstance.objects.create(
@@ -560,15 +588,21 @@ def guest_respond(request, session_id, guest_token):
         if request.method == 'POST':
             form = form_class(request.POST)
             if form.is_valid():
-                # Canvas extraction requires a user ID; skip it for guests.
-                cleaned = {
-                    k: v for k, v in form.cleaned_data.items()
-                    if k != 'canvas_data'
-                }
-                instance.payload_input = cleaned
-                instance.save()
-                messages.success(request, 'Your response was saved.')
-                return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+                try:
+                    # Canvas extraction requires a user ID; skip it for guests.
+                    cleaned = {
+                        k: v for k, v in form.cleaned_data.items()
+                        if k != 'canvas_data'
+                    }
+                    instance.payload_input = cleaned
+                    instance.save()
+                    messages.success(request, 'Your response was saved.')
+                    return redirect('tools:guest_respond', session_id=session_id, guest_token=guest_token)
+                except Exception:
+                    messages.error(
+                        request,
+                        'Unable to save your response — please try again.',
+                    )
         else:
             form = form_class(initial=instance.payload_input or {})
 
