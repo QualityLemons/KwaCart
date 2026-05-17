@@ -37,7 +37,13 @@ FREE_TOOL_SLUGS = {'min-specs', '15-percent-solutions'}
 
 
 def tool_try(request, tool_slug):
-    """Anonymous single-page try-it view for the two featured free tools."""
+    """Anonymous single-page try-it view for the two featured free tools.
+
+    Uses Post/Redirect/Get: a valid submission computes the result, stores it
+    in the server-side session, then redirects to a GET so that the browser
+    history entry is the GET URL.  Pressing back/forward never triggers a
+    "Confirm Form Resubmission" dialog.
+    """
     if tool_slug not in FREE_TOOL_SLUGS:
         raise Http404
 
@@ -45,6 +51,8 @@ def tool_try(request, tool_slug):
     form_class = get_tool_form_class(tool_slug)
     result = None
     result_fields = []
+
+    session_key = f'tool_try_result_{tool_slug}'
 
     if request.method == 'POST':
         form = form_class(request.POST)
@@ -56,15 +64,30 @@ def tool_try(request, tool_slug):
                     phases = getattr(tool, 'PHASES', ())
                     # Filter out phases whose output is empty so the result
                     # section does not render blank headings.
-                    result_fields = [
-                        (label, result.get(field, ''))
+                    computed_fields = [
+                        [label, result.get(field, '')]
                         for field, label in phases
                         if result.get(field, '').strip()
                     ]
+                    request.session[session_key] = {
+                        'result': result,
+                        'result_fields': computed_fields,
+                    }
+                    return redirect(
+                        reverse('tools:tool_try', args=[tool_slug]) + '?done=1'
+                    )
             except Exception as exc:
                 result = {'error': str(exc)}
+                request.session[session_key] = {'result': result, 'result_fields': []}
+                return redirect(
+                    reverse('tools:tool_try', args=[tool_slug]) + '?done=1'
+                )
     else:
         form = form_class()
+        if request.GET.get('done') and session_key in request.session:
+            stored = request.session.pop(session_key)
+            result = stored.get('result')
+            result_fields = [tuple(pair) for pair in stored.get('result_fields', [])]
 
     return render(request, 'tools/tool_try.html', {
         'tool_meta': tool_meta,
