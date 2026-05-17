@@ -36,7 +36,7 @@
     /* ── State ── */
     var consecutiveErrors    = 0;
     var wasReconnecting      = false;
-    var lastParticipantCount = parseInt(countEl.textContent, 10) || 0;
+    var lastParticipantCount = countEl ? parseInt(countEl.textContent, 10) || 0 : 0;
 
     /* ── Poll ── */
     async function poll() {

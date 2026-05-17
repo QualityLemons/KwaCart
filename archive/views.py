@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
@@ -104,8 +105,9 @@ def waiting_list_signup(request):
             widget=django_forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
         )
 
-    success = False
-    already_on_list = False
+    result = request.GET.get('result')
+    success = result in ('success', 'duplicate')
+    already_on_list = result == 'duplicate'
     form = WaitingListForm()
 
     if request.method == 'POST':
@@ -118,9 +120,8 @@ def waiting_list_signup(request):
                     email=email,
                     defaults={'name': name},
                 )
-                success = True
-                already_on_list = not created
-                form = WaitingListForm()
+                outcome = 'success' if created else 'duplicate'
+                return redirect(reverse('waiting_list_signup') + '?result=' + outcome)
             except Exception:
                 messages.error(
                     request,
@@ -169,7 +170,7 @@ def feature_request(request):
             }),
         )
 
-    success = False
+    success = request.GET.get('result') == 'success'
     form = FeatureRequestForm()
 
     if request.method == 'POST':
@@ -183,8 +184,7 @@ def feature_request(request):
                     title=form.cleaned_data['title'].strip(),
                     description=form.cleaned_data['description'].strip(),
                 )
-                success = True
-                form = FeatureRequestForm()
+                return redirect(reverse('feature_request') + '?result=success')
             except Exception:
                 messages.error(
                     request,
