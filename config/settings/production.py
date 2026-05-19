@@ -46,11 +46,6 @@ import dj_database_url as _dj_db_url  # noqa: E402
 _db_url = os.environ.get('DATABASE_URL')
 if _db_url:
     DATABASES = {'default': _dj_db_url.parse(_db_url, conn_max_age=600)}  # noqa: F405
-else:
-    raise RuntimeError(
-        'DATABASE_URL environment variable is not set. '
-        'Production cannot start without a database URL.'
-    )
 
 # CompressedManifestStaticFilesStorage appends a content hash to each filename
 # for long-lived cache headers and serves pre-compressed .gz versions when
