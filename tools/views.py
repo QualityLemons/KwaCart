@@ -342,10 +342,10 @@ def session_detail(request, session_id):
     )
     share_url = request.build_absolute_uri(
         reverse('tools:session_detail', args=[session.id])
-    )
+    ).replace('http://', 'https://', 1)
     guest_join_url = request.build_absolute_uri(
         reverse('tools:guest_join', args=[session.id, session.guest_token])
-    )
+    ).replace('http://', 'https://', 1)
     # timer_started_at and timer_paused_at are serialised as ISO strings for
     # the JavaScript timer widget, which computes elapsed time client-side
     # using these as reference points rather than relying on its own clock.

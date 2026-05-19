@@ -27,8 +27,10 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 _csrf = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(',') if o.strip()]
 
-# Replit terminates SSL at its proxy layer, so we must NOT redirect to HTTPS
-# ourselves (it causes redirect loops). Tell Django to trust the forwarded header.
+# Heroku (and Replit) terminate SSL at the proxy layer and forward the original
+# protocol in the X-Forwarded-Proto header.  Telling Django to trust this header
+# ensures request.build_absolute_uri() produces https:// URLs, which is required
+# for QR codes to be recognised as links by phone cameras rather than search queries.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
