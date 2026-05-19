@@ -73,7 +73,7 @@ def generate_session_rtf(session):
 
     title = session.tool_slug.upper() + ' - COMBINED SESSION RESULTS'
     parts.append(r"\b " + title + r"\b0 \line ")
-    parts.append(f"Hosted by: {_rtf_escape(session.host.email)} \\line ")
+    parts.append(f"Hosted by: {_rtf_escape(session.host.email if session.host else 'Unknown')} \\line ")
     if session.closed_at:
         parts.append(f"Closed at: {session.closed_at.strftime('%Y-%m-%d %H:%M')} \\line ")
     parts.append(r"\line ========================== \line ")

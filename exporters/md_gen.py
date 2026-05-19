@@ -50,7 +50,7 @@ def generate_session_markdown(session):
     closed_at_str = session.closed_at.strftime('%Y-%m-%d %H:%M') if session.closed_at else '-'
     content_lines = [
         f"# {title} — Combined Session Results",
-        f"**Hosted by:** {session.host.email}",
+        f"**Hosted by:** {session.host.email if session.host else 'Unknown'}",
         f"**Closed at:** {closed_at_str}",
         f"**Tool version:** {session.tool_version}",
         "\n---\n",
