@@ -24,3 +24,9 @@ id = "znRUV7vdkj5i0Li9RbCFg"
 uri = "file://sample_export/well_served_export_workflow.txt"
 type = "text"
 title = "Well-Served Export Workflow"
+
+[[outputs]]
+id = "8YRUwfzbsqWo80ffMKHeU"
+uri = "file://sample_export/well_served_cloudinary_flow.txt"
+type = "text"
+title = "Well-Served Cloudinary Flow — Concise"
