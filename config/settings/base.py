@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'accounts',
     'archive',
     'tools',
+
+    # Cloudinary media storage — must come after project apps so that
+    # the custom storage backend can override DEFAULT_FILE_STORAGE.
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [

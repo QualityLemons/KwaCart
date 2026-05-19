@@ -54,5 +54,22 @@ if _db_url:
 # the client signals Accept-Encoding: gzip.
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Cloudinary — media file storage for generated MD/RTF exports.
+# CLOUDINARY_URL is parsed automatically by django-cloudinary-storage when set.
+# Files are stored permanently in Cloudinary rather than Heroku's ephemeral
+# filesystem, so exports survive dyno restarts and sleep cycles.
+import cloudinary  # noqa: E402
+_cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+if _cloudinary_url:
+    import urllib.parse as _urlparse  # noqa: E402
+    _p = _urlparse.urlparse(_cloudinary_url)
+    cloudinary.config(
+        cloud_name=_p.hostname,
+        api_key=_p.username,
+        api_secret=_p.password,
+        secure=True,
+    )
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+
 # W008: Replit's proxy handles SSL termination; redirect at app level would loop
 SILENCED_SYSTEM_CHECKS = ['security.W008']
