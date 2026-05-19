@@ -47,7 +47,7 @@ Applies free-text tags to the asset.
 STEP 6 — UPDATE ASSET NODE: STRUCTURED METADATA
 Applies typed metadata fields (defined in Settings → Metadata).
 
-  source_app     = well-served
+  source_app     = kwacart
   export_format  = {{$.Get_Asset_Information.result.format}}
   export_date    = {{$.Get_Asset_Information.result.created_at}}
 

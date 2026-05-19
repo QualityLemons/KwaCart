@@ -76,7 +76,7 @@ First, it applies tags. Every export file receives the tag session-export,
 plus a tag matching the file format, either md or rtf.
 
 Second, it applies structured metadata. The source application is recorded
-as well-served, the export format is set based on the file type, and the
+as kwacart, the export format is set based on the file type, and the
 export date is recorded. This metadata is stored inside Cloudinary and is
 visible in the Media Library without needing to open the file or query the
 Django database.

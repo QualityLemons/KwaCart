@@ -499,13 +499,13 @@ When a download is requested, Django streams the file directly from Cloudinary t
 
 ### Cloudinary MediaFlows automation
 
-A **MediaFlows** workflow (`WellServed-ArchiveTag`) runs automatically every time an export file is uploaded. It is triggered by the `asset uploaded` event scoped to `resource_type = raw` and `asset_folder starts_with archives`.
+A **MediaFlows** workflow (`KwaCart-ArchiveTag`) runs automatically every time an export file is uploaded. It is triggered by the `asset uploaded` event scoped to `resource_type = raw` and `asset_folder starts_with archives`.
 
 The workflow applies the following to each uploaded asset:
 
 1. **Get Asset Information** — fetches the asset record from the Cloudinary Admin API, making `format`, `created_at`, and `public_id` available to downstream steps.
 2. **Update Tags** — applies `session-export` and the file format (`md` or `rtf`) as searchable tags.
-3. **Update Contextual Metadata** — writes three key/value pairs: `source_app = well-served`, `export_format = md|rtf`, `export_date = <upload timestamp>`.
+3. **Update Contextual Metadata** — writes three key/value pairs: `source_app = kwacart`, `export_format = md|rtf`, `export_date = <upload timestamp>`.
 
 This means every export in the Cloudinary Media Library is filterable by tool, format, and date without querying the Django database.
 
