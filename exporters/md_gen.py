@@ -59,7 +59,8 @@ def generate_session_markdown(session):
     instances = session.instances.select_related('user').order_by('submitted_at', 'created_at')
     for inst in instances:
         marker = ' (host)' if inst.user_id == session.host_id else ''
-        content_lines.append(f"## {inst.user.email}{marker}")
+        display = inst.user.email if inst.user_id else (inst.guest_name or 'Guest')
+        content_lines.append(f"## {display}{marker}")
         if inst.payload_output:
             for key, value in inst.payload_output.items():
                 label = key.replace('_', ' ').title()

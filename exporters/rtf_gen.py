@@ -81,7 +81,8 @@ def generate_session_rtf(session):
     instances = session.instances.select_related('user').order_by('submitted_at', 'created_at')
     for inst in instances:
         marker = ' (host)' if inst.user_id == session.host_id else ''
-        parts.append(r"\b " + _rtf_escape(inst.user.email + marker) + r"\b0 \line ")
+        display = inst.user.email if inst.user_id else (inst.guest_name or 'Guest')
+        parts.append(r"\b " + _rtf_escape(display + marker) + r"\b0 \line ")
         if inst.payload_output:
             for key, value in inst.payload_output.items():
                 label = key.replace('_', ' ').title()
