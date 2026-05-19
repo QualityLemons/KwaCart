@@ -6,3 +6,15 @@ id = "so8H9uzBmTtq2JB1rasO2"
 uri = "file://README.md"
 type = "text"
 title = "Well-Served README"
+
+[[outputs]]
+id = "g6Whm-co6yNGPbWYPMxB0"
+uri = "file://sample_export/sample_session_export.md"
+type = "text"
+title = "Sample Session Export — Markdown"
+
+[[outputs]]
+id = "Iocblm3yc8zUqU8g3CcZw"
+uri = "file://sample_export/sample_session_export.rtf"
+type = "unspecified"
+title = "Sample Session Export — RTF"
