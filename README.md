@@ -45,9 +45,11 @@ Organisations often struggle to create the conditions for honest, constructive d
 | Language | Python 3.12 |
 | Framework | Django 6.0.4 |
 | Database (dev) | SQLite (`db.sqlite3`) |
+| Database (production) | PostgreSQL (Heroku Postgres add-on) |
 | Static files | WhiteNoise 6.6 |
+| Media / export file storage | Cloudinary (production) / local filesystem (development) |
 | Production server | Gunicorn 25.x |
-| Hosting | Replit (development & production) |
+| Hosting | Heroku (production), Replit (development) |
 
 ---
 
@@ -471,6 +473,42 @@ When a session is closed, the pipeline generates two combined files:
 
 Each file lists every participant's processed output in sequence. Download links appear at the top of the closed-session page.
 
+### File storage — Cloudinary
+
+In production, export files are stored on **Cloudinary** rather than the local server filesystem. This is necessary because Heroku uses an ephemeral filesystem — any file written locally is lost when the dyno restarts or sleeps. Cloudinary stores the files permanently and serves them via CDN.
+
+The storage backend is configured in `config/settings/production.py` using Django's `STORAGES` dict:
+
+```python
+STORAGES = {
+    'default': {'BACKEND': 'cloudinary_storage.storage.RawMediaCloudinaryStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
+```
+
+The exporters write files using Django's `default_storage.save()` API, so they are storage-backend-agnostic. In local development, `default_storage` falls back to the local filesystem and no Cloudinary connection is required.
+
+Files are uploaded as **raw assets** (stored exactly as-is, no transformation) and sit under:
+
+```
+archives/md/     ← Markdown exports
+archives/rtf/    ← RTF exports
+```
+
+When a download is requested, Django streams the file directly from Cloudinary to the user's browser via `FileResponse`. Nothing is written to the Heroku dyno.
+
+### Cloudinary MediaFlows automation
+
+A **MediaFlows** workflow (`WellServed-ArchiveTag`) runs automatically every time an export file is uploaded. It is triggered by the `asset uploaded` event scoped to `resource_type = raw` and `asset_folder starts_with archives`.
+
+The workflow applies the following to each uploaded asset:
+
+1. **Get Asset Information** — fetches the asset record from the Cloudinary Admin API, making `format`, `created_at`, and `public_id` available to downstream steps.
+2. **Update Tags** — applies `session-export` and the file format (`md` or `rtf`) as searchable tags.
+3. **Update Contextual Metadata** — writes three key/value pairs: `source_app = well-served`, `export_format = md|rtf`, `export_date = <upload timestamp>`.
+
+This means every export in the Cloudinary Media Library is filterable by tool, format, and date without querying the Django database.
+
 ---
 
 ## Data Models
@@ -596,6 +634,7 @@ The project is fully configured for Heroku deployment. The files Heroku requires
    heroku config:set SECRET_KEY='<a long random string — never reuse the dev key>'
    heroku config:set ALLOWED_HOSTS='your-app-name.herokuapp.com'
    heroku config:set CSRF_TRUSTED_ORIGINS='https://your-app-name.herokuapp.com'
+   heroku config:set CLOUDINARY_URL='cloudinary://<api_key>:<api_secret>@<cloud_name>'
    ```
 
 4. Push the code to Heroku:
@@ -622,10 +661,12 @@ The project is fully configured for Heroku deployment. The files Heroku requires
 | `ALLOWED_HOSTS` | `your-app-name.herokuapp.com` |
 | `CSRF_TRUSTED_ORIGINS` | `https://your-app-name.herokuapp.com` |
 | `DATABASE_URL` | Set automatically by the Heroku Postgres add-on |
+| `CLOUDINARY_URL` | From Cloudinary dashboard → API Environment variable (format: `cloudinary://key:secret@cloud`) |
 
 **How the production settings work on Heroku**
 
 - `DATABASE_URL` is detected by `production.py` and passed to `dj-database-url`, switching the database from SQLite to Heroku Postgres automatically
+- `CLOUDINARY_URL` is detected by `production.py` and activates `RawMediaCloudinaryStorage` as the `default` storage backend — all generated MD and RTF export files are uploaded to Cloudinary and served from there permanently
 - `SECURE_PROXY_SSL_HEADER` is already set so Django trusts Heroku's SSL termination
 - `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` are `True`, so cookies are HTTPS-only
 - WhiteNoise (`CompressedManifestStaticFilesStorage`) serves and compresses static files without a separate CDN
@@ -658,6 +699,8 @@ All runtime and development dependencies are listed in `requirements.txt` with e
 | `whitenoise` | 6.6.0 | Static file serving |
 | `psycopg2-binary` | 2.9.12 | PostgreSQL driver (used when `DATABASE_URL` is set) |
 | `dj-database-url` | 3.1.2 | Parses `DATABASE_URL` into Django's `DATABASES` dict |
+| `cloudinary` | 1.44.2 | Cloudinary Python SDK — upload and manage raw assets |
+| `django-cloudinary-storage` | 0.3.0 | Django storage backend that routes `default_storage` calls to Cloudinary |
 | `playwright` | 1.58.0 | Browser automation (end-to-end test runner) |
 | `pytest-django` | 4.12.0 | Django integration for pytest |
 | `pytest-playwright` | 0.7.2 | Playwright integration for pytest |
@@ -1069,6 +1112,8 @@ Liberating Structures — created by Henri Lipmanowicz and Keith McCandless — 
 | [django-environ](https://django-environ.readthedocs.io) | MIT | Environment-variable configuration |
 | [dj-database-url](https://github.com/jazzband/dj-database-url) | BSD-2-Clause | Database URL parsing |
 | [psycopg2-binary](https://www.psycopg.org) | LGPL-3.0 | PostgreSQL adapter (production database) |
+| [cloudinary](https://pypi.org/project/cloudinary/) | MIT | Cloudinary Python SDK — uploads raw assets (MD/RTF exports) to Cloudinary |
+| [django-cloudinary-storage](https://pypi.org/project/django-cloudinary-storage/) | BSD-3-Clause | Django `DEFAULT_FILE_STORAGE` backend backed by Cloudinary |
 | [Playwright](https://playwright.dev/python/) | Apache-2.0 | Browser automation used in the test suite |
 | [pytest-django](https://pytest-django.readthedocs.io) | BSD-3-Clause | Django integration for pytest |
 | [pytest-playwright](https://github.com/microsoft/playwright-pytest) | Apache-2.0 | Playwright integration for pytest |
