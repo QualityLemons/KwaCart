@@ -741,7 +741,7 @@ Authenticated users can only access and modify their own data. Every view that r
 
 | Measure | Detail |
 |---|---|
-| CSRF protection | Django's `CsrfViewMiddleware` is active; all state-changing POST forms include `{% csrf_token %}` |
+| CSRF protection | Django's `CsrfViewMiddleware` is active; all state-changing POST forms include `{% raw %}{% csrf_token %}{% endraw %}` |
 | Password validation | `validate_password()` called in `UserManager.create_user()` before `set_password()` |
 | Secure cookies (production) | `SESSION_COOKIE_SECURE = True`, `CSRF_COOKIE_SECURE = True` |
 | HSTS (production) | `SECURE_HSTS_SECONDS = 31536000`, `SECURE_HSTS_INCLUDE_SUBDOMAINS = True`, `SECURE_HSTS_PRELOAD = True` |
