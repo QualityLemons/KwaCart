@@ -49,27 +49,21 @@ _db_url = os.environ.get('DATABASE_URL')
 if _db_url:
     DATABASES = {'default': _dj_db_url.parse(_db_url, conn_max_age=600)}  # noqa: F405
 
-# CompressedManifestStaticFilesStorage appends a content hash to each filename
-# for long-lived cache headers and serves pre-compressed .gz versions when
-# the client signals Accept-Encoding: gzip.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Cloudinary — media file storage for generated MD/RTF exports.
-# CLOUDINARY_URL is parsed automatically by django-cloudinary-storage when set.
-# Files are stored permanently in Cloudinary rather than Heroku's ephemeral
-# filesystem, so exports survive dyno restarts and sleep cycles.
-import cloudinary  # noqa: E402
+# Django 4.2+ uses the STORAGES dict instead of the deprecated
+# STATICFILES_STORAGE / DEFAULT_FILE_STORAGE string settings.
+# Static files are served by WhiteNoise with content-hash filenames;
+# media files go to Cloudinary when CLOUDINARY_URL is set, otherwise
+# fall back to the local filesystem (development / test).
 _cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
-if _cloudinary_url:
-    import urllib.parse as _urlparse  # noqa: E402
-    _p = _urlparse.urlparse(_cloudinary_url)
-    cloudinary.config(
-        cloud_name=_p.hostname,
-        api_key=_p.username,
-        api_secret=_p.password,
-        secure=True,
-    )
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+_media_backend = (
+    'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+    if _cloudinary_url
+    else 'django.core.files.storage.FileSystemStorage'
+)
+STORAGES = {
+    'default': {'BACKEND': _media_backend},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
 
 # W008: Replit's proxy handles SSL termination; redirect at app level would loop
 SILENCED_SYSTEM_CHECKS = ['security.W008']
