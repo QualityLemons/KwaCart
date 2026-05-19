@@ -18,3 +18,9 @@ id = "Iocblm3yc8zUqU8g3CcZw"
 uri = "file://sample_export/sample_session_export.rtf"
 type = "unspecified"
 title = "Sample Session Export — RTF"
+
+[[outputs]]
+id = "znRUV7vdkj5i0Li9RbCFg"
+uri = "file://sample_export/well_served_export_workflow.txt"
+type = "text"
+title = "Well-Served Export Workflow"
