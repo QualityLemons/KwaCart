@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="500" viewBox="0 0 860 500">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .nav-item { font-size: 13px; fill: #333; }
+      .heading  { font-size: 18px; fill: #1a1a1a; font-weight: bold; }
+      .sub      { font-size: 12px; fill: #666; }
+      .zone-lbl { font-size: 13px; font-weight: bold; }
+      .card-ttl { font-size: 13px; fill: #222; font-weight: bold; }
+      .card-sub { font-size: 11px; fill: #888; }
+      .btn-txt  { font-size: 11px; }
+      .wf-label { font-size: 11px; fill: #aaa; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Page background -->
+  <rect width="860" height="500" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Nav bar ── -->
+  <rect x="0" y="0" width="860" height="44" fill="#eeeeee" stroke="#cccccc"/>
+  <text x="16" y="26" class="nav-item" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav-item" fill="#40B0A6">Work Solo</text>
+  <text x="205" y="26" class="nav-item">Facilitate</text>
+  <text x="295" y="26" class="nav-item">My Archive</text>
+  <text x="490" y="26" class="nav-item" fill="#aaa">user@example.com</text>
+  <rect x="680" y="12" width="55" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="707" y="25" text-anchor="middle" class="btn-txt" fill="#444">Logout</text>
+  <rect x="744" y="12" width="100" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="794" y="25" text-anchor="middle" class="btn-txt" fill="#444">Accessibility Mode</text>
+
+  <!-- ── Page heading + mode pills ── -->
+  <text x="30" y="70" class="heading">Tool catalog</text>
+  <text x="30" y="86" class="sub">Choose a tool and pick how you want to work.</text>
+  <!-- Active pill: Work Solo -->
+  <rect x="30" y="97" width="98" height="26" rx="13" fill="#e6f7f6" stroke="#40B0A6"/>
+  <text x="79" y="114" text-anchor="middle" font-size="12" fill="#40B0A6" font-weight="bold">Work Solo</text>
+  <!-- Inactive pill: Facilitate -->
+  <rect x="138" y="97" width="90" height="26" rx="13" fill="#f5f5f5" stroke="#ccc"/>
+  <text x="183" y="114" text-anchor="middle" font-size="12" fill="#777">Facilitate</text>
+
+  <!-- ── Work Solo zone ── -->
+  <rect x="0" y="132" width="860" height="26" fill="#e6f7f6" stroke="#c0e8e4"/>
+  <text x="30" y="149" class="zone-lbl" fill="#267a74">Work Solo — use any tool at your own pace</text>
+
+  <!-- Card A -->
+  <rect x="30"  y="166" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="46"  y="186" class="card-ttl">1-2-4-All</text>
+  <text x="46"  y="201" class="card-sub">Alone, then pairs, then fours, then all.</text>
+  <text x="46"  y="215" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="46"  y="249" width="80" height="20" rx="3" fill="#e0e0e0" stroke="#bbb"/>
+  <text x="86"  y="263" text-anchor="middle" class="btn-txt" fill="#444">Start solo</text>
+
+  <!-- Card B -->
+  <rect x="304" y="166" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="320" y="186" class="card-ttl">15% Solutions</text>
+  <text x="320" y="201" class="card-sub">What can you start doing right now?</text>
+  <text x="320" y="215" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="320" y="249" width="80" height="20" rx="3" fill="#e0e0e0" stroke="#bbb"/>
+  <text x="360" y="263" text-anchor="middle" class="btn-txt" fill="#444">Start solo</text>
+
+  <!-- Card C -->
+  <rect x="578" y="166" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="594" y="186" class="card-ttl">Min Specs</text>
+  <text x="594" y="201" class="card-sub">Strip your rules down to the bone.</text>
+  <text x="594" y="215" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="594" y="249" width="80" height="20" rx="3" fill="#e0e0e0" stroke="#bbb"/>
+  <text x="634" y="263" text-anchor="middle" class="btn-txt" fill="#444">Start solo</text>
+
+  <!-- ── Facilitate zone ── -->
+  <rect x="0" y="292" width="860" height="26" fill="#f0ecfa" stroke="#d5caf0"/>
+  <text x="30" y="309" class="zone-lbl" fill="#5D3A9B">Facilitate — start a timed, live session with your team</text>
+
+  <!-- Card D -->
+  <rect x="30"  y="328" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="46"  y="348" class="card-ttl">1-2-4-All</text>
+  <text x="46"  y="363" class="card-sub">Alone, then pairs, then fours, then all.</text>
+  <text x="46"  y="377" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="46"  y="411" width="100" height="20" rx="3" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="96"  y="425" text-anchor="middle" font-size="11" fill="#fff">Start session</text>
+
+  <!-- Card E -->
+  <rect x="304" y="328" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="320" y="348" class="card-ttl">15% Solutions</text>
+  <text x="320" y="363" class="card-sub">What can you start doing right now?</text>
+  <text x="320" y="377" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="320" y="411" width="100" height="20" rx="3" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="370" y="425" text-anchor="middle" font-size="11" fill="#fff">Start session</text>
+
+  <!-- Card F -->
+  <rect x="578" y="328" width="254" height="112" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="594" y="348" class="card-ttl">Min Specs</text>
+  <text x="594" y="363" class="card-sub">Strip your rules down to the bone.</text>
+  <text x="594" y="377" class="card-sub">Tagline text goes here on one line.</text>
+  <rect x="594" y="411" width="100" height="20" rx="3" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="644" y="425" text-anchor="middle" font-size="11" fill="#fff">Start session</text>
+
+  <!-- Wireframe label -->
+  <text x="430" y="490" text-anchor="middle" class="wf-label">Wireframe — Tool Catalog (/tools/)</text>
+</svg>

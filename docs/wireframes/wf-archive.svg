@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="580" viewBox="0 0 860 580">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .nav-item  { font-size: 13px; fill: #333; }
+      .heading   { font-size: 18px; fill: #1a1a1a; font-weight: bold; }
+      .sec-lbl   { font-size: 13px; fill: #444; font-weight: bold; }
+      .body-txt  { font-size: 12px; fill: #333; }
+      .muted     { font-size: 11px; fill: #888; }
+      .btn-txt   { font-size: 11px; }
+      .tag       { font-size: 10px; }
+      .wf-label  { font-size: 11px; fill: #aaa; font-style: italic; }
+    </style>
+  </defs>
+
+  <rect width="860" height="580" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Nav bar ── -->
+  <rect x="0" y="0" width="860" height="44" fill="#eeeeee" stroke="#cccccc"/>
+  <text x="16" y="26" class="nav-item" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav-item" fill="#40B0A6">Work Solo</text>
+  <text x="205" y="26" class="nav-item">Facilitate</text>
+  <text x="295" y="26" class="nav-item" font-weight="bold">My Archive</text>
+  <text x="490" y="26" class="nav-item" fill="#aaa">user@example.com</text>
+  <rect x="680" y="12" width="55" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="707" y="25" text-anchor="middle" class="btn-txt" fill="#444">Logout</text>
+  <rect x="744" y="12" width="100" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="794" y="25" text-anchor="middle" class="btn-txt" fill="#444">Accessibility Mode</text>
+
+  <!-- ── Page heading ── -->
+  <text x="30" y="70" class="heading">My Archive</text>
+
+  <!-- ── SECTION 1: Solo submissions ── -->
+  <text x="30" y="96" class="sec-lbl">Solo submissions</text>
+  <text x="190" y="96" class="muted"> (2)</text>
+
+  <!-- Solo card 1 -->
+  <rect x="30" y="104" width="800" height="40" rx="4" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="46"  y="124" class="body-txt" font-weight="bold">15% Solutions</text>
+  <text x="175" y="124" class="muted">  Solo draft</text>
+  <text x="580" y="124" class="muted">20 May 2026</text>
+  <rect x="670" y="112" width="46" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="693" y="126" text-anchor="middle" class="btn-txt" fill="#444">View</text>
+  <rect x="724" y="112" width="48" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="748" y="126" text-anchor="middle" class="btn-txt" fill="#444">↓ MD</text>
+  <rect x="780" y="112" width="40" height="20" rx="3" fill="#fee2e2" stroke="#fca5a5"/>
+  <text x="800" y="126" text-anchor="middle" class="btn-txt" fill="#dc2626">Del</text>
+
+  <!-- Solo card 2 -->
+  <rect x="30" y="150" width="800" height="40" rx="4" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="46"  y="170" class="body-txt" font-weight="bold">Min Specs</text>
+  <text x="133" y="170" class="muted">  Solo draft</text>
+  <text x="580" y="170" class="muted">12 May 2026</text>
+  <rect x="670" y="158" width="46" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="693" y="172" text-anchor="middle" class="btn-txt" fill="#444">View</text>
+  <rect x="724" y="158" width="48" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="748" y="172" text-anchor="middle" class="btn-txt" fill="#444">↓ MD</text>
+  <rect x="780" y="158" width="40" height="20" rx="3" fill="#fee2e2" stroke="#fca5a5"/>
+  <text x="800" y="172" text-anchor="middle" class="btn-txt" fill="#dc2626">Del</text>
+
+  <!-- ── SECTION 2: Sessions you host ── -->
+  <text x="30" y="212" class="sec-lbl">Sessions you host</text>
+  <text x="200" y="212" class="muted"> (1)</text>
+
+  <!-- Hosted session card -->
+  <rect x="30" y="220" width="800" height="40" rx="4" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="46"  y="240" class="body-txt" font-weight="bold">1-2-4-All</text>
+  <!-- Status badge (open) -->
+  <rect x="135" y="228" width="36" height="16" rx="8" fill="#e6f7f6" stroke="#40B0A6"/>
+  <text x="153" y="240" text-anchor="middle" class="tag" fill="#267a74">open</text>
+  <text x="580" y="240" class="muted">20 May 2026</text>
+  <rect x="670" y="228" width="78" height="20" rx="3" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="709" y="242" text-anchor="middle" font-size="11" fill="#fff">Go to session</text>
+  <rect x="756" y="228" width="64" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="788" y="242" text-anchor="middle" class="btn-txt" fill="#444">↓ Export</text>
+
+  <!-- ── SECTION 3: Sessions you joined ── -->
+  <text x="30" y="282" class="sec-lbl">Sessions you joined</text>
+  <text x="213" y="282" class="muted"> (1)</text>
+
+  <!-- Joined session card -->
+  <rect x="30" y="290" width="800" height="40" rx="4" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="46"  y="310" class="body-txt" font-weight="bold">15% Solutions</text>
+  <text x="176" y="310" class="muted">  hosted by Alice</text>
+  <!-- Status badge (closed) -->
+  <rect x="320" y="298" width="42" height="16" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="341" y="310" text-anchor="middle" class="tag" fill="#475569">closed</text>
+  <text x="580" y="310" class="muted">19 May 2026</text>
+  <rect x="670" y="298" width="46" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="693" y="312" text-anchor="middle" class="btn-txt" fill="#444">View</text>
+  <rect x="724" y="298" width="96" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="772" y="312" text-anchor="middle" class="btn-txt" fill="#444">↓ Combined export</text>
+
+  <!-- ── SECTION 4: Staff-only waiting list ── -->
+  <rect x="30" y="352" width="800" height="148" rx="5" fill="#fafafa" stroke="#e2e8f0" stroke-dasharray="6 3"/>
+  <text x="46" y="374" class="sec-lbl">Waiting list</text>
+  <rect x="160" y="361" width="100" height="18" rx="4" fill="#fef9c3" stroke="#fde68a"/>
+  <text x="210" y="374" text-anchor="middle" class="tag" fill="#78350f">Staff only</text>
+  <!-- Table header -->
+  <rect x="46" y="382" width="768" height="22" rx="2" fill="#eee" stroke="#ddd"/>
+  <text x="60"  y="397" class="muted" font-weight="bold">Name</text>
+  <text x="200" y="397" class="muted" font-weight="bold">Email</text>
+  <text x="520" y="397" class="muted" font-weight="bold">Signed up</text>
+  <!-- Row 1 -->
+  <rect x="46" y="404" width="768" height="22" rx="0" fill="#fff" stroke="#eee"/>
+  <text x="60"  y="419" class="body-txt">Sarah M.</text>
+  <text x="200" y="419" class="muted">sarah@example.com</text>
+  <text x="520" y="419" class="muted">19 May 2026</text>
+  <!-- Row 2 -->
+  <rect x="46" y="426" width="768" height="22" rx="0" fill="#f9f9f9" stroke="#eee"/>
+  <text x="60"  y="441" class="body-txt">James T.</text>
+  <text x="200" y="441" class="muted">james@example.org</text>
+  <text x="520" y="441" class="muted">18 May 2026</text>
+  <!-- Row 3 -->
+  <rect x="46" y="448" width="768" height="22" rx="0" fill="#fff" stroke="#eee"/>
+  <text x="60"  y="463" class="body-txt">Yuki N.</text>
+  <text x="200" y="463" class="muted">yuki@example.net</text>
+  <text x="520" y="463" class="muted">17 May 2026</text>
+  <text x="430" y="492" text-anchor="middle" class="muted" font-style="italic">Visible to staff users only</text>
+
+  <!-- ── Footer ── -->
+  <line x1="0" y1="518" x2="860" y2="518" stroke="#e2e8f0"/>
+  <text x="430" y="534" text-anchor="middle" class="muted">KwaCart — a Liberating Structures facilitation platform. Built as part of a Level 5 Diploma project.</text>
+
+  <!-- Wireframe label -->
+  <text x="430" y="572" text-anchor="middle" class="wf-label">Wireframe — Archive Dashboard (/archive/dashboard/)</text>
+</svg>

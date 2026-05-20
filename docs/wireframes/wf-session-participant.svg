@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="560" viewBox="0 0 860 560">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .nav-item  { font-size: 13px; fill: #333; }
+      .heading   { font-size: 15px; fill: #1a1a1a; font-weight: bold; }
+      .sub       { font-size: 12px; fill: #666; }
+      .sec-lbl   { font-size: 12px; fill: #555; font-weight: bold; }
+      .body-txt  { font-size: 12px; fill: #333; }
+      .muted     { font-size: 11px; fill: #888; }
+      .btn-txt   { font-size: 11px; }
+      .mono      { font-family: monospace; font-size: 26px; fill: #2a4d69; font-weight: bold; }
+      .wf-label  { font-size: 11px; fill: #aaa; font-style: italic; }
+    </style>
+  </defs>
+
+  <rect width="860" height="560" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Minimal participant nav bar ── -->
+  <rect x="0" y="0" width="860" height="40" fill="#faf5ff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="16" y="24" class="nav-item" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="76" y="24" class="nav-item" fill="#c4b5fd">·</text>
+  <text x="90" y="24" class="nav-item" font-weight="bold">1-2-4-All</text>
+  <text x="200" y="24" class="nav-item" fill="#888"> — live session</text>
+  <!-- Accessibility toggle far right -->
+  <rect x="746" y="10" width="100" height="20" rx="3" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="796" y="24" text-anchor="middle" class="btn-txt" fill="#5D3A9B">Accessibility</text>
+  <!-- Note: no Work Solo / Facilitate / Archive links — focused participant mode -->
+  <text x="430" y="38" text-anchor="middle" font-size="9" fill="#c4b5fd" font-style="italic">No navigation links — focused participant mode</text>
+
+  <!-- ── Identity line ── -->
+  <text x="30" y="62" class="muted">Joining as <tspan font-weight="bold" fill="#333">Carol</tspan>. Fill in the form below and save before the host closes the session.</text>
+
+  <!-- ── Timer (participant view — no controls) ── -->
+  <rect x="30" y="72" width="800" height="46" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="46" y="89" class="muted">SUGGESTED TIME</text>
+  <text x="46" y="104" class="body-txt" font-weight="bold">Round 1 — individual (1 min)</text>
+  <text x="580" y="107" class="mono">04:35</text>
+  <!-- Calm timer toggle (participant-only) -->
+  <rect x="700" y="83" width="90" height="22" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="745" y="98" text-anchor="middle" class="btn-txt" fill="#444">Calm timer</text>
+  <!-- Progress bar -->
+  <rect x="30" y="114" width="800" height="4" rx="2" fill="#e2e8f0"/>
+  <rect x="30" y="114" width="300" height="4" rx="2" fill="#5D3A9B"/>
+
+  <!-- ── Inclusive pacing early-preview banner (example) ── -->
+  <rect x="30" y="128" width="800" height="34" rx="5" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="46" y="148" class="body-txt">📝 <tspan font-weight="bold">Inclusive Pacing active</tspan> — You can start composing now, before the group timer begins.</text>
+
+  <!-- ── Your response ── -->
+  <text x="30" y="184" class="heading">Your response</text>
+
+  <!-- ── Field label ── -->
+  <text x="30" y="205" class="sec-lbl" font-size="14">Round 1 — your individual response (1 min, alone):</text>
+
+  <!-- ── Textarea (large — prominent) ── -->
+  <rect x="30" y="215" width="800" height="170" rx="5" fill="#fff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="46" y="240" class="muted">What is your response to the challenge? …</text>
+  <!-- Cursor blink indicator -->
+  <line x1="46" y1="248" x2="46" y2="262" stroke="#5D3A9B" stroke-width="2"/>
+
+  <!-- ── Save button (large — full width on mobile) ── -->
+  <rect x="30" y="398" width="800" height="48" rx="6" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="430" y="427" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">Save my response</text>
+
+  <!-- ── Autosave status ── -->
+  <text x="430" y="462" text-anchor="middle" class="muted">Autosaved 2 seconds ago</text>
+
+  <!-- ── AAC composing section ── -->
+  <rect x="30" y="480" width="800" height="60" rx="5" fill="#faf5ff" stroke="#d8b4fe"/>
+  <text x="46" y="500" class="sec-lbl" fill="#5D3A9B">Using AAC or a symbol board?</text>
+  <text x="46" y="516" class="muted">Press the button below so the host knows you're still composing. Your window stays open.</text>
+  <rect x="46" y="524" width="180" height="10" rx="5" fill="#ddd" stroke="#bbb"/>
+  <text x="136" y="533" text-anchor="middle" font-size="9" fill="#777">[ I'm composing... button ]</text>
+
+  <!-- Wireframe label -->
+  <text x="430" y="552" text-anchor="middle" class="wf-label">Wireframe — Live Session: Participant / Guest View — focused mode, no nav chrome</text>
+</svg>

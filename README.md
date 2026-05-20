@@ -238,6 +238,64 @@ Participants who scan the QR code land here. They enter only their name — no a
 
 ---
 
+### Wireframes — Authenticated pages
+
+The pages below require login and cannot be shown as live screenshots in a public README. The wireframes show the intended layout and key interactive regions for each screen.
+
+#### Tool Catalog
+
+Two-zone layout: **Work Solo** (teal) lets users draft at their own pace; **Facilitate** (purple) starts a live session. The active zone is highlighted with a pill toggle at the top of the page. Tool cards in each zone show a title, tagline, and the appropriate action button.
+
+![Catalog wireframe](docs/wireframes/wf-catalog.svg)
+
+---
+
+#### Live Session — Host View
+
+The host sees the full session page: a share panel with the signed-in join link and a guest QR code, the server-synced countdown timer with phase progress, the response form (shared with participants), the live participant roster, and the host-only controls panel (pause-reminder threshold, Inclusive Pacing, Verbal Breakout, and the Close Session button).
+
+![Session host wireframe](docs/wireframes/wf-session-host.svg)
+
+---
+
+#### Live Session — Participant / Guest View
+
+Participants see a stripped-down focused interface with no site navigation. The minimal header shows only the tool name and session context. The timer displays without host controls. The response textarea and **Save my response** button are large and prominent — optimised for any mobile screen or tablet scanned in a high-pressure live environment. An optional Inclusive Pacing banner appears when the host has enabled extended time. The AAC composing section sits below the form.
+
+![Session participant wireframe](docs/wireframes/wf-session-participant.svg)
+
+---
+
+#### Archive Dashboard
+
+Three sections: **Solo submissions** (with view, Markdown download, and delete actions), **Sessions you host** (with a Go to session or combined export link), and **Sessions you joined** (read-only, with a combined export download). A fourth section — the **Waiting list** table — is visible only to staff users and is rendered with a dashed border in the wireframe to denote its conditional visibility.
+
+![Archive wireframe](docs/wireframes/wf-archive.svg)
+
+---
+
+### User Flow
+
+```mermaid
+flowchart LR
+    V([Visitor])      --> LP[Landing Page]
+    LP                --> |Try free|    FT[Free Tool\nMin Specs / 15% Solutions]
+    LP                --> |Join|        WL[Waiting List]
+    LP                --> |Idea|        FR[Feature Request]
+    LP                --> |Sign in|     LOG[Login / Register]
+    LOG               --> CAT[Tool Catalog]
+    CAT               --> |Work Solo|   DRAFT[Draft Editor\nautosave]
+    CAT               --> |Facilitate|  HOST[Session — Host View\nQR · Timer · Controls]
+    DRAFT             --> |Submit|      ARC[Archive Dashboard]
+    HOST              --> |QR scan|     GNAME[Guest: Enter Name]
+    GNAME             --> GFORM[Guest: Session Form\nfocused participant UI]
+    GFORM             --> |polls|       HOST
+    HOST              --> |Close|       ARC
+    ARC               --> |Download|    EXP[Markdown / RTF Export]
+```
+
+---
+
 ### Page Access Map
 
 | Colour | Meaning |
