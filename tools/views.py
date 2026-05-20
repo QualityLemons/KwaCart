@@ -12,6 +12,7 @@ Covers three user journeys:
   across all contributions simultaneously.
 """
 import json
+import random
 
 from django.conf import settings
 from django.contrib import messages
@@ -258,6 +259,21 @@ def submit_tool(request, instance_id):
 
 # --- Collaborative session flow ---------------------------------------------
 
+def _generate_pairing_code():
+    """Return a unique 3-digit zero-padded pairing code (e.g. '042').
+
+    Picks at random from the pool of codes not currently held by any open
+    session.  In the extremely unlikely event that all 1000 codes are taken
+    an empty string is returned and the session opens without a code.
+    """
+    used = set(
+        ToolSession.objects.filter(status='open', pairing_code__gt='')
+        .values_list('pairing_code', flat=True)
+    )
+    available = [f'{n:03d}' for n in range(1000) if f'{n:03d}' not in used]
+    return random.choice(available) if available else ''
+
+
 @login_required
 @require_POST
 def session_create(request, tool_slug):
@@ -272,6 +288,7 @@ def session_create(request, tool_slug):
         host=request.user,
         tool_slug=tool_slug,
         tool_version=getattr(tool_class, 'version', '1.0'),
+        pairing_code=_generate_pairing_code(),
     )
     messages.success(
         request, 'Session started. Share the link with participants.'
@@ -396,6 +413,7 @@ def session_close(request, session_id):
     with transaction.atomic():
         session.status = 'closed'
         session.closed_at = timezone.now()
+        session.pairing_code = ''
         session.save()
 
         for instance in ToolInstance.objects.filter(session=session, status='draft'):
@@ -762,3 +780,47 @@ def timer_test_page(request):
     # what the _timer.html template expects from the tool_meta object.
     tool_meta = SimpleNamespace(phases=phases, timer_seconds=9, title="Test Timer")
     return render(request, "tools/timer_test_page.html", {"tool_meta": tool_meta, "timer_session_id": None})
+
+
+# --- Companion pairing -------------------------------------------------------
+
+def pairing_entry(request):
+    """Render the 3-digit code entry form at /join/.
+
+    On POST, redirect to /join/<code>/ which performs the actual lookup.
+    This keeps the lookup logic in one place and makes direct-URL entry
+    (e.g. typing /join/742 straight into the address bar) also work.
+    """
+    error = None
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip().zfill(3)
+        if not code.isdigit() or len(code) != 3:
+            error = 'Please enter exactly 3 digits.'
+        else:
+            return redirect('pairing_join', code=code)
+    return render(request, 'tools/pairing_entry.html', {'error': error})
+
+
+def pairing_join(request, code):
+    """Look up an open session by its 3-digit pairing code and redirect.
+
+    Redirects to the guest_join page so the companion device skips straight
+    to the nickname screen without the participant needing to type a UUID URL.
+    Returns 404 with a friendly explanation if the code is unknown or stale.
+    """
+    code = code.strip().zfill(3)
+    session = ToolSession.objects.filter(
+        status='open', pairing_code=code
+    ).first()
+    if not session:
+        return render(
+            request,
+            'tools/pairing_not_found.html',
+            {'code': code},
+            status=404,
+        )
+    return redirect(
+        'tools:guest_join',
+        session_id=session.id,
+        guest_token=session.guest_token,
+    )

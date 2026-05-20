@@ -14,12 +14,16 @@ URL map
 ``/archive/``           → archive app (dashboard, detail, downloads)
 ``/waiting-list/``      → waiting-list sign-up page
 ``/request-a-feature/`` → feature-request submission page
+``/join/``              → companion-pairing entry (3-digit code)
+``/join/<code>/``       → companion-pairing redirect to guest_join
 """
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.shortcuts import render
 from django.urls import include, path
+
+from tools.views import pairing_entry, pairing_join
 
 
 # home and about are simple template-only views.  Defining them inline here
@@ -41,6 +45,9 @@ urlpatterns = [
     path('archive/', include('archive.urls')),
     path('waiting-list/', include('archive.urls_waiting_list')),
     path('request-a-feature/', include('archive.urls_feature_request')),
+    # Companion pairing — short /join/<code>/ URLs for secondary-device entry.
+    path('join/', pairing_entry, name='pairing_entry'),
+    path('join/<str:code>/', pairing_join, name='pairing_join'),
     # static() returns [] in production (WhiteNoise serves files instead).
     # In development it adds a URL pattern so the dev server can serve uploads.
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

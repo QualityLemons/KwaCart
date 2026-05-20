@@ -70,6 +70,16 @@ class ToolSession(models.Model):
         ),
     )
 
+    pairing_code = models.CharField(
+        max_length=3,
+        blank=True,
+        db_index=True,
+        help_text=(
+            'Three-digit companion-pairing code displayed alongside the QR code. '
+            'Valid while the session is open; cleared on close.'
+        ),
+    )
+
     md_file = models.FileField(upload_to='archives/md/', null=True, blank=True, max_length=500)
     rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True, max_length=500)
 

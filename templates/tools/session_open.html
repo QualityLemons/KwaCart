@@ -23,7 +23,7 @@
     <p style="margin:0.4rem 0 0;"><small>Anyone already signed in who opens this link can join.</small></p>
 </div>
 
-<!-- ── Guest share link and QR code ── -->
+<!-- ── Guest share link, QR code, and companion pairing code ── -->
 <div style="background:#f0fdf4; border:1px solid #86efac; padding:0.8rem 1rem;
             border-radius:6px; margin: 0 0 1rem;">
     <strong>Guest link (no account needed):</strong>
@@ -41,6 +41,32 @@
              style="margin-top:0.5rem; line-height:0;"></div>
     </details>
     <p style="margin:0.5rem 0 0;"><small>Participants who scan this QR code can join by entering their name — no account required.</small></p>
+
+    {% if session.pairing_code %}
+    <!-- ── Companion pairing code (secondary device entry) ── -->
+    <div style="margin-top:0.9rem; padding:0.75rem 1rem;
+                background:#052e16; border-radius:8px; display:flex;
+                align-items:center; gap:1rem; flex-wrap:wrap;">
+        <div>
+            <p style="margin:0 0 0.2rem; font-size:0.72rem; letter-spacing:0.07em;
+                      text-transform:uppercase; color:#86efac; font-weight:600;">
+                Companion pairing code
+            </p>
+            <p style="margin:0; font-size:2.4rem; font-weight:700; letter-spacing:0.45em;
+                      color:#4ade80; font-family:ui-monospace,Menlo,monospace;
+                      line-height:1;">
+                {{ session.pairing_code }}
+            </p>
+        </div>
+        <p style="margin:0; font-size:0.78rem; color:#86efac; line-height:1.55; flex:1; min-width:160px;">
+            On a second device, go to
+            <strong style="font-family:ui-monospace,Menlo,monospace;">
+                {{ request.get_host }}/join/
+            </strong>
+            and type this code. No URL needed.
+        </p>
+    </div>
+    {% endif %}
 </div>
 
 {% include "tools/info_box.html" %}
