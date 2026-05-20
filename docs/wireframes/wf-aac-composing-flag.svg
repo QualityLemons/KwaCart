@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="580" viewBox="0 0 860 580">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .heading  { font-size: 14px; fill: #1a1a1a; font-weight: bold; }
+      .sub      { font-size: 12px; fill: #555; }
+      .muted    { font-size: 11px; fill: #888; }
+      .btn-txt  { font-size: 11px; }
+      .label    { font-size: 12px; fill: #444; font-weight: bold; }
+      .note     { font-size: 10px; fill: #888; font-style: italic; }
+      .wf-label { font-size: 11px; fill: #aaa; font-style: italic; }
+      .pulse    { fill: #fef08a; stroke: #eab308; }
+    </style>
+  </defs>
+
+  <rect width="860" height="580" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Section title ── -->
+  <text x="430" y="28" text-anchor="middle" font-size="16" font-weight="bold" fill="#5D3A9B">User Story 2 — Composition Presence Flag</text>
+  <text x="430" y="46" text-anchor="middle" class="sub">Host sees a live "composing" heartbeat; warning modal fires if they try to close while it is active</text>
+
+  <!-- ══════════════════════════════════════════
+       LEFT: Participant view — I'm Composing button
+       ══════════════════════════════════════════ -->
+  <rect x="20" y="60" width="390" height="20" rx="4" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="215" y="74" text-anchor="middle" class="label" fill="#5D3A9B">Participant / Guest view</text>
+
+  <!-- Participant page header (minimal) -->
+  <rect x="20" y="86" width="390" height="32" fill="#faf5ff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="36" y="106" class="sub" font-weight="bold" fill="#5D3A9B">KwaCart · 1-2-4-All — live session</text>
+
+  <!-- Timer (slim) -->
+  <rect x="20" y="124" width="390" height="30" rx="4" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="36" y="144" class="muted">Timer · Round 1 (1 min)</text>
+  <text x="300" y="144" font-family="monospace" font-size="18" fill="#2a4d69" font-weight="bold">03:12</text>
+
+  <!-- Form -->
+  <rect x="20" y="162" width="390" height="120" rx="5" fill="#fff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="36" y="182" class="label">Your response</text>
+  <text x="36" y="200" class="muted">Composing in Grid 3, will paste shortly…</text>
+  <!-- Cursor -->
+  <line x1="36" y1="208" x2="36" y2="222" stroke="#5D3A9B" stroke-width="2"/>
+  <!-- Save button -->
+  <rect x="36" y="255" width="355" height="20" rx="4" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="213" y="269" text-anchor="middle" font-size="11" fill="#fff">Save my response</text>
+
+  <!-- ── AAC composing section ── -->
+  <rect x="20" y="298" width="390" height="84" rx="5" fill="#fefce8" stroke="#fde047" stroke-width="2"/>
+  <text x="36" y="318" class="label" fill="#854d0e">Using AAC or a symbol board?</text>
+  <text x="36" y="334" class="muted">Your input field may be empty while you compose externally.</text>
+  <text x="36" y="348" class="muted">Tap the button so the host knows you're still working.</text>
+  <!-- I'm composing button — PRESSED state -->
+  <rect x="36" y="358" width="200" height="16" rx="8" fill="#eab308" stroke="#ca8a04"/>
+  <text x="136" y="369" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">⬤  I'm composing… (active)</text>
+  <text x="246" y="369" class="note" fill="#854d0e">aria-pressed="true"</text>
+
+  <!-- Heartbeat pulse annotation -->
+  <text x="36" y="398" class="note">Every 15 s: POST /session/{id}/composing/  →  heartbeat stored server-side</text>
+
+  <!-- ══════════════════════════════════════════
+       RIGHT: Host view — participant list with composing flag
+       ══════════════════════════════════════════ -->
+  <rect x="450" y="60" width="390" height="20" rx="4" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="645" y="74" text-anchor="middle" class="label" fill="#5D3A9B">Host view — participant roster</text>
+
+  <!-- Host page nav -->
+  <rect x="450" y="86" width="390" height="32" fill="#eeeeee" stroke="#ccc"/>
+  <text x="466" y="106" class="sub" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="520" y="106" class="sub">1-2-4-All — live session (host)</text>
+
+  <!-- Timer -->
+  <rect x="450" y="124" width="390" height="30" rx="4" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="466" y="144" class="muted">Timer · Round 1 (1 min)</text>
+  <text x="700" y="144" font-family="monospace" font-size="18" fill="#2a4d69" font-weight="bold">03:12</text>
+  <rect x="760" y="130" width="55" height="18" rx="3" fill="#E66100" stroke="#c44f00"/>
+  <text x="787" y="143" text-anchor="middle" font-size="10" fill="#fff">Pause</text>
+
+  <!-- Participants section -->
+  <text x="466" y="178" class="label">Participants — 3 joined</text>
+
+  <!-- Participant chip: Alice (host) -->
+  <rect x="466" y="184" width="120" height="26" rx="13" fill="#e6f7f6" stroke="#40B0A6"/>
+  <text x="526" y="201" text-anchor="middle" font-size="11" fill="#267a74">Alice (host)</text>
+
+  <!-- Participant chip: Bob — normal -->
+  <rect x="598" y="184" width="70" height="26" rx="13" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="633" y="201" text-anchor="middle" font-size="11" fill="#333">Bob</text>
+
+  <!-- Participant chip: Carol — COMPOSING FLAG active -->
+  <rect x="450" y="220" width="380" height="38" rx="5" fill="#fefce8" stroke="#fde047" stroke-width="2"/>
+  <rect x="466" y="229" width="90" height="20" rx="10" fill="#eab308" stroke="#ca8a04"/>
+  <text x="511" y="243" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">Carol (guest)</text>
+  <text x="565" y="243" class="label" fill="#854d0e">✏  Composing…</text>
+  <text x="684" y="243" class="note" fill="#888">heartbeat 8 s ago</text>
+
+  <!-- Host controls panel -->
+  <rect x="450" y="272" width="390" height="130" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="466" y="292" class="label">Host controls</text>
+  <rect x="466" y="300" width="220" height="28" rx="4" fill="#e0e0e0" stroke="#ccc"/>
+  <text x="576" y="318" text-anchor="middle" class="btn-txt" fill="#555">Pause reminder  ·  Inclusive Pacing</text>
+  <!-- Close session button -->
+  <rect x="466" y="346" width="130" height="28" rx="4" fill="#dc2626" stroke="#b91c1c"/>
+  <text x="531" y="364" text-anchor="middle" font-size="12" fill="#fff">Close session</text>
+  <text x="606" y="364" class="note" fill="#dc2626">← triggers warning when Carol is composing</text>
+
+  <!-- ── Warning modal overlay ── -->
+  <rect x="450" y="416" width="390" height="148" rx="8" fill="#fff" stroke="#fde047" stroke-width="3"/>
+  <rect x="450" y="416" width="390" height="28" rx="8" fill="#fef08a" stroke="#fde047"/>
+  <text x="645" y="434" text-anchor="middle" class="label" fill="#854d0e">⚠  One participant is still composing</text>
+  <text x="466" y="462" class="muted">Carol (guest) has an active composition heartbeat.</text>
+  <text x="466" y="478" class="muted">Closing now may cut off their response while they</text>
+  <text x="466" y="494" class="muted">are mid-composition using an external AAC device.</text>
+  <!-- Modal buttons -->
+  <rect x="466" y="506" width="135" height="24" rx="4" fill="#dc2626" stroke="#b91c1c"/>
+  <text x="533" y="522" text-anchor="middle" font-size="11" fill="#fff">Close anyway</text>
+  <rect x="612" y="506" width="118" height="24" rx="4" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="671" y="522" text-anchor="middle" font-size="11" fill="#333">Wait for Carol</text>
+  <text x="466" y="558" class="note">Warning modal fires only when at least one heartbeat was received within the past 30 seconds</text>
+
+  <!-- ── Acceptance criteria ── -->
+  <rect x="20" y="420" width="420" height="130" rx="5" fill="#faf5ff" stroke="#d8b4fe"/>
+  <text x="36" y="440" class="label" fill="#5D3A9B">Acceptance Criteria (US-25):</text>
+  <text x="36" y="458" class="muted">AC1: Keyboard activity while KwaCart tab is focused</text>
+  <text x="36" y="472" class="muted">      emits a POST heartbeat every 15 s</text>
+  <text x="36" y="488" class="muted">AC2: Host roster shows "✏ Composing…" label next</text>
+  <text x="36" y="502" class="muted">      to the participant's name while heartbeat is live</text>
+  <text x="36" y="518" class="muted">AC3: "Close Session" shows warning modal if any</text>
+  <text x="36" y="532" class="muted">      participant heartbeat was received &lt; 30 s ago</text>
+  <text x="36" y="548" class="muted">Implementation: session_composing.js + composing_heartbeat_at</text>
+
+  <text x="430" y="574" text-anchor="middle" class="wf-label">Wireframe — US-25: Composition Presence Flag (session_composing.js · composing_heartbeat_at field)</text>
+</svg>

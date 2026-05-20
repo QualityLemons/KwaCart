@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="540" viewBox="0 0 860 540">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .heading  { font-size: 14px; fill: #1a1a1a; font-weight: bold; }
+      .sub      { font-size: 12px; fill: #555; }
+      .muted    { font-size: 11px; fill: #888; }
+      .btn-txt  { font-size: 11px; }
+      .mono     { font-family: monospace; font-size: 28px; fill: #2a4d69; font-weight: bold; }
+      .label    { font-size: 12px; fill: #444; font-weight: bold; }
+      .note     { font-size: 10px; fill: #888; font-style: italic; }
+      .wf-label { font-size: 11px; fill: #aaa; font-style: italic; }
+      .badge    { font-size: 10px; fill: #fff; font-weight: bold; }
+    </style>
+  </defs>
+
+  <rect width="860" height="540" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Section title ── -->
+  <text x="430" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#5D3A9B">User Story 1 — Visual Pacing: Calm Timer toggle</text>
+  <text x="430" y="48" text-anchor="middle" class="sub">Participant toggles from the digit countdown to a static colour-block time indicator</text>
+
+  <!-- ────────── LEFT PANEL: Standard digit timer ────────── -->
+  <rect x="20" y="62" width="390" height="24" rx="4" fill="#eeeeee" stroke="#ccc"/>
+  <text x="215" y="78" text-anchor="middle" class="label">BEFORE — standard digit countdown</text>
+
+  <!-- Timer widget standard -->
+  <rect x="20" y="94" width="390" height="60" rx="5" fill="#f8f8f8" stroke="#ccc"/>
+  <text x="36"  y="112" class="muted">SUGGESTED TIME</text>
+  <text x="36"  y="127" class="sub" font-weight="bold">Round 1 — individual (1 min)</text>
+  <!-- Ticking digit display -->
+  <text x="250" y="135" class="mono" fill="#b45309">00:47</text>
+  <!-- Warning colour note -->
+  <text x="330" y="112" class="note" fill="#b45309">amber ≤10 s</text>
+  <!-- Progress bar -->
+  <rect x="20" y="150" width="390" height="4" rx="2" fill="#e2e8f0"/>
+  <rect x="20" y="150" width="80"  height="4" rx="2" fill="#b45309"/>
+
+  <!-- Calm timer toggle button (inactive) -->
+  <rect x="36" y="163" width="90" height="22" rx="3" fill="#f5f5f5" stroke="#ccc"/>
+  <text x="81" y="178" text-anchor="middle" class="btn-txt" fill="#555">Calm timer</text>
+  <text x="36" y="200" class="note">Button inactive — digit countdown running</text>
+
+  <!-- Issues annotation -->
+  <rect x="20" y="215" width="390" height="88" rx="4" fill="#fef2f2" stroke="#fca5a5"/>
+  <text x="36"  y="234" class="label" fill="#dc2626">Problems for eye-gaze / switch-scan users:</text>
+  <text x="36"  y="252" class="muted">● Digits change every second — forces constant re-fixation</text>
+  <text x="36"  y="268" class="muted">● Amber/red colour change triggers involuntary attention shift</text>
+  <text x="36"  y="284" class="muted">● "Saved" notice pops in — unpredictable layout change</text>
+  <text x="36"  y="296" class="muted">● Small targets (&lt; 44 px) hard to hit with eye-gaze pointer</text>
+
+  <!-- Form area standard -->
+  <rect x="20" y="318" width="390" height="120" rx="5" fill="#fff" stroke="#ccc"/>
+  <text x="36" y="338" class="label">Your response</text>
+  <text x="36" y="356" class="muted">What is your response…</text>
+  <!-- Standard size save button -->
+  <rect x="36" y="398" width="110" height="28" rx="3" fill="#5D3A9B" stroke="#4a2e7d"/>
+  <text x="91" y="416" text-anchor="middle" font-size="11" fill="#fff">Save my response</text>
+  <text x="156" y="416" class="note">standard 28 px height</text>
+
+  <!-- ────────── RIGHT PANEL: Calm timer + Accessibility Mode ────────── -->
+  <rect x="450" y="62" width="390" height="24" rx="4" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="645" y="78" text-anchor="middle" class="label" fill="#5D3A9B">AFTER — Calm timer + Accessibility Mode on</text>
+
+  <!-- Timer widget calm -->
+  <rect x="450" y="94" width="390" height="60" rx="5" fill="#f8f8f8" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="466" y="112" class="muted">SUGGESTED TIME</text>
+  <text x="466" y="127" class="sub" font-weight="bold">Round 1 — individual (1 min)</text>
+  <!-- Calm colour block (green = plenty of time) -->
+  <rect x="660" y="96" width="80" height="48" rx="6" fill="#4ade80" stroke="#22c55e"/>
+  <text x="700" y="126" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">plenty</text>
+  <!-- Progress bar (calm, no amber) -->
+  <rect x="450" y="150" width="390" height="4" rx="2" fill="#e2e8f0"/>
+  <rect x="450" y="150" width="80"  height="4" rx="2" fill="#4ade80"/>
+
+  <!-- Calm timer toggle button (active) -->
+  <rect x="466" y="163" width="90" height="22" rx="3" fill="#ede9fe" stroke="#5D3A9B"/>
+  <text x="511" y="178" text-anchor="middle" class="btn-txt" fill="#5D3A9B" font-weight="bold">Calm timer ✓</text>
+  <text x="466" y="200" class="note" fill="#5D3A9B">Toggled on — no digits, static colour only</text>
+
+  <!-- Benefits annotation -->
+  <rect x="450" y="215" width="390" height="88" rx="4" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="466" y="234" class="label" fill="#15803d">Calm timer resolves:</text>
+  <text x="466" y="252" class="muted">✓ Colour drifts slowly — no per-second re-fixation needed</text>
+  <text x="466" y="268" class="muted">✓ Green → Amber → Red colour language (readable at a glance)</text>
+  <text x="466" y="284" class="muted">✓ a11y mode: zero-animation (transitions instant)</text>
+  <text x="466" y="296" class="muted">✓ High contrast + no pop-ups — layout is frozen</text>
+
+  <!-- Form area Accessibility Mode -->
+  <rect x="450" y="318" width="390" height="150" rx="5" fill="#1a1a2e" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="466" y="342" class="label" fill="#c4b5fd">Your response  </text>
+  <rect x="466" y="354" width="355" height="64" rx="5" fill="#2d2d4e" stroke="#6d6d9e"/>
+  <text x="484" y="378" font-size="13" fill="#e2e8f0">What is your response…</text>
+  <!-- Large save button (Accessibility Mode) -->
+  <rect x="466" y="430" width="355" height="28" rx="4" fill="#7c3aed" stroke="#5D3A9B"/>
+  <text x="643" y="448" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Save my response</text>
+  <!-- Accessibility mode badge -->
+  <rect x="630" y="320" width="120" height="18" rx="4" fill="#7c3aed"/>
+  <text x="690" y="332" text-anchor="middle" class="badge">Accessibility Mode ON</text>
+
+  <!-- Arrow between panels -->
+  <line x1="416" y1="280" x2="444" y2="280" stroke="#5D3A9B" stroke-width="2" marker-end="url(#arr)"/>
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#5D3A9B"/>
+    </marker>
+  </defs>
+  <text x="430" y="276" text-anchor="middle" font-size="10" fill="#5D3A9B">toggle</text>
+
+  <!-- ── Acceptance criteria legend ── -->
+  <rect x="20" y="476" width="820" height="52" rx="5" fill="#faf5ff" stroke="#d8b4fe"/>
+  <text x="36" y="494" class="label" fill="#5D3A9B">Acceptance Criteria (US-24):</text>
+  <text x="36" y="510" class="muted">AC1: Calm timer replaces digit countdown with Green→Amber→Red colour block  ·  AC2: Layout freezes, no pop-up notices</text>
+  <text x="36" y="522" class="muted">AC3: Accessibility Mode raises targets to 80×80 px min with 24 px padding between elements</text>
+
+  <text x="430" y="534" text-anchor="middle" class="wf-label">Wireframe — US-24: Visual Pacing &amp; Reduced Eye-Fatigue (calm-timer.js + accessibility_theme.css)</text>
+</svg>

@@ -16,7 +16,8 @@ KwaCart is a Django-based facilitation platform built around **Liberating Struct
 6. [Project Structure](#project-structure)
 7. [Public Pages (no account required)](#public-pages-no-account-required)
 8. [Key Features](#key-features)
-9. [Facilitation Tools](#facilitation-tools)
+9. [Epic: Radical Inclusion — AAC-Accessible Live Sessions](#epic-radical-inclusion--aac-accessible-live-sessions)
+10. [Facilitation Tools](#facilitation-tools)
 10. [Collaborative Sessions](#collaborative-sessions)
 11. [Archive & Exports](#archive--exports)
 12. [Data Models](#data-models)
@@ -80,6 +81,8 @@ Organisations often struggle to create the conditions for honest, constructive d
 | 21 | CEO | run structured dialogue sessions across teams and levels of my organisation using a shared facilitation tool | I can break down communication barriers, surface what people actually think, and replace top-down messaging with genuine two-way conversation |
 | 22 | Middle manager | deploy a live session tool so that everyone involved in a stalled project can contribute their perspective in real time and see each other's responses immediately when the session closes | the process feels transparent and trustworthy, and the team can move forward together based on evidence rather than assumption |
 | 23 | Youth worker | guide a group of young people through a series of facilitation tools, saving every session's responses to a growing archive | the group builds a real record of their collective thinking while also developing practical skills in scribing, facilitation, and working with structured data |
+| 24 | Participant using an eye-gaze tracker or switch-scanning system | toggle a static, high-contrast interface with an abstract time indicator | I can compose my thoughts without ticking countdowns or layout changes pulling my focus and causing physical fatigue |
+| 25 | Session host | see a visual indicator when an AAC user is actively drafting a response — even if their input field is currently empty | I do not prematurely close a session and cut off a voice while they are mid-composition |
 
 ---
 
@@ -450,6 +453,87 @@ Every tool page includes a structured instruction panel with **What**, **How**, 
 
 ### Tool catalog
 Each tool card shows its title, a short tagline, and **Start solo** / **Start session** buttons.
+
+---
+
+## Epic: Radical Inclusion — AAC-Accessible Live Sessions
+
+> **As an inclusive facilitator,** I want KwaCart to natively support Alternative and Augmentative Communication (AAC) workflows, devices, and pacing, so that non-verbal, switch-scanning, and eye-gaze users can actively participate in live sessions without physical or temporal exclusion.
+
+AAC users include people who communicate via eye-gaze trackers, switch-scanning systems, or dedicated communication software such as Grid 3. These users often compose responses in an external application before pasting them into the browser — meaning their input field can be empty for minutes at a time while they are actively working. Standard ticking countdown timers also create involuntary re-fixation on every digit change, causing physical fatigue for eye-gaze users over a sustained session.
+
+KwaCart addresses both problems through two complementary sub-features described below.
+
+---
+
+### User Story 24 — Visual Pacing & Reduced Eye-Fatigue
+
+> **As a participant using an eye-gaze tracker or switch-scanning system,**
+> I want to toggle a static, high-contrast interface with an abstract time indicator,
+> **so that** I can compose my thoughts without layout changes or ticking countdowns pulling my focus and causing physical fatigue.
+
+#### Acceptance Criteria
+
+| # | Given | When | Then |
+|---|---|---|---|
+| AC1 | A live session page with a running digit countdown | I toggle **Calm timer** | The numeric display is replaced by a static colour block: 🟢 Green (plenty of time) → 🟡 Amber (under half) → 🔴 Red (expiring). The colour drifts gradually; it never ticks. |
+| AC2 | Calm timer is active | Any poll response arrives | The page layout does not reflow. No floating banners, no pop-up "Saved" notices, and no dynamic resizing occur while Calm timer is on. |
+| AC3 | **Accessibility Mode** is toggled on | Any interactive element is rendered | Every input box and submit button meets a minimum touch / gaze target of **80 × 80 px** with at least **24 px** clear padding between adjacent interactive elements. All CSS transitions are set to `0 ms` (zero-motion guarantee). |
+
+#### Workflow screenshots
+
+The standard digit timer — visible on any free-try page before toggling Calm mode:
+
+![Standard digit timer](docs/screenshots/aac-timer-standard.jpg)
+
+The wireframe below shows both states side-by-side and explains how each Acceptance Criterion is met:
+
+![Calm timer wireframe](docs/wireframes/wf-aac-calm-timer.svg)
+
+#### Implementation notes
+
+| File | Role |
+|---|---|
+| `static/js/timer.js` | `calmMode` flag; `renderCalmBlock()` replaces `.timer-display` with `.calm-block`; colour computed from `elapsedFraction` |
+| `static/css/timer.css` | `.calm-block` with `transition: background-color 4s ease`; `.a11y-theme .calm-block` with `transition: none` |
+| `static/css/accessibility_theme.css` | High-contrast colours, `min-height / min-width: 80px`, `gap: 24px`, `transition: none !important` |
+| `templates/tools/_timer.html` | **Calm timer** toggle button rendered for `{% if not is_host %}` only; hosts always need the exact digit display |
+| `static/js/accessibility_theme.js` | Reads `localStorage.kwacart_a11y_theme`; applies `.a11y-theme` to `<html>` before first paint to prevent FOUC |
+
+---
+
+### User Story 25 — Composition Presence Flag
+
+> **As a session host,**
+> I want to see a visual indicator on my dashboard when an AAC user is actively drafting a response — even if their browser input field is currently empty,
+> **so that** I do not prematurely close a session and cut off a voice while they are mid-composition.
+
+#### Acceptance Criteria
+
+| # | Given | When | Then |
+|---|---|---|---|
+| AC1 | A participant using external communication software (e.g. Grid 3) | They interact with their device keyboard while the KwaCart tab is focused | The app emits an `active` metadata heartbeat to the server (`POST /session/{id}/composing/`) and refreshes it every 15 seconds while keyboard activity continues |
+| AC2 | An active heartbeat has been received within the past 30 seconds | The host's participant roster is rendered | A **✏ Composing…** status label appears next to that participant's name in the live roster |
+| AC3 | The host clicks **Close Session** | At least one participant has an active heartbeat | A warning modal appears: *"One participant is still composing — closing now may cut off their response."* The host may choose **Close anyway** or **Wait for [name]** |
+
+#### Workflow screenshots & wireframe
+
+The wireframe below shows the full three-step flow: participant presses **I'm composing**, heartbeat reaches the host roster, and the warning modal fires when the host tries to close early:
+
+![Composition presence flag wireframe](docs/wireframes/wf-aac-composing-flag.svg)
+
+#### Implementation notes
+
+| File | Role |
+|---|---|
+| `static/js/session_composing.js` | Authenticated-participant heartbeat: listens for `keydown` on `document`, POSTs to `session_composing` URL, debounced to one POST per 15 s, clears on `visibilitychange` |
+| `static/js/guest_composing.js` | Identical logic for unauthenticated guest participants |
+| `archive/models.py` | `ToolInstance.composing_heartbeat_at` — `DateTimeField(null=True)` updated on every heartbeat POST |
+| `tools/views.py` | `session_composing` view — `@login_required` / guest-token gated; stamps `composing_heartbeat_at = now()` |
+| `tools/views.py` | `session_status` response includes `composing_users` list (instances with heartbeat < 30 s old) |
+| `static/js/session_poll.js` | On each poll, reads `composing_users` and updates the roster chip label to **✏ Composing…** |
+| `templates/tools/session_open.html` | **I'm composing…** `<button aria-pressed>` rendered for `{% if not is_host %}` participants; JS toggles its pressed state and starts/stops the heartbeat |
+| `static/js/session_close.js` | Intercepts the Close Session click; if the current poll data contains any `composing_users`, renders the warning modal before allowing the POST to proceed |
 
 ---
 
