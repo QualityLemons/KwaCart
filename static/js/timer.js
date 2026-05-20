@@ -29,6 +29,9 @@
     const startBtn       = widget.querySelector('.timer-start');
     const pauseBtn       = widget.querySelector('.timer-pause');
     const resetBtn       = widget.querySelector('.timer-reset');
+    const calmBlock      = widget.querySelector('.calm-block');
+    const calmBlockLabel = widget.querySelector('.calm-block__label');
+    const calmToggleBtn  = widget.querySelector('.calm-timer-toggle');
 
     /* ── Internal state ── */
     let intervalId        = null;
@@ -172,6 +175,72 @@
             headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' },
         });
         return resp.json();
+    }
+
+    /* ── Calm timer ─────────────────────────────────────────────────────────
+       Participants can replace the digit countdown with a colour-only block
+       that drifts from green → amber → red as time elapses.
+       The preference is stored in localStorage and restored on every page
+       load.  Hosts always see digits; the toggle is not wired up for them.  */
+
+    const CALM_KEY = 'kwacart_calm_timer';
+    let calmMode   = false;
+
+    function calmColor(pct) {
+        pct = Math.max(0, Math.min(1, pct));
+        var r, g, b;
+        if (pct <= 0.5) {
+            var t = pct * 2;
+            r = Math.round(22  + (217 - 22)  * t);
+            g = Math.round(163 + (119 - 163) * t);
+            b = Math.round(74  + (6   - 74)  * t);
+        } else {
+            var t = (pct - 0.5) * 2;
+            r = Math.round(217 + (220 - 217) * t);
+            g = Math.round(119 + (38  - 119) * t);
+            b = Math.round(6   + (38  - 6)   * t);
+        }
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    function updateCalmBlock(rem, tot) {
+        if (!calmBlock) return;
+        const pct = tot > 0 ? Math.max(0, Math.min(1, (tot - rem) / tot)) : 0;
+        calmBlock.style.backgroundColor = calmColor(pct);
+        if (!calmBlockLabel) return;
+        if (rem === 0) {
+            calmBlockLabel.textContent = 'Time\u2019s up';
+        } else if (pct === 0) {
+            calmBlockLabel.textContent = 'Not started';
+        } else {
+            calmBlockLabel.textContent = 'Session in progress';
+        }
+    }
+
+    function setCalmMode(active) {
+        calmMode = active;
+        if (display)   display.hidden   = active;
+        if (calmBlock) calmBlock.hidden = !active;
+        if (calmToggleBtn) {
+            calmToggleBtn.setAttribute('aria-pressed', String(active));
+            calmToggleBtn.textContent = active ? 'Show countdown' : 'Calm timer';
+        }
+        try {
+            if (active) { localStorage.setItem(CALM_KEY, '1'); }
+            else        { localStorage.removeItem(CALM_KEY);   }
+        } catch (_) {}
+    }
+
+    if (!IS_HOST) {
+        let _savedCalm = false;
+        try { _savedCalm = localStorage.getItem(CALM_KEY) === '1'; } catch (_) {}
+        if (_savedCalm) setCalmMode(true);
+    }
+
+    if (calmToggleBtn && !IS_HOST) {
+        calmToggleBtn.addEventListener('click', function () {
+            setCalmMode(!calmMode);
+        });
     }
 
     /* ── Phase data (multi-phase tools) ── */
@@ -320,6 +389,9 @@
             display.classList.toggle('warning', remaining > 0 && remaining <= 10);
             display.classList.toggle('expired',  remaining === 0 && isLastPhase);
             renderProgressBar();
+            let _totalRem = remaining;
+            for (let _pi = phaseIdx + 1; _pi < phases.length; _pi++) _totalRem += phases[_pi].seconds;
+            updateCalmBlock(_totalRem, totalSeconds());
         }
 
         function flashLabel() {
@@ -578,6 +650,7 @@
             display.textContent = fmt(remaining);
             display.classList.toggle('warning', remaining > 0 && remaining <= 10);
             display.classList.toggle('expired',  remaining === 0);
+            updateCalmBlock(remaining, total);
         }
 
         function tick() {

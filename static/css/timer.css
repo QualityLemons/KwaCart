@@ -141,3 +141,59 @@
     from { opacity: 0; transform: translateY(-3px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Calm timer block ── */
+/* A large, static colour panel that shifts green → amber → red as time
+   elapses. No ticking numbers. The 20-second CSS transition makes the colour
+   drift gradually so there is no per-second visual jump. The a11y theme
+   overrides this to 0.001ms so zero-motion users see instant discrete steps
+   instead. */
+.calm-block {
+    flex-basis: 100%;
+    width: 100%;
+    min-height: 5rem;
+    border-radius: 6px;
+    background-color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 20s linear;
+    margin: 0.1rem 0;
+}
+.calm-block[hidden] { display: none; }
+
+.calm-block__label {
+    margin: 0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    user-select: none;
+}
+
+/* ── Calm timer toggle row ── */
+.calm-timer-toggle-row {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 0.4rem;
+    margin-top: 0.15rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.calm-timer-toggle {
+    font-size: 0.78rem;
+    padding: 0.25rem 0.65rem;
+    color: #475569;
+    border-color: #94a3b8;
+    background: #f8fafc;
+    min-height: auto;
+}
+.calm-timer-toggle[aria-pressed="true"] {
+    background: #f0fdf4;
+    border-color: #166534;
+    color: #166534;
+    font-weight: 600;
+}

@@ -17,6 +17,17 @@
     </div>
     {% endif %}
     <div class="timer-display" role="timer" aria-label="Time remaining">--:--</div>
+
+    <!-- Calm timer block — replaces the digit display when calm mode is active.
+         Background color is driven by JS (green → amber → red).
+         The transition is long so colour drifts rather than jumps;
+         the a11y theme overrides it to instant for zero-motion users. -->
+    <div class="calm-block" hidden
+         role="img"
+         aria-label="Session time indicator — colour shows how much time remains">
+        <p class="calm-block__label">Not started</p>
+    </div>
+
     <div class="timer-paused-badge" hidden></div>
     <div class="timer-stale-badge" hidden role="status" aria-live="polite">&#9888; Out of sync</div>
     <div class="timer-reconnect-toast" hidden role="status" aria-live="polite"></div>
@@ -34,6 +45,19 @@
     <div class="timer-controls">
         <button type="button" class="btn timer-start">Start</button>
         <button type="button" class="btn timer-reset">Reset</button>
+    </div>
+    {% endif %}
+
+    {% if not is_host %}
+    <!-- Toggle between the digit countdown and the calm colour block.
+         Shown for participants only; hosts always need the exact time. -->
+    <div class="calm-timer-toggle-row">
+        <button type="button"
+                class="btn calm-timer-toggle"
+                aria-pressed="false"
+                title="Replace the ticking countdown with a steady colour indicator">
+            Calm timer
+        </button>
     </div>
     {% endif %}
 </div>
