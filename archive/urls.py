@@ -9,12 +9,14 @@ from django.urls import path
 
 from .views import ArchiveDashboardView, ArchiveDetailView, archive_record_delete
 from .views_downloads import secure_download, secure_session_download
+from .views_insights import insights_dashboard
 from .views_preview import md_preview, session_md_preview
 
 app_name = 'archive'
 
 urlpatterns = [
     path('dashboard/', ArchiveDashboardView.as_view(), name='dashboard'),
+    path('insights/', insights_dashboard, name='insights'),
     path('detail/<int:pk>/', ArchiveDetailView.as_view(), name='detail'),
     path('delete/<int:pk>/', archive_record_delete, name='delete'),
     path('download/<int:instance_id>/<str:file_type>/', secure_download, name='download'),
