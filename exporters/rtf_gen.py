@@ -1,21 +1,29 @@
 """RTF export generator.
 
 Converts ``payload_output`` from a ``ToolInstance`` or ``ToolSession`` into
-a minimal ``.rtf`` file.  In production the file is stored via Django's
-DEFAULT_FILE_STORAGE backend (Cloudinary); locally it is written to
-``MEDIA_ROOT/archives/rtf/``.
+a minimal ``.rtf`` file.
+
+Storage strategy
+----------------
+In production (``CLOUDINARY_URL`` present) the file is uploaded directly via
+the Cloudinary Python SDK with an explicit ``public_id`` so the asset path is
+fully controlled regardless of the account's folder mode.  The ``secure_url``
+returned by the API is stored on the model field — the download view then
+redirects to that URL, avoiding any URL-reconstruction issues.
+
+In local development the file is written to ``MEDIA_ROOT/archives/rtf/`` via
+Django's ``default_storage`` (FileSystemStorage).
 
 RTF encoding notes
 ------------------
-- Backslashes, opening braces, and closing braces must be escaped because
-  RTF uses them as control character delimiters.
-- Newlines in user text are converted to the RTF line-break sequence
-  ``\\line`` so paragraph structure is preserved.
-- The file is written in UTF-8; the RTF header declares ``\\ansi\\ansicpg1252``
-  for broad reader compatibility.
+- Backslashes, opening braces, and closing braces must be escaped.
+- Newlines in user text are converted to ``\\line``.
+- The file is written in UTF-8; the RTF header declares ``\\ansi\\ansicpg1252``.
 
 Filename convention: ``YYYYMMDD_<tool-slug>_<instance-or-session-id>.rtf``
 """
+import os
+
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.utils.text import slugify
@@ -30,6 +38,29 @@ def _rtf_escape(value):
         .replace('}', r'\}')
         .replace('\n', r' \line ')
     )
+
+
+def _save_file(relative_path, content_bytes):
+    """Upload content to Cloudinary (production) or local storage (development).
+
+    Returns the value to store on the model field:
+    - production: the Cloudinary ``secure_url`` (starts with ``https://``)
+    - development: the relative filesystem path
+    """
+    if os.environ.get('CLOUDINARY_URL'):
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            content_bytes,
+            resource_type='raw',
+            public_id=relative_path,
+            overwrite=True,
+            use_filename=False,
+            unique_filename=False,
+        )
+        return result['secure_url']
+    if default_storage.exists(relative_path):
+        default_storage.delete(relative_path)
+    return default_storage.save(relative_path, ContentFile(content_bytes))
 
 
 def generate_rtf(instance):
@@ -52,14 +83,7 @@ def generate_rtf(instance):
         parts.append(f"{_rtf_escape(value)} \\line \\line ")
 
     parts.append("}")
-
-    content_bytes = "".join(parts).encode('utf-8')
-
-    if default_storage.exists(relative_path):
-        default_storage.delete(relative_path)
-    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
-
-    return saved_path
+    return _save_file(relative_path, "".join(parts).encode('utf-8'))
 
 
 def generate_session_rtf(session):
@@ -93,11 +117,4 @@ def generate_session_rtf(session):
         parts.append(r"\line -------------------------- \line ")
 
     parts.append("}")
-
-    content_bytes = "".join(parts).encode('utf-8')
-
-    if default_storage.exists(relative_path):
-        default_storage.delete(relative_path)
-    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
-
-    return saved_path
+    return _save_file(relative_path, "".join(parts).encode('utf-8'))

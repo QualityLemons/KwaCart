@@ -9,10 +9,12 @@ on model instances via crafted URL parameters.
 
 File delivery strategy
 ----------------------
-When the default storage backend is local (development), files are streamed
-via Django's FileResponse.  When the backend is cloud-based (Cloudinary in
-production), the view redirects the authenticated user to the CDN URL so the
-file is served directly by Cloudinary — no proxying through the dyno.
+In production the model field stores a Cloudinary ``secure_url`` (starts with
+``https://``).  The view redirects the authenticated user directly to that URL
+so the file is served by Cloudinary's CDN without proxying through the dyno.
+
+In local development the field stores a relative filesystem path.  The view
+opens the file via ``default_storage`` and streams it with ``FileResponse``.
 """
 import os
 
@@ -36,15 +38,15 @@ VALID_FILE_TYPES = {'md', 'rtf', 'html'}
 def _serve_file(file_field):
     """Deliver a stored file to the browser.
 
-    For local FileSystemStorage the file is streamed via FileResponse.
-    For Cloudinary (and any other cloud backend), the user is redirected
-    to the CDN delivery URL — avoids proxying the file through the dyno.
+    If the stored value is a full URL (Cloudinary secure_url in production),
+    redirect to it.  Otherwise open the path via default_storage and stream
+    it as an attachment (local development).
     """
-    backend = default_storage.__class__.__name__
-    filename = os.path.basename(str(file_field.name))
-    if 'Cloudinary' in backend:
-        return HttpResponseRedirect(file_field.url)
-    return FileResponse(file_field.open('rb'), as_attachment=True, filename=filename)
+    value = str(file_field.name) if hasattr(file_field, 'name') else str(file_field)
+    if value.startswith('https://') or value.startswith('http://'):
+        return HttpResponseRedirect(value)
+    filename = os.path.basename(value)
+    return FileResponse(default_storage.open(value, 'rb'), as_attachment=True, filename=filename)
 
 
 @login_required

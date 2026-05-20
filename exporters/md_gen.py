@@ -1,15 +1,49 @@
 """Markdown export generator.
 
 Converts ``payload_output`` from a ``ToolInstance`` or ``ToolSession`` into
-a ``.md`` file.  In production the file is stored via Django's
-DEFAULT_FILE_STORAGE backend (Cloudinary); locally it is written to
-``MEDIA_ROOT/archives/md/``.
+a ``.md`` file.
+
+Storage strategy
+----------------
+In production (``CLOUDINARY_URL`` present) the file is uploaded directly via
+the Cloudinary Python SDK with an explicit ``public_id`` so the asset path is
+fully controlled regardless of the account's folder mode.  The ``secure_url``
+returned by the API is stored on the model field — the download view then
+redirects to that URL, avoiding any URL-reconstruction issues.
+
+In local development the file is written to ``MEDIA_ROOT/archives/md/`` via
+Django's ``default_storage`` (FileSystemStorage).
 
 Filename convention: ``YYYYMMDD_<tool-slug>_<instance-or-session-id>.md``
 """
+import os
+
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.utils.text import slugify
+
+
+def _save_file(relative_path, content_bytes):
+    """Upload content to Cloudinary (production) or local storage (development).
+
+    Returns the value to store on the model field:
+    - production: the Cloudinary ``secure_url`` (starts with ``https://``)
+    - development: the relative filesystem path
+    """
+    if os.environ.get('CLOUDINARY_URL'):
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            content_bytes,
+            resource_type='raw',
+            public_id=relative_path,
+            overwrite=True,
+            use_filename=False,
+            unique_filename=False,
+        )
+        return result['secure_url']
+    if default_storage.exists(relative_path):
+        default_storage.delete(relative_path)
+    return default_storage.save(relative_path, ContentFile(content_bytes))
 
 
 def generate_markdown(instance):
@@ -31,13 +65,7 @@ def generate_markdown(instance):
         label = key.replace('_', ' ').title()
         content_lines.append(f"### {label}\n{value}\n")
 
-    content_bytes = "\n".join(content_lines).encode('utf-8')
-
-    if default_storage.exists(relative_path):
-        default_storage.delete(relative_path)
-    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
-
-    return saved_path
+    return _save_file(relative_path, "\n".join(content_lines).encode('utf-8'))
 
 
 def generate_session_markdown(session):
@@ -69,10 +97,4 @@ def generate_session_markdown(session):
             content_lines.append("*No response submitted.*\n")
         content_lines.append("---\n")
 
-    content_bytes = "\n".join(content_lines).encode('utf-8')
-
-    if default_storage.exists(relative_path):
-        default_storage.delete(relative_path)
-    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
-
-    return saved_path
+    return _save_file(relative_path, "\n".join(content_lines).encode('utf-8'))
