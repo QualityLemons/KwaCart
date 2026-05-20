@@ -41,12 +41,22 @@ def _serve_file(file_field):
     If the stored value is a full URL (Cloudinary secure_url in production),
     redirect to it.  Otherwise open the path via default_storage and stream
     it as an attachment (local development).
+
+    If the stored value is a bare path but the Cloudinary backend is active,
+    the file cannot be served (it was saved before Cloudinary was configured).
+    A 404 is raised rather than letting the storage backend throw an
+    unhandled exception.
     """
     value = str(file_field.name) if hasattr(file_field, 'name') else str(file_field)
     if value.startswith('https://') or value.startswith('http://'):
         return HttpResponseRedirect(value)
+    # Bare path — try local storage, but give a clean 404 if unavailable.
+    try:
+        fh = default_storage.open(value, 'rb')
+    except Exception:
+        raise Http404('Export file is not available. Please regenerate the export from the archive.')
     filename = os.path.basename(value)
-    return FileResponse(default_storage.open(value, 'rb'), as_attachment=True, filename=filename)
+    return FileResponse(fh, as_attachment=True, filename=filename)
 
 
 @login_required
