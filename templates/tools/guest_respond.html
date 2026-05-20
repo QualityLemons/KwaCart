@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/timer.css' %}">
+<link rel="stylesheet" href="{% static 'css/multimedia_input.css' %}">
 {% if tool_meta.show_canvas %}<link rel="stylesheet" href="{% static 'css/drawing_canvas.css' %}">{% endif %}
 {% endblock %}
 
@@ -70,6 +71,40 @@
 <p><em>This tool has no input form configured yet.</em></p>
 {% endif %}
 
+<!-- ── Multimedia Input Bridge ── -->
+{{ instance.attachments|json_script:"mmi-existing-attachments" }}
+<div class="mmi-panel"
+     data-upload-url="{% url 'tools:session_attachment_upload' session.id %}"
+     data-remove-url="{% url 'tools:session_attachment_remove' session.id %}">
+    <p class="mmi-panel__heading">Add to your response</p>
+    <div class="mmi-mode-row" role="group" aria-label="Input method">
+        <button type="button" class="btn mmi-mode-btn" aria-pressed="true" data-mode="text">
+            &#128221;&nbsp;Text
+        </button>
+        <button type="button" class="btn mmi-mode-btn" aria-pressed="false" data-mode="audio">
+            &#127908;&nbsp;Audio
+        </button>
+        <button type="button" class="btn mmi-mode-btn" aria-pressed="false" data-mode="image">
+            &#128444;&nbsp;Image
+        </button>
+    </div>
+    <div class="mmi-audio-controls" hidden>
+        <button type="button" class="btn mmi-record-btn">&#9679;&nbsp;Start Recording</button>
+        <span class="mmi-record-timer" hidden>0:00</span>
+        <p class="mmi-audio-hint">Speak, or play your speech-generating device close to the microphone.</p>
+    </div>
+    <div class="mmi-image-controls" hidden>
+        <label class="mmi-image-label" for="mmi-image-input">Choose image or screenshot</label>
+        <input type="file" id="mmi-image-input" class="mmi-image-input"
+               accept="image/*"
+               aria-label="Upload a symbol board screenshot or photograph">
+        <p class="mmi-image-hint">Accepted: PNG, JPG, WebP, GIF &mdash; max 10&nbsp;MB</p>
+    </div>
+    <div class="mmi-uploading" hidden aria-live="polite">Uploading&hellip;</div>
+    <p class="mmi-error" hidden role="alert"></p>
+    <ul class="mmi-attachments" aria-label="Uploaded attachments"></ul>
+</div>
+
 <div class="sr-only" aria-live="polite" aria-atomic="true" id="session-announcer"
      data-status-url="{% url 'tools:session_status' session.id %}"></div>
 
@@ -124,4 +159,5 @@
 <script src="{% static 'js/session_autosave.js' %}"></script>
 <script src="{% static 'js/session_composing.js' %}"></script>
 <script src="{% static 'js/guest_poll.js' %}"></script>
+<script src="{% static 'js/multimedia_input.js' %}"></script>
 {% endblock %}

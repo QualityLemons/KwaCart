@@ -48,6 +48,15 @@ urlpatterns = [
          views.session_set_inclusive_pacing,
          name='session_set_inclusive_pacing'),
 
+    # Multimedia Input Bridge — audio/image attachments for AAC participants.
+    # Upload accepts multipart/form-data; remove accepts a public_id field.
+    path('session/<uuid:session_id>/attachment/upload/',
+         views.session_attachment_upload,
+         name='session_attachment_upload'),
+    path('session/<uuid:session_id>/attachment/remove/',
+         views.session_attachment_remove,
+         name='session_attachment_remove'),
+
     # Guest participant flow — no login required; token in URL acts as access key
     path('session/<uuid:session_id>/guest/<uuid:guest_token>/', views.guest_join, name='guest_join'),
     path('session/<uuid:session_id>/guest/<uuid:guest_token>/respond/', views.guest_respond, name='guest_respond'),

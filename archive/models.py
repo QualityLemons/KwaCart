@@ -152,6 +152,17 @@ class ToolInstance(models.Model):
     md_file = models.FileField(upload_to='archives/md/', null=True, blank=True, max_length=500)
     rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True, max_length=500)
 
+    attachments = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            'Multimedia attachments added by this participant (audio clips, '
+            'symbol-board images, etc.). Each entry is a dict with keys: '
+            'type ("audio" | "image"), url (Cloudinary secure_url), '
+            'public_id, name.'
+        ),
+    )
+
     composing_heartbeat_at = models.DateTimeField(
         null=True, blank=True,
         help_text=(

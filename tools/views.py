@@ -873,3 +873,119 @@ def pairing_join(request, code):
         session_id=session.id,
         guest_token=session.guest_token,
     )
+
+
+# ── Multimedia Input Bridge ──────────────────────────────────────────────────
+
+@require_POST
+def session_attachment_upload(request, session_id):
+    """Upload a multimedia attachment (audio or image) for a session participant.
+
+    Accepts ``multipart/form-data`` with a single ``file`` field.  The file is
+    uploaded directly to Cloudinary via the Python SDK; only the resulting
+    ``secure_url`` is stored in the database.  Nothing is written to Heroku's
+    ephemeral local filesystem.
+
+    Accessible to authenticated users and to unauthenticated guests who hold a
+    valid ``guest_instance_id`` in their browser session (same auth pattern as
+    ``session_buffer_save``).
+
+    Supported types:
+        image/*  — PNG, JPEG, WebP, GIF — max 10 MB
+        audio/*  — WebM, OGG, MP3, MP4 audio — max 25 MB
+    """
+    session = get_object_or_404(ToolSession, id=session_id, status='open')
+
+    if request.user.is_authenticated:
+        instance = get_object_or_404(ToolInstance, session=session, user=request.user)
+    else:
+        guest_instance_id = request.session.get(f'guest_instance_{session_id}')
+        if not guest_instance_id:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        instance = get_object_or_404(ToolInstance, id=guest_instance_id, session=session)
+
+    uploaded_file = request.FILES.get('file')
+    if not uploaded_file:
+        return JsonResponse({'error': 'no file provided'}, status=400)
+
+    content_type = (uploaded_file.content_type or '').split(';')[0].strip()
+    if content_type.startswith('image/'):
+        attach_type   = 'image'
+        resource_type = 'image'
+        max_bytes     = 10 * 1024 * 1024
+    elif content_type.startswith('audio/') or content_type.startswith('video/'):
+        attach_type   = 'audio'
+        resource_type = 'video'
+        max_bytes     = 25 * 1024 * 1024
+    else:
+        return JsonResponse({'error': 'unsupported file type'}, status=400)
+
+    if uploaded_file.size > max_bytes:
+        limit_mb = max_bytes // (1024 * 1024)
+        return JsonResponse({'error': f'file too large (max {limit_mb} MB)'}, status=400)
+
+    from django.utils.timezone import now as tz_now
+    import cloudinary.uploader
+
+    timestamp = tz_now().strftime('%Y%m%d%H%M%S')
+    public_id = (
+        f'kwacart/attachments/{session_id}/'
+        f'{instance.id}_{attach_type}_{timestamp}'
+    )
+
+    try:
+        result = cloudinary.uploader.upload(
+            uploaded_file.read(),
+            resource_type=resource_type,
+            public_id=public_id,
+            overwrite=False,
+        )
+    except Exception:
+        return JsonResponse({'error': 'upload to storage failed'}, status=500)
+
+    secure_url = result.get('secure_url', '')
+    entry = {
+        'type':      attach_type,
+        'url':       secure_url,
+        'public_id': result.get('public_id', public_id),
+        'name':      uploaded_file.name or f'{attach_type}_{timestamp}',
+    }
+    attachments = list(instance.attachments or [])
+    attachments.append(entry)
+    instance.attachments = attachments
+    instance.save(update_fields=['attachments', 'updated_at'])
+
+    return JsonResponse(entry)
+
+
+@require_POST
+def session_attachment_remove(request, session_id):
+    """Remove a previously uploaded attachment from the participant's instance.
+
+    Accepts ``application/x-www-form-urlencoded`` with a ``public_id`` field
+    matching an entry in ``ToolInstance.attachments``.  The Cloudinary asset is
+    not deleted (cleanup can be handled server-side later); only the database
+    record is updated.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, status='open')
+
+    if request.user.is_authenticated:
+        instance = get_object_or_404(ToolInstance, session=session, user=request.user)
+    else:
+        guest_instance_id = request.session.get(f'guest_instance_{session_id}')
+        if not guest_instance_id:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        instance = get_object_or_404(ToolInstance, id=guest_instance_id, session=session)
+
+    public_id = request.POST.get('public_id', '').strip()
+    if not public_id:
+        return JsonResponse({'error': 'public_id required'}, status=400)
+
+    attachments = list(instance.attachments or [])
+    updated = [a for a in attachments if a.get('public_id') != public_id]
+    if len(updated) == len(attachments):
+        return JsonResponse({'error': 'attachment not found'}, status=404)
+
+    instance.attachments = updated
+    instance.save(update_fields=['attachments', 'updated_at'])
+    return JsonResponse({'status': 'removed'})
