@@ -428,6 +428,50 @@ def session_close(request, session_id):
     return redirect('tools:session_detail', session_id=session.id)
 
 
+@require_POST
+def session_buffer_save(request, session_id):
+    """Background buffer-capture endpoint for live session participants.
+
+    Called by session_autosave.js on a fixed interval and again the moment
+    the poll detects the session has been closed.  Persists the current form
+    state to ``payload_input`` so the host's close transaction uses the latest
+    text even if the participant had not yet clicked "Save my response".
+
+    Accessible to authenticated users and to unauthenticated guests who hold
+    a valid ``guest_instance_id`` in their browser session.
+    """
+    session = get_object_or_404(ToolSession, id=session_id)
+
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid request body'}, status=400)
+
+    form_data = data.get('form_data') or {}
+    if not isinstance(form_data, dict):
+        return JsonResponse({'error': 'form_data must be an object'}, status=400)
+
+    if request.user.is_authenticated:
+        instance = get_object_or_404(ToolInstance, session=session, user=request.user)
+    else:
+        guest_instance_id = request.session.get(f'guest_instance_{session_id}')
+        if not guest_instance_id:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        instance = get_object_or_404(ToolInstance, id=guest_instance_id, session=session)
+
+    # Merge new values into existing payload so keys not present in this
+    # partial save (e.g. canvas_data) are preserved from the last full save.
+    current = instance.payload_input or {}
+    current.update(form_data)
+    instance.payload_input = current
+    instance.save(update_fields=['payload_input', 'updated_at'])
+
+    return JsonResponse({
+        'status': 'saved',
+        'last_saved': instance.updated_at.strftime('%H:%M:%S'),
+    })
+
+
 def session_status(request, session_id):
     """Lightweight JSON endpoint for participant-list / status polling.
 

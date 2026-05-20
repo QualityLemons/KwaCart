@@ -48,6 +48,12 @@
 
 <!-- ── Participant response form ── -->
 <h2>Your response</h2>
+
+<!-- Buffer autosave anchor — session_autosave.js reads data-buffer-url to
+     know where to POST in-progress form state every few seconds. -->
+<div id="session-buffer"
+     data-buffer-url="{% url 'tools:session_buffer_save' session.id %}"></div>
+
 {% if form %}
 <form method="post"
       data-disable-on-submit
@@ -82,7 +88,12 @@
             {% endif %}
         {% endfor %}
     {% endif %}
-    <button type="submit" class="btn btn-primary">Save my response</button>
+    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary">Save my response</button>
+        <span id="buffer-status"
+              style="font-size:0.8rem; color:#64748b;"
+              aria-live="polite"></span>
+    </div>
 </form>
 {% else %}
 <p><em>This tool has no input form configured yet.</em></p>
@@ -179,5 +190,9 @@
 <script src="{% static 'js/timer.js' %}"></script>
 {% if tool_meta.show_canvas %}<script src="{% static 'js/drawing_canvas.js' %}"></script>{% endif %}
 {% if is_host %}<script src="{% static 'js/pause_reminder.js' %}"></script>{% endif %}
+<!-- draft_init.js provides getCookie() and adds .tool-input to form fields,
+     both required by session_autosave.js. Load before the autosave script. -->
+<script src="{% static 'js/draft_init.js' %}"></script>
+<script src="{% static 'js/session_autosave.js' %}"></script>
 <script src="{% static 'js/session_poll.js' %}"></script>
 {% endblock %}

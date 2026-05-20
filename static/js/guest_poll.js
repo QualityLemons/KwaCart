@@ -40,6 +40,11 @@
 
             if (data.status === 'closed') {
                 announce('Session has been closed. Reloading the page.');
+                /* Flush the in-progress buffer and freeze form fields before
+                   reloading so that the guest's latest text is captured. */
+                if (typeof window.sessionBufferFlush === 'function') {
+                    await window.sessionBufferFlush();
+                }
                 setTimeout(function () { window.location.reload(); }, 600);
             }
         } catch (err) {

@@ -29,6 +29,7 @@ urlpatterns = [
     path('session/<uuid:session_id>/', views.session_detail, name='session_detail'),
     path('session/<uuid:session_id>/close/', views.session_close, name='session_close'),
     path('session/<uuid:session_id>/status/', views.session_status, name='session_status'),
+    path('session/<uuid:session_id>/buffer-save/', views.session_buffer_save, name='session_buffer_save'),
 
     # Timer control — host only, POST required.
     # Host-only access is enforced in the view via get_object_or_404(host=request.user).

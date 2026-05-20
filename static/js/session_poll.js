@@ -55,6 +55,11 @@
             if (data.status === 'closed') {
                 if (pollStatusEl) pollStatusEl.textContent = 'session closed \u2014 reloading\u2026';
                 announce('Session has been closed. Reloading the page.');
+                /* Flush the in-progress buffer and freeze form fields before
+                   reloading so that the participant's latest text is captured. */
+                if (typeof window.sessionBufferFlush === 'function') {
+                    await window.sessionBufferFlush();
+                }
                 setTimeout(function () { window.location.reload(); }, 600);
                 return;
             }
