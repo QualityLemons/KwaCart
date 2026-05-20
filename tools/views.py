@@ -645,8 +645,8 @@ def guest_join(request, session_id, guest_token):
         name = request.POST.get('guest_name', '').strip()
         if not name:
             error = 'Please enter a name so the host can see who you are.'
-        elif len(name) > 200:
-            error = 'Name must be 200 characters or fewer.'
+        elif len(name) > 100:
+            error = 'Name must be 100 characters or fewer.'
         else:
             tool_class = get_tool_instance(session.tool_slug)
             instance = ToolInstance.objects.create(

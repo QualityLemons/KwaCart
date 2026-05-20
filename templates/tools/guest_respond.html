@@ -107,6 +107,15 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+/* Write the guest's chosen name to sessionStorage so it can pre-fill the
+   nickname screen if this browser joins another session later. */
+(function () {
+    try {
+        sessionStorage.setItem('kwacart_guest_name', '{{ instance.guest_name|escapejs }}');
+    } catch (_) { /* sessionStorage unavailable */ }
+}());
+</script>
 <script src="{% static 'js/timer.js' %}"></script>
 {% if tool_meta.show_canvas %}<script src="{% static 'js/drawing_canvas.js' %}"></script>{% endif %}
 <!-- draft_init.js provides getCookie() and adds .tool-input to form fields,
