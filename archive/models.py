@@ -129,6 +129,14 @@ class ToolInstance(models.Model):
     md_file = models.FileField(upload_to='archives/md/', null=True, blank=True, max_length=500)
     rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True, max_length=500)
 
+    composing_heartbeat_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text=(
+            'Set by session_mark_composing when an AAC user signals they are '
+            'composing in external software. Expires after 15 seconds of inactivity.'
+        ),
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(null=True, blank=True)

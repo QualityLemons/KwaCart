@@ -429,6 +429,35 @@ def session_close(request, session_id):
 
 
 @require_POST
+def session_mark_composing(request, session_id):
+    """AAC composition heartbeat endpoint.
+
+    Called every ~8 seconds by session_composing.js when a participant has
+    activated the "I'm Composing" flag.  Stamps ``composing_heartbeat_at``
+    with the current time; session_status treats the flag as active while
+    the timestamp is within the last 15 seconds.
+
+    Accessible to authenticated participants and guests, matching the access
+    pattern of session_buffer_save.
+    """
+    session = get_object_or_404(ToolSession, id=session_id)
+
+    if request.user.is_authenticated:
+        instance = get_object_or_404(ToolInstance, session=session, user=request.user)
+    else:
+        guest_instance_id = request.session.get(f'guest_instance_{session_id}')
+        if not guest_instance_id:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        instance = get_object_or_404(ToolInstance, id=guest_instance_id, session=session)
+
+    # Use QuerySet.update() to avoid triggering auto_now on updated_at.
+    ToolInstance.objects.filter(pk=instance.pk).update(
+        composing_heartbeat_at=timezone.now()
+    )
+    return JsonResponse({'status': 'ok'})
+
+
+@require_POST
 def session_buffer_save(request, session_id):
     """Background buffer-capture endpoint for live session participants.
 
@@ -519,6 +548,12 @@ def session_status(request, session_id):
                 'display_name': p.user.email if p.user_id else (p.guest_name or 'Guest'),
                 'is_host': p.user_id is not None and p.user_id == session.host_id,
                 'has_response': bool(p.payload_input),
+                # True while the participant's AAC composing heartbeat is fresh
+                # (within the last 15 seconds).
+                'is_composing': bool(
+                    p.composing_heartbeat_at and
+                    (timezone.now() - p.composing_heartbeat_at).total_seconds() < 15
+                ),
             }
             for p in participants
         ],

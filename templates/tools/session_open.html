@@ -180,6 +180,34 @@
 </p>
 {% endif %}
 
+<!-- ── AAC Composition Presence Flag ── -->
+<!-- Participants composing in external AAC software can signal the host
+     so they are not cut off before they have had a chance to contribute. -->
+<div id="aac-presence"
+     data-composing-url="{% url 'tools:session_mark_composing' session.id %}"
+     style="margin-top:1.5rem; padding:1rem 1.25rem;
+            background:#fffbeb; border:1px solid #fcd34d; border-radius:6px;">
+    <p style="margin:0 0 0.3rem; font-size:0.9rem; font-weight:600; color:#92400e;">
+        Using external composition software? (AAC, Grid&nbsp;3, etc.)
+    </p>
+    <p style="margin:0 0 0.75rem; font-size:0.82rem; color:#78350f; line-height:1.5;">
+        If you compose your response in a separate app, press the button so
+        the host knows you are working and will wait for you.
+    </p>
+    <button type="button"
+            id="aac-composing-btn"
+            aria-pressed="false"
+            style="padding:0.55rem 1.1rem; background:#d97706; color:#fff;
+                   border:none; border-radius:5px; font-size:0.9rem;
+                   cursor:pointer; font-family:inherit; font-weight:600;">
+        &#128483;&#65039; I&rsquo;m Composing
+    </button>
+    <span id="aac-composing-status"
+          aria-live="polite"
+          style="display:inline-block; margin-left:0.75rem;
+                 font-size:0.82rem; color:#92400e;"></span>
+</div>
+
 <p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
 
 {% endblock %}
@@ -194,5 +222,6 @@
      both required by session_autosave.js. Load before the autosave script. -->
 <script src="{% static 'js/draft_init.js' %}"></script>
 <script src="{% static 'js/session_autosave.js' %}"></script>
+<script src="{% static 'js/session_composing.js' %}"></script>
 <script src="{% static 'js/session_poll.js' %}"></script>
 {% endblock %}

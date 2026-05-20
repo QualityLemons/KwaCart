@@ -121,11 +121,16 @@
             if (listEl) {
                 listEl.innerHTML = data.participants.map(function (p) {
                     var hostTag = p.is_host ? ' <span style="color:#64748b;">(host)</span>' : '';
+                    var composingTag = p.is_composing
+                        ? ' \u2014 <span style="color:#b45309; font-weight:600;"'
+                          + ' title="Using AAC or external composition software">'
+                          + '\uD83D\uDDE3\uFE0F Composing\u2026</span>'
+                        : '';
                     var respTag = p.has_response ?
                         ' \u2014 <span style="color:#15803d;">response saved</span>' : '';
                     var safeName = p.display_name
                         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    return '<li>' + safeName + hostTag + respTag + '</li>';
+                    return '<li>' + safeName + hostTag + composingTag + respTag + '</li>';
                 }).join('');
             }
         } catch (err) {
