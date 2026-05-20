@@ -36,7 +36,34 @@
     /* ── State ── */
     var consecutiveErrors    = 0;
     var wasReconnecting      = false;
+    var sessionClosed        = false;
     var lastParticipantCount = countEl ? parseInt(countEl.textContent, 10) || 0 : 0;
+
+    /* Whether the current page is being viewed by the host.
+       Participants need the holding state; the host is redirected by Django. */
+    var IS_HOST = _sessionAnnouncer.dataset.isHost === 'true';
+
+    /* ── Waiting overlay (non-host participants only) ── */
+    var RESULTS_DELAY_MS = 8000;
+
+    function showWaitingState() {
+        var overlay = document.getElementById('session-waiting-overlay');
+        if (overlay) {
+            overlay.removeAttribute('hidden');
+            var viewBtn = document.getElementById('swl-view-btn');
+            if (viewBtn) {
+                viewBtn.href = window.location.href;
+                viewBtn.removeAttribute('hidden');
+            }
+            setTimeout(function () { window.location.reload(); }, RESULTS_DELAY_MS);
+        } else {
+            setTimeout(function () { window.location.reload(); }, 600);
+        }
+        /* Freeze form fields */
+        document.querySelectorAll('form input, form textarea, form button').forEach(
+            function (el) { el.disabled = true; }
+        );
+    }
 
     /* ── Poll ── */
     async function poll() {
@@ -53,14 +80,25 @@
             if (pollStatusEl) { pollStatusEl.textContent = 'live'; pollStatusEl.style.color = ''; }
 
             if (data.status === 'closed') {
-                if (pollStatusEl) pollStatusEl.textContent = 'session closed \u2014 reloading\u2026';
-                announce('Session has been closed. Reloading the page.');
-                /* Flush the in-progress buffer and freeze form fields before
-                   reloading so that the participant's latest text is captured. */
-                if (typeof window.sessionBufferFlush === 'function') {
-                    await window.sessionBufferFlush();
+                sessionClosed = true;
+                if (IS_HOST) {
+                    /* Host triggered the close and was already redirected by Django.
+                       If they somehow still see this (e.g. second tab), just reload. */
+                    if (pollStatusEl) pollStatusEl.textContent = 'session closed \u2014 reloading\u2026';
+                    announce('Session has been closed. Reloading the page.');
+                    if (typeof window.sessionBufferFlush === 'function') {
+                        await window.sessionBufferFlush();
+                    }
+                    setTimeout(function () { window.location.reload(); }, 600);
+                } else {
+                    /* Non-host participant: show the calm holding state. */
+                    if (pollStatusEl) pollStatusEl.textContent = 'session closed';
+                    announce('Session has been closed. Preparing your results.');
+                    if (typeof window.sessionBufferFlush === 'function') {
+                        await window.sessionBufferFlush();
+                    }
+                    showWaitingState();
                 }
-                setTimeout(function () { window.location.reload(); }, 600);
                 return;
             }
 

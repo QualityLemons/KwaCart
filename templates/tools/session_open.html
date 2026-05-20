@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/timer.css' %}">
 <link rel="stylesheet" href="{% static 'css/multimedia_input.css' %}">
+<link rel="stylesheet" href="{% static 'css/session_waiting.css' %}">
 {% if tool_meta.show_canvas %}<link rel="stylesheet" href="{% static 'css/drawing_canvas.css' %}">{% endif %}
 {% endblock %}
 
@@ -165,7 +166,8 @@
 
 <!-- ── Screen-reader live region for poll announcements ── -->
 <div class="sr-only" aria-live="polite" aria-atomic="true" id="session-announcer"
-     data-status-url="{% url 'tools:session_status' session.id %}"></div>
+     data-status-url="{% url 'tools:session_status' session.id %}"
+     data-is-host="{{ is_host|yesno:'true,false' }}"></div>
 {{ initial_responder_names|json_script:"initial-responders-data" }}
 
 <!-- ── Participants list ── -->
@@ -314,6 +316,37 @@
 </div>
 
 <p style="margin-top:1.5rem;"><a href="{% url 'tools:catalog' %}">&larr; Back to catalog</a></p>
+
+{% if not is_host %}
+<!-- ── Session-closed waiting overlay (non-host participants only) ──
+     Hidden until session_poll.js detects data.status === 'closed'.
+     Shown instead of an abrupt page reload so participants see a calm
+     holding state while the facilitator prepares the next steps. -->
+<div id="session-waiting-overlay"
+     class="session-waiting-overlay"
+     hidden
+     role="status"
+     aria-live="assertive"
+     aria-label="Session closed — waiting for host to share results">
+    <div class="swl-card">
+        <div class="swl-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+        </div>
+        <p class="swl-saved-badge" aria-hidden="true">
+            &#10003;&nbsp;Response saved
+        </p>
+        <h2 class="swl-heading">Session closed</h2>
+        <p class="swl-body">
+            The host is reviewing your results.<br>
+            They&rsquo;ll be shared with you in a moment.
+        </p>
+        <a id="swl-view-btn" href="#" class="btn btn-primary swl-btn" hidden>
+            View results &rarr;
+        </a>
+        <p class="swl-hint">This page will update automatically.</p>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}
 
