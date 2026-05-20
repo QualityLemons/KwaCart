@@ -5,7 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KwaCart{% endblock %}</title>
+    <!-- Apply accessibility theme before any stylesheet renders to prevent
+         a flash of un-themed content when the user has it switched on. -->
+    <script>
+    (function(){
+        try {
+            if (localStorage.getItem('kwacart_a11y_theme') === '1') {
+                document.documentElement.classList.add('a11y-theme');
+            }
+        } catch (_) {}
+    }());
+    </script>
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/accessibility_theme.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -27,6 +39,13 @@
             <a href="{% url 'accounts:login' %}">Login</a>
             <a href="{% url 'accounts:signup' %}">Sign up</a>
         {% endif %}
+        <button type="button"
+                id="a11y-theme-toggle"
+                class="a11y-toggle-btn"
+                aria-pressed="false"
+                title="Toggle zero-animation, large-target, high-contrast mode">
+            Accessibility Mode
+        </button>
     </nav>
 
     {% if messages %}
@@ -46,6 +65,7 @@
 
     <script src="{% static 'js/aria_wiring.js' %}"></script>
     <script src="{% static 'js/form_submit.js' %}"></script>
+    <script src="{% static 'js/accessibility_theme.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
