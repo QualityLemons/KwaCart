@@ -116,13 +116,44 @@ def tool_try(request, tool_slug):
 
 @login_required
 def tool_catalog(request):
-    """Lists all available tools from the registry, grouped by category."""
+    """Lists all available tools, split into Solo and Live Session zones.
+
+    Accepts an optional ``mode`` GET parameter (``solo`` | ``live``) that
+    renders the page in a single-zone view with the appropriate action.
+    Without a mode the page shows a prominent two-zone picker so hosts
+    arriving to run a workshop are never presented with the solo catalog
+    first.
+
+    Extra context injected for authenticated users:
+      recent_drafts   — last 3 solo archived submissions (solo zone)
+      active_sessions — currently open sessions they host (live zone)
+    """
+    mode = request.GET.get('mode', '')
+    if mode not in ('solo', 'live'):
+        mode = ''
+
     categories = {}
     for slug, info in TOOL_CATALOG.items():
         cat = info.get('category', 'General')
         categories.setdefault(cat, []).append(_normalize_meta(slug, info))
 
-    return render(request, 'tools/catalog.html', {'categories': categories})
+    ctx = {'categories': categories, 'mode': mode}
+
+    if request.user.is_authenticated:
+        if mode in ('solo', ''):
+            ctx['recent_drafts'] = list(
+                ToolInstance.objects
+                .filter(user=request.user, status='archived', session__isnull=True)
+                .order_by('-submitted_at')[:3]
+            )
+        if mode in ('live', ''):
+            ctx['active_sessions'] = list(
+                ToolSession.objects
+                .filter(host=request.user, status='open')
+                .order_by('-created_at')[:3]
+            )
+
+    return render(request, 'tools/catalog.html', ctx)
 
 
 # --- Solo flow ---------------------------------------------------------------

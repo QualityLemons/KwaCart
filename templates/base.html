@@ -25,7 +25,11 @@
     <nav>
         <a href="{% url 'home' %}"><strong>KwaCart</strong></a>
         {% if request.user.is_authenticated %}
-            <a href="{% url 'tools:catalog' %}">All Tools</a>
+            <a href="{% url 'tools:catalog' %}?mode=solo"
+               style="color:#0d9488;"
+               title="Use tools at your own pace">Work Solo</a>
+            <a href="{% url 'tools:catalog' %}?mode=live"
+               title="Start a live session with your team">Facilitate</a>
             <a href="{% url 'archive:dashboard' %}">My Archive</a>
             <span class="spacer"></span>
             <span>{{ request.user.email }}</span>
