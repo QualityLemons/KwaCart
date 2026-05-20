@@ -48,6 +48,11 @@ urlpatterns = [
          views.session_set_inclusive_pacing,
          name='session_set_inclusive_pacing'),
 
+    # Facilitator Synthesis Workspace — transcription staging before export.
+    path('session/<uuid:session_id>/synthesis/',
+         views.synthesis_review,
+         name='synthesis_review'),
+
     # Multimedia Input Bridge — audio/image attachments for AAC participants.
     # Upload accepts multipart/form-data; remove accepts a public_id field.
     path('session/<uuid:session_id>/attachment/upload/',

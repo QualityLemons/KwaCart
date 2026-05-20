@@ -420,7 +420,13 @@ def session_detail(request, session_id):
 @login_required
 @require_POST
 def session_close(request, session_id):
-    """Host closes the session: lock everyone's contribution and run the tool."""
+    """Host closes the session: lock everyone's contribution and run the tool.
+
+    If any participant submitted a multimedia attachment the facilitator is
+    routed to the Synthesis Workspace (``synthesis_review``) so inline
+    transcriptions can be added before the export is generated.  Sessions
+    with no attachments go directly to the combined results page as before.
+    """
     session = get_object_or_404(ToolSession, id=session_id, host=request.user)
     if session.status == 'closed':
         return redirect('tools:session_detail', session_id=session.id)
@@ -448,17 +454,99 @@ def session_close(request, session_id):
             instance.submitted_at = timezone.now()
             instance.save()
 
-        try:
-            run_session_export_pipeline(session)
-        except Exception:
-            messages.warning(
-                request,
-                'Session closed, but the combined export could not be generated.',
-            )
-            return redirect('tools:session_detail', session_id=session.id)
+    # After all instances are committed: check whether any participant uploaded
+    # a multimedia attachment.  If so, route to the Synthesis Workspace for
+    # transcription before the Markdown export is generated.
+    any_attachments = ToolInstance.objects.filter(
+        session=session,
+    ).exclude(attachments=[]).exists()
+
+    if any_attachments:
+        messages.info(
+            request,
+            'Session closed. Add transcriptions for any multimedia contributions '
+            'below, then generate the combined export.',
+        )
+        return redirect('tools:synthesis_review', session_id=session.id)
+
+    try:
+        run_session_export_pipeline(session)
+    except Exception:
+        messages.warning(
+            request,
+            'Session closed, but the combined export could not be generated.',
+        )
+        return redirect('tools:session_detail', session_id=session.id)
 
     messages.success(request, 'Session closed. Combined results are now visible.')
     return redirect('tools:session_detail', session_id=session.id)
+
+
+@login_required
+def synthesis_review(request, session_id):
+    """Facilitator Synthesis Workspace.
+
+    Shown after ``session_close`` when at least one participant submitted a
+    multimedia attachment (audio clip or symbol-board image).  The facilitator
+    — or a support worker sitting alongside a non-verbal participant — can type
+    an inline text transcription for each attachment before the combined
+    Markdown export is generated.  Transcriptions are stored directly in the
+    ``attachments`` JSON array on each ``ToolInstance`` so they are woven into
+    the export as first-class data.
+
+    GET  — render the staging review form.
+    POST — save transcriptions into each ``attachments[n]['transcription']``,
+           trigger ``run_session_export_pipeline``, then redirect to the
+           combined results page.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user, status='closed')
+
+    instances = (
+        ToolInstance.objects
+        .filter(session=session)
+        .select_related('user')
+        .order_by('submitted_at', 'created_at')
+    )
+
+    if request.method == 'POST':
+        for instance in instances:
+            if not instance.attachments:
+                continue
+            changed = False
+            for idx, att in enumerate(instance.attachments):
+                key = f'transcript_{instance.id}_{idx}'
+                new_val = request.POST.get(key, '').strip()
+                if att.get('transcription', '') != new_val:
+                    att['transcription'] = new_val
+                    changed = True
+            if changed:
+                instance.save(update_fields=['attachments', 'updated_at'])
+
+        try:
+            run_session_export_pipeline(session)
+            messages.success(request, 'Export generated successfully.')
+        except Exception:
+            messages.warning(
+                request,
+                'Transcriptions saved, but the export could not be generated.',
+            )
+
+        return redirect('tools:session_detail', session_id=session.id)
+
+    review_instances = []
+    for inst in instances:
+        display = inst.user.email if inst.user_id else (inst.guest_name or 'Guest')
+        review_instances.append({
+            'instance': inst,
+            'display': display,
+            'is_host': inst.user_id == session.host_id,
+        })
+
+    return render(request, 'tools/synthesis_review.html', {
+        'session': session,
+        'tool_meta': get_tool_metadata(session.tool_slug),
+        'review_instances': review_instances,
+    })
 
 
 @require_POST

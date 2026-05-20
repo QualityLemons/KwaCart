@@ -95,6 +95,25 @@ def generate_session_markdown(session):
                 content_lines.append(f"### {label}\n{value}\n")
         else:
             content_lines.append("*No response submitted.*\n")
+
+        # Multimedia attachments — include transcriptions as first-class text;
+        # fall back to a plain hyperlink when no transcription was provided.
+        for att in (inst.attachments or []):
+            att_type = att.get('type', 'attachment')
+            att_name = att.get('name', att_type)
+            att_url  = att.get('url', '')
+            transcription = (att.get('transcription') or '').strip()
+
+            if att_type == 'image':
+                label = 'Symbol board / image'
+            else:
+                label = 'Audio clip'
+
+            if transcription:
+                content_lines.append(f"**{label} — transcription:**\n\n> {transcription}\n")
+            elif att_url:
+                content_lines.append(f"**{label}:** [{att_name}]({att_url})\n")
+
         content_lines.append("---\n")
 
     return _save_file(relative_path, "\n".join(content_lines).encode('utf-8'))
