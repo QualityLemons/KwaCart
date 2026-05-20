@@ -70,8 +70,8 @@ class ToolSession(models.Model):
         ),
     )
 
-    md_file = models.FileField(upload_to='archives/md/', null=True, blank=True)
-    rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True)
+    md_file = models.FileField(upload_to='archives/md/', null=True, blank=True, max_length=500)
+    rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True, max_length=500)
 
     class Meta:
         ordering = ['-created_at']
@@ -125,9 +125,9 @@ class ToolInstance(models.Model):
         default=dict, null=True, blank=True, help_text="The tool's result."
     )
 
-    html_file = models.FileField(upload_to='archives/html/', null=True, blank=True)
-    md_file = models.FileField(upload_to='archives/md/', null=True, blank=True)
-    rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True)
+    html_file = models.FileField(upload_to='archives/html/', null=True, blank=True, max_length=500)
+    md_file = models.FileField(upload_to='archives/md/', null=True, blank=True, max_length=500)
+    rtf_file = models.FileField(upload_to='archives/rtf/', null=True, blank=True, max_length=500)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
