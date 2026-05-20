@@ -57,9 +57,9 @@ def generate_rtf(instance):
 
     if default_storage.exists(relative_path):
         default_storage.delete(relative_path)
-    default_storage.save(relative_path, ContentFile(content_bytes))
+    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
 
-    return relative_path
+    return saved_path
 
 
 def generate_session_rtf(session):
@@ -98,6 +98,6 @@ def generate_session_rtf(session):
 
     if default_storage.exists(relative_path):
         default_storage.delete(relative_path)
-    default_storage.save(relative_path, ContentFile(content_bytes))
+    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
 
-    return relative_path
+    return saved_path

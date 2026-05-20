@@ -35,9 +35,9 @@ def generate_markdown(instance):
 
     if default_storage.exists(relative_path):
         default_storage.delete(relative_path)
-    default_storage.save(relative_path, ContentFile(content_bytes))
+    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
 
-    return relative_path
+    return saved_path
 
 
 def generate_session_markdown(session):
@@ -73,6 +73,6 @@ def generate_session_markdown(session):
 
     if default_storage.exists(relative_path):
         default_storage.delete(relative_path)
-    default_storage.save(relative_path, ContentFile(content_bytes))
+    saved_path = default_storage.save(relative_path, ContentFile(content_bytes))
 
-    return relative_path
+    return saved_path
