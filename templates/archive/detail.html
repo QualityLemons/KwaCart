@@ -1,7 +1,11 @@
 {% extends "base.html" %}
-{% load archive_extras %}
+{% load archive_extras static %}
 
 {% block title %}Archive &mdash; {{ record.tool_slug }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/archive_md_preview.css' %}">
+{% endblock %}
 
 {% block content %}
 <h1>{{ record.tool_slug|title }}</h1>
@@ -46,7 +50,16 @@
 
 <div style="margin-top:2rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
     {% if record.md_file %}
-    <a class="btn" href="{% url 'archive:download' record.id 'md' %}">Download Markdown</a>
+    <button type="button" class="btn mdv-preview-btn"
+            data-preview-url="{% url 'archive:md_preview' record.id %}"
+            data-download-url="{% url 'archive:download' record.id 'md' %}"
+            data-title="{{ record.tool_slug }} &mdash; {{ record.submitted_at|date:'Y-m-d' }}">
+        Preview Markdown
+    </button>
+    <a class="btn" href="{% url 'archive:download' record.id 'md' %}"
+       style="background:#fff; border:1px solid #cbd5e1; color:#475569;">
+        Download .md
+    </a>
     {% endif %}
     {% if record.rtf_file %}
     <a class="btn" href="{% url 'archive:download' record.id 'rtf' %}">Download RTF</a>
@@ -81,4 +94,9 @@
         </form>
     </div>
 </details>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/libraries/marked.min.js' %}"></script>
+<script src="{% static 'js/archive_md_preview.js' %}"></script>
 {% endblock %}

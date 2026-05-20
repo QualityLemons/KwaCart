@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}My Archive{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/archive_md_preview.css' %}">
+{% endblock %}
 
 {% block content %}
 <h1>My Archive</h1>
@@ -22,8 +27,16 @@
                 <td style="word-break:break-word; overflow-wrap:anywhere; padding:0.4rem 0.25rem 0.4rem 0;">{{ r.tool_slug }}</td>
                 <td style="padding:0.4rem 0.25rem;">{{ r.submitted_at|date:"Y-m-d H:i" }}</td>
                 <td style="padding:0.4rem 0.25rem;">{{ r.tool_version }}</td>
-                <td style="padding:0.4rem 0; display:flex; gap:0.75rem; align-items:center;">
+                <td style="padding:0.4rem 0; display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
                     <a href="{% url 'archive:detail' r.id %}">View</a>
+                    {% if r.md_file %}
+                    <button type="button" class="mdv-preview-btn"
+                            data-preview-url="{% url 'archive:md_preview' r.id %}"
+                            data-download-url="{% url 'archive:download' r.id 'md' %}"
+                            data-title="{{ r.tool_slug }} &mdash; {{ r.submitted_at|date:'Y-m-d' }}">
+                        Preview
+                    </button>
+                    {% endif %}
                     <form method="post" action="{% url 'archive:delete' r.id %}"
                           onsubmit="return confirm('Permanently delete this record?')">
                         {% csrf_token %}
@@ -69,7 +82,17 @@
                 </td>
                 <td style="padding:0.4rem 0.25rem;">{{ s.created_at|date:"Y-m-d H:i" }}</td>
                 <td style="padding:0.4rem 0.25rem;">{% if s.closed_at %}{{ s.closed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
-                <td style="padding:0.4rem 0;"><a href="{% url 'tools:session_detail' s.id %}">Open</a></td>
+                <td style="padding:0.4rem 0; display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                    <a href="{% url 'tools:session_detail' s.id %}">Open</a>
+                    {% if s.md_file %}
+                    <button type="button" class="mdv-preview-btn"
+                            data-preview-url="{% url 'archive:session_md_preview' s.id %}"
+                            data-download-url="{% url 'archive:session_download' s.id 'md' %}"
+                            data-title="{{ s.tool_slug }} session &mdash; {{ s.closed_at|date:'Y-m-d' }}">
+                        Preview
+                    </button>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -115,4 +138,9 @@
 </section>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/libraries/marked.min.js' %}"></script>
+<script src="{% static 'js/archive_md_preview.js' %}"></script>
 {% endblock %}
