@@ -197,3 +197,64 @@
     color: #166534;
     font-weight: 600;
 }
+
+/* ── Inclusive Pacing / extended personal timer panel ── */
+/* Sits below the timer widget for non-host participants. Hidden until the
+   host enables inclusive pacing; timer.js shows/hides it via the status poll. */
+.ext-timer-panel {
+    border: 1px solid #86efac;
+    border-radius: 6px;
+    background: #f0fdf4;
+    padding: 0.7rem 1rem;
+    margin-top: 0.4rem;
+    color: #166534;
+}
+.ext-timer-panel[hidden] { display: none; }
+
+.ext-timer-panel__intro {
+    margin: 0 0 0.6rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #15803d;
+}
+
+.ext-timer-activate {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.7rem;
+    background: #f0fdf4;
+    border-color: #166534;
+    color: #166534;
+    min-height: auto;
+}
+.ext-timer-activate[aria-pressed="true"] {
+    background: #166534;
+    color: #fff;
+    border-color: #166534;
+}
+
+.ext-timer-running {
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #86efac;
+}
+.ext-timer-running[hidden] { display: none; }
+
+.ext-timer-running__label {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #15803d;
+}
+
+.ext-timer-display {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #166534;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+}
+.ext-timer-display.ext-expired { color: #92400e; }

@@ -5,6 +5,8 @@
      data-duration="{{ tool_meta.timer_seconds|default:0 }}"
      data-is-host="{{ is_host|yesno:"true,false"|default:"false" }}"
      data-pause-threshold="{{ pause_reminder_threshold_js|default:"300" }}"
+     data-inclusive-pacing="{{ inclusive_pacing|yesno:'true,false'|default:'false' }}"
+     data-inclusive-multiplier="{{ inclusive_pacing_multiplier|default:3 }}"
      {% if timer_session_id %}
      data-status-url="{% url 'tools:session_status' timer_session_id %}"
      data-timer-start-url="{% url 'tools:timer_start' timer_session_id %}"
@@ -61,4 +63,26 @@
     </div>
     {% endif %}
 </div>
+
+{% if not is_host and timer_session_id %}
+<!-- Inclusive Pacing extended timer — visible only when the host enables it.
+     Participants start their own personal countdown here; the group timer
+     continues to run normally on the host's screen. -->
+<div class="ext-timer-panel"{% if not inclusive_pacing %} hidden{% endif %}
+     aria-live="polite">
+    <p class="ext-timer-panel__intro">
+        &#9656;&nbsp;Inclusive Pacing active &mdash; the host has given AAC users extra time.
+        You have up to <strong class="ext-multiplier-label">{{ inclusive_pacing_multiplier|default:3 }}&times;</strong>
+        the group&rsquo;s time to finish.
+    </p>
+    <button type="button" class="btn ext-timer-activate" aria-pressed="false">
+        Activate my extended time
+    </button>
+    <div class="ext-timer-running" hidden>
+        <p class="ext-timer-running__label">Your personal time remaining</p>
+        <div class="ext-timer-display" role="timer"
+             aria-label="Personal extended time remaining">--:--</div>
+    </div>
+</div>
+{% endif %}
 {% endif %}

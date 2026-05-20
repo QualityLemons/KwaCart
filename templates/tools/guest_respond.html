@@ -17,7 +17,7 @@
 </p>
 
 {% include "tools/info_box.html" %}
-{% include "tools/_timer.html" with timer_session_id=session.id is_host=False timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js %}
+{% include "tools/_timer.html" with timer_session_id=session.id is_host=False timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js inclusive_pacing=inclusive_pacing inclusive_pacing_multiplier=inclusive_pacing_multiplier %}
 
 <h2>Your response</h2>
 

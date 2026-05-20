@@ -43,6 +43,11 @@ urlpatterns = [
          views.session_set_pause_reminder,
          name='session_set_pause_reminder'),
 
+    # Inclusive Pacing — host enables a personal time multiplier for AAC users.
+    path('session/<uuid:session_id>/inclusive-pacing/',
+         views.session_set_inclusive_pacing,
+         name='session_set_inclusive_pacing'),
+
     # Guest participant flow — no login required; token in URL acts as access key
     path('session/<uuid:session_id>/guest/<uuid:guest_token>/', views.guest_join, name='guest_join'),
     path('session/<uuid:session_id>/guest/<uuid:guest_token>/respond/', views.guest_respond, name='guest_respond'),

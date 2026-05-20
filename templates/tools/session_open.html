@@ -70,7 +70,7 @@
 </div>
 
 {% include "tools/info_box.html" %}
-{% include "tools/_timer.html" with timer_session_id=session.id is_host=is_host timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js %}
+{% include "tools/_timer.html" with timer_session_id=session.id is_host=is_host timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js inclusive_pacing=inclusive_pacing inclusive_pacing_multiplier=inclusive_pacing_multiplier %}
 
 <!-- ── Participant response form ── -->
 <h2>Your response</h2>
@@ -190,6 +190,47 @@
     </div>
 </details>
 
+<!-- ── Inclusive Pacing (host only) ── -->
+<details id="inclusive-pacing-settings"
+         style="margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0;">
+    <summary style="cursor:pointer; font-size:0.9rem; color:#5D3A9B; font-weight:600;">
+        Inclusive Pacing
+    </summary>
+    <div style="margin-top:0.75rem;">
+        <p style="font-size:0.875rem; color:#475569; margin:0 0 0.6rem;">
+            Give AAC and slow-input participants extra time. When active, each participant
+            sees a personal countdown that continues beyond the group&rsquo;s timer at
+            the multiplier you choose. The group timer and session pacing are unaffected.
+        </p>
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:0.4rem;
+                          font-size:0.875rem; font-weight:600; color:#1e293b; cursor:pointer;">
+                <input type="checkbox" id="inclusive-pacing-toggle"
+                       {% if inclusive_pacing %}checked{% endif %}
+                       style="width:1rem; height:1rem; cursor:pointer;">
+                Enable Inclusive Pacing
+            </label>
+            <select id="inclusive-pacing-multiplier"
+                    aria-label="Time multiplier for extended personal timer"
+                    style="padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:5px;
+                           font-size:0.875rem; font-family:inherit; background:#fff; cursor:pointer;">
+                <option value="3" {% if inclusive_pacing_multiplier == 3 %}selected{% endif %}>3&times; &mdash; 3 min for every 1</option>
+                <option value="5" {% if inclusive_pacing_multiplier == 5 %}selected{% endif %}>5&times; &mdash; 5 min for every 1</option>
+            </select>
+            <button type="button" id="inclusive-pacing-save"
+                    style="padding:0.4rem 0.9rem; background:#5D3A9B; color:#fff;
+                           border:none; border-radius:5px; font-size:0.875rem;
+                           cursor:pointer; font-family:inherit;"
+                    data-save-url="{% url 'tools:session_set_inclusive_pacing' session.id %}">
+                Save
+            </button>
+            <span id="inclusive-pacing-status"
+                  aria-live="polite"
+                  style="font-size:0.85rem; color:#15803d; display:none;"></span>
+        </div>
+    </div>
+</details>
+
 <!-- ── Close session form ── -->
 <form method="post" action="{% url 'tools:session_close' session.id %}"
       style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid #e2e8f0;"
@@ -244,6 +285,7 @@
 <script src="{% static 'js/timer.js' %}"></script>
 {% if tool_meta.show_canvas %}<script src="{% static 'js/drawing_canvas.js' %}"></script>{% endif %}
 {% if is_host %}<script src="{% static 'js/pause_reminder.js' %}"></script>{% endif %}
+{% if is_host %}<script src="{% static 'js/inclusive_pacing.js' %}"></script>{% endif %}
 <!-- draft_init.js provides getCookie() and adds .tool-input to form fields,
      both required by session_autosave.js. Load before the autosave script. -->
 <script src="{% static 'js/draft_init.js' %}"></script>

@@ -62,6 +62,19 @@ class ToolSession(models.Model):
         ),
     )
 
+    inclusive_pacing = models.BooleanField(
+        default=False,
+        help_text=(
+            'When true, participants see an option to activate a personal '
+            'extended countdown at inclusive_pacing_multiplier × the group time.'
+        ),
+    )
+    inclusive_pacing_multiplier = models.IntegerField(
+        default=3,
+        choices=[(3, '3×'), (5, '5×')],
+        help_text='Time multiplier offered to participants when inclusive pacing is active.',
+    )
+
     guest_token = models.UUIDField(
         default=uuid.uuid4,
         help_text=(

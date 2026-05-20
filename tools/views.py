@@ -412,6 +412,8 @@ def session_detail(request, session_id):
         'pause_reminder_threshold_sec': threshold,
         'pause_reminder_threshold_js': pause_reminder_threshold_js,
         'initial_responder_names': initial_responder_names,
+        'inclusive_pacing': session.inclusive_pacing,
+        'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
     })
 
 
@@ -574,6 +576,10 @@ def session_status(request, session_id):
         # timer widget without needing a full page reload.
         'timer_phases': tool_meta.get('phases') or None,
         'timer_seconds': tool_meta.get('timer_seconds') or 0,
+        # Inclusive Pacing — broadcast to all participants on every poll so
+        # they react immediately when the host enables or adjusts it.
+        'inclusive_pacing': session.inclusive_pacing,
+        'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
         'participants': [
             {
                 'display_name': p.user.email if p.user_id else (p.guest_name or 'Guest'),
@@ -646,6 +652,34 @@ def session_set_pause_reminder(request, session_id):
     session.save(update_fields=['pause_reminder_threshold_sec'])
     return JsonResponse({
         'pause_reminder_threshold_sec': session.pause_reminder_threshold_sec
+    })
+
+
+@login_required
+@require_POST
+def session_set_inclusive_pacing(request, session_id):
+    """Host enables or adjusts the Inclusive Pacing multiplier for this session.
+
+    When inclusive_pacing is true, each non-host participant's status-poll
+    response includes the flag and multiplier so their timer.js can show the
+    extended personal countdown panel without requiring a page reload.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user)
+    if session.status != 'open':
+        return JsonResponse({'error': 'session not open'}, status=400)
+    enabled = request.POST.get('inclusive_pacing', 'false') == 'true'
+    try:
+        multiplier = int(request.POST.get('inclusive_pacing_multiplier', 3))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'invalid multiplier'}, status=400)
+    if multiplier not in (3, 5):
+        return JsonResponse({'error': 'multiplier must be 3 or 5'}, status=400)
+    session.inclusive_pacing = enabled
+    session.inclusive_pacing_multiplier = multiplier
+    session.save(update_fields=['inclusive_pacing', 'inclusive_pacing_multiplier'])
+    return JsonResponse({
+        'inclusive_pacing': session.inclusive_pacing,
+        'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
     })
 
 
@@ -773,6 +807,8 @@ def guest_respond(request, session_id, guest_token):
         'timer_paused_at': timer_paused_at,
         'pause_reminder_threshold_sec': threshold,
         'pause_reminder_threshold_js': pause_reminder_threshold_js,
+        'inclusive_pacing': session.inclusive_pacing,
+        'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
     })
 
 

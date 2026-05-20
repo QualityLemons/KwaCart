@@ -243,6 +243,107 @@
         });
     }
 
+    /* ── Inclusive Pacing / extended personal timer ──────────────────────────
+       When the host enables inclusive pacing, non-host participants see a panel
+       with an "Activate my extended time" button.  Their personal countdown is
+       computed entirely client-side: group_total × multiplier seconds from
+       timer_started_at.  It runs independently — the group timer can expire
+       while the participant's personal countdown is still ticking.
+       The setting is broadcast on every session_status poll, so participants
+       react within ≤4 seconds of the host toggling it.                       */
+
+    const extPanel       = document.querySelector('.ext-timer-panel');
+    const extDisplay     = document.querySelector('.ext-timer-display');
+    const extRunning     = document.querySelector('.ext-timer-running');
+    const extActivateBtn = document.querySelector('.ext-timer-activate');
+    const extMultLabel   = document.querySelector('.ext-multiplier-label');
+
+    let extActive     = false;
+    let extIntervalId = null;
+    let extRemaining  = 0;
+    let extTotalSec   = 0;
+    let extMultiplier = parseInt(widget.dataset.inclusiveMultiplier, 10) || 3;
+
+    function renderExtDisplay() {
+        if (!extDisplay) return;
+        const s = extRemaining;
+        let text;
+        if (s >= 3600) {
+            const h   = Math.floor(s / 3600);
+            const m   = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            text = h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        } else {
+            text = fmt(s);
+        }
+        extDisplay.textContent = text;
+        extDisplay.classList.toggle('ext-expired', s === 0);
+        if (extActive) updateCalmBlock(s, extTotalSec);
+    }
+
+    function tickExt() {
+        if (extRemaining > 0) {
+            extRemaining -= 1;
+            renderExtDisplay();
+        }
+        if (extRemaining === 0) {
+            clearInterval(extIntervalId);
+            extIntervalId = null;
+        }
+    }
+
+    function syncExtTimer(timerStartedAt, timerPausedAt, groupTotal) {
+        if (!timerStartedAt) return;
+        extTotalSec = groupTotal * extMultiplier;
+        const referenceTime = timerPausedAt
+            ? new Date(timerPausedAt).getTime()
+            : Date.now();
+        const elapsedSec = Math.floor(
+            (referenceTime - new Date(timerStartedAt).getTime()) / 1000
+        );
+        extRemaining = Math.max(0, extTotalSec - elapsedSec);
+        renderExtDisplay();
+        if (timerPausedAt) {
+            clearInterval(extIntervalId);
+            extIntervalId = null;
+        } else if (extRemaining > 0 && !extIntervalId) {
+            extIntervalId = setInterval(tickExt, 1000);
+        } else if (extRemaining === 0) {
+            clearInterval(extIntervalId);
+            extIntervalId = null;
+        }
+    }
+
+    function applyInclusivePacing(ipActive, ipMultiplier, timerStartedAt, timerPausedAt, groupTotal) {
+        if (IS_HOST) return;
+        extMultiplier = ipMultiplier || 3;
+        if (extPanel)    extPanel.hidden = !ipActive;
+        if (extMultLabel) extMultLabel.textContent = extMultiplier + '\u00d7';
+        if (extActive) syncExtTimer(timerStartedAt, timerPausedAt, groupTotal);
+    }
+
+    if (extActivateBtn && !IS_HOST) {
+        extActivateBtn.addEventListener('click', function () {
+            extActive = !extActive;
+            extActivateBtn.setAttribute('aria-pressed', String(extActive));
+            extActivateBtn.textContent = extActive
+                ? 'Back to group timer'
+                : 'Activate my extended time';
+            if (extRunning) extRunning.hidden = !extActive;
+            if (display) {
+                display.style.opacity       = extActive ? '0.35' : '';
+                display.style.pointerEvents = extActive ? 'none'  : '';
+            }
+            if (!extActive) {
+                clearInterval(extIntervalId);
+                extIntervalId = null;
+                extRemaining  = 0;
+                if (extDisplay) extDisplay.textContent = '--:--';
+                if (extDisplay) extDisplay.classList.remove('ext-expired');
+            }
+        });
+    }
+
     /* ── Phase data (multi-phase tools) ── */
     const phaseDataEl = document.getElementById('phase-data');
     const phases      = phaseDataEl ? JSON.parse(phaseDataEl.textContent) : null;
@@ -389,9 +490,11 @@
             display.classList.toggle('warning', remaining > 0 && remaining <= 10);
             display.classList.toggle('expired',  remaining === 0 && isLastPhase);
             renderProgressBar();
-            let _totalRem = remaining;
-            for (let _pi = phaseIdx + 1; _pi < phases.length; _pi++) _totalRem += phases[_pi].seconds;
-            updateCalmBlock(_totalRem, totalSeconds());
+            if (!extActive) {
+                let _totalRem = remaining;
+                for (let _pi = phaseIdx + 1; _pi < phases.length; _pi++) _totalRem += phases[_pi].seconds;
+                updateCalmBlock(_totalRem, totalSeconds());
+            }
         }
 
         function flashLabel() {
@@ -506,6 +609,13 @@
                     setStaleIndicator(false);
                     if (data.server_now) clockSkew = new Date(data.server_now).getTime() - Date.now();
                     applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
+                    applyInclusivePacing(
+                        data.inclusive_pacing            || false,
+                        data.inclusive_pacing_multiplier || 3,
+                        data.timer_started_at,
+                        data.timer_paused_at,
+                        totalSeconds()
+                    );
                 } catch (e) {
                     pollFailCount += 1;
                     if (pollFailCount >= POLL_FAIL_THRESHOLD) setStaleIndicator(true);
@@ -650,7 +760,7 @@
             display.textContent = fmt(remaining);
             display.classList.toggle('warning', remaining > 0 && remaining <= 10);
             display.classList.toggle('expired',  remaining === 0);
-            updateCalmBlock(remaining, total);
+            if (!extActive) updateCalmBlock(remaining, total);
         }
 
         function tick() {
@@ -727,6 +837,13 @@
                     setStaleIndicator(false);
                     if (data.server_now) clockSkew = new Date(data.server_now).getTime() - Date.now();
                     applyServerTimestamp(data.timer_started_at, data.timer_paused_at);
+                    applyInclusivePacing(
+                        data.inclusive_pacing            || false,
+                        data.inclusive_pacing_multiplier || 3,
+                        data.timer_started_at,
+                        data.timer_paused_at,
+                        total
+                    );
                 } catch (e) {
                     pollFailCount += 1;
                     if (pollFailCount >= POLL_FAIL_THRESHOLD) setStaleIndicator(true);
