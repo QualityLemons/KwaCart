@@ -50,6 +50,87 @@
     color: #1e293b;
 }
 
+/* ── Sandbox download bar ── */
+.try-download {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid #b2ede9;
+    flex-wrap: wrap;
+}
+.try-download__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    background: #0d6b66;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.try-download__btn:hover,
+.try-download__btn:focus-visible {
+    background: #0a5550;
+    outline: 2px solid #0d6b66;
+    outline-offset: 2px;
+}
+.try-download__btn:disabled {
+    background: #64748b;
+    cursor: default;
+}
+.try-download__hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* ── Soft post-download CTA ── */
+.sandbox-cta {
+    background: #fdf4ff;
+    border: 1px solid #d8b4fe;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+.sandbox-cta__text { flex: 1; min-width: 220px; }
+.sandbox-cta__text strong { color: #581c87; display: block; margin-bottom: 0.25rem; }
+.sandbox-cta__text p { margin: 0; font-size: 0.9rem; color: #475569; }
+.sandbox-cta__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+.sandbox-cta__signup {
+    display: inline-block;
+    padding: 0.6rem 1.25rem;
+    background: #7c3aed;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.sandbox-cta__signup:hover { background: #6d28d9; }
+.sandbox-cta__waitlist {
+    font-size: 0.8rem;
+    color: #7c3aed;
+    white-space: nowrap;
+}
+
 /* ── Sign-up nudge (post-result) ── */
 .try-nudge {
     background: #f5f0ff;

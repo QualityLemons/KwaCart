@@ -32,6 +32,36 @@
             <p class="try-result__value">{{ value }}</p>
         </div>
     {% endfor %}
+
+    <!-- Download bar — client-side Blob, no account needed -->
+    <div class="try-download">
+        <button type="button" id="sandbox-download-btn" class="try-download__btn">
+            &#8595; Download as Markdown
+        </button>
+        <p class="try-download__hint">Raw .md file &mdash; no account needed, yours to keep.</p>
+    </div>
+</div>
+
+<!-- Result data for the client-side download (not rendered to user) -->
+<script id="sandbox-result-data" type="application/json">{{ result_json }}</script>
+
+<!-- ── Soft post-download CTA — hidden until download fires ── -->
+<div id="sandbox-cta" class="sandbox-cta" hidden>
+    <div class="sandbox-cta__text">
+        <strong>That file is yours to keep.</strong>
+        <p>
+            Want a permanent, searchable archive for every session you run?
+            A free account also unlocks all&nbsp;23 tools and live group sessions.
+        </p>
+    </div>
+    <div class="sandbox-cta__actions">
+        <a href="{% url 'accounts:signup' %}" class="sandbox-cta__signup">
+            Create a free account &rarr;
+        </a>
+        <a href="{% url 'waiting_list_signup' %}" class="sandbox-cta__waitlist">
+            Or join the waiting list
+        </a>
+    </div>
 </div>
 
 <!-- ── Sign-up nudge (after result) ── -->
@@ -148,5 +178,63 @@
 {% block extra_js %}
 {% if try_timer_seconds %}
 <script src="{% static 'js/tool_try_timer.js' %}"></script>
+{% endif %}
+{% if result_json %}
+<script>
+/* ── Sandbox download: client-side Blob + soft CTA reveal ─────────────────
+   Builds a Markdown file from the embedded result JSON and triggers a
+   browser download without any server round-trip or account requirement.
+   Reveals the signup CTA after the download fires.
+*/
+(function () {
+    var btn = document.getElementById('sandbox-download-btn');
+    var cta = document.getElementById('sandbox-cta');
+    var dataEl = document.getElementById('sandbox-result-data');
+    if (!btn || !dataEl) return;
+
+    var data;
+    try {
+        data = JSON.parse(dataEl.textContent);
+    } catch (_) { return; }
+
+    btn.addEventListener('click', function () {
+        var lines = [
+            '# ' + data.tool_title + ' \u2014 Try-It Results',
+            '**Date:** ' + data.date,
+            '',
+            '---',
+            '',
+            '## Results',
+            '',
+        ];
+        data.result_fields.forEach(function (pair) {
+            lines.push('### ' + pair[0]);
+            lines.push(pair[1]);
+            lines.push('');
+        });
+
+        var md = lines.join('\n');
+        var blob = new Blob([md], { type: 'text/markdown; charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = data.filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 150);
+
+        btn.textContent = '\u2713 Downloaded';
+        btn.disabled = true;
+
+        if (cta) {
+            cta.hidden = false;
+            cta.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+}());
+</script>
 {% endif %}
 {% endblock %}

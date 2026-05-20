@@ -90,11 +90,24 @@ def tool_try(request, tool_slug):
             result = stored.get('result')
             result_fields = [tuple(pair) for pair in stored.get('result_fields', [])]
 
+    result_json = ''
+    if result_fields:
+        result_json = json.dumps({
+            'tool_title': tool_meta.get('title', tool_slug),
+            'date': timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M'),
+            'result_fields': [[label, value] for label, value in result_fields],
+            'filename': (
+                f"{timezone.localtime(timezone.now()).strftime('%Y%m%d')}"
+                f"_{tool_slug}.md"
+            ),
+        })
+
     return render(request, 'tools/tool_try.html', {
         'tool_meta': tool_meta,
         'form': form,
         'result': result,
         'result_fields': result_fields,
+        'result_json': result_json,
         'tool_slug': tool_slug,
         'try_timer_seconds': tool_meta.get('try_timer_seconds', 0),
         'try_timer_label': tool_meta.get('try_timer_label', ''),
