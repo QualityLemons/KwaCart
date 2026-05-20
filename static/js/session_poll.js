@@ -43,6 +43,39 @@
        Participants need the holding state; the host is redirected by Django. */
     var IS_HOST = _sessionAnnouncer.dataset.isHost === 'true';
 
+    /* ── Hybrid pacing banner elements ── */
+    /* These elements are only present in the non-host view; element lookups
+       safely return null for the host, so applyHybridPacing no-ops for them. */
+    var _earlyPreviewBanner = document.getElementById('ip-early-preview');
+    var _vbAacBanner        = document.getElementById('vb-aac-banner');
+    var _vbGroupBanner      = document.getElementById('vb-group-banner');
+
+    /* Reacts to inclusive_pacing + timer_started_at + verbal_breakout from each
+       poll response, showing the right contextual banner to the participant.
+         ip-early-preview: IP active and timer not yet started — participant
+                           can start composing before the countdown begins.
+         vb-aac-banner:    verbal breakout active + participant is composing —
+                           reassures them their digital window is still open.
+         vb-group-banner:  verbal breakout active + participant not composing —
+                           prompts them to join the spoken discussion. */
+    function applyHybridPacing(data) {
+        var ip           = !!data.inclusive_pacing;
+        var timerStarted = !!data.timer_started_at;
+        var vb           = !!data.verbal_breakout;
+        var composingBtn = document.getElementById('aac-composing-btn');
+        var isComposing  = composingBtn &&
+                           composingBtn.getAttribute('aria-pressed') === 'true';
+        if (_earlyPreviewBanner) {
+            _earlyPreviewBanner.style.display = (ip && !timerStarted) ? '' : 'none';
+        }
+        if (_vbAacBanner) {
+            _vbAacBanner.style.display = (vb && isComposing) ? '' : 'none';
+        }
+        if (_vbGroupBanner) {
+            _vbGroupBanner.style.display = (vb && !isComposing) ? '' : 'none';
+        }
+    }
+
     /* ── Waiting overlay (non-host participants only) ── */
     var RESULTS_DELAY_MS = 8000;
 
@@ -78,6 +111,7 @@
             }
             consecutiveErrors = 0;
             if (pollStatusEl) { pollStatusEl.textContent = 'live'; pollStatusEl.style.color = ''; }
+            applyHybridPacing(data);
 
             if (data.status === 'closed') {
                 sessionClosed = true;

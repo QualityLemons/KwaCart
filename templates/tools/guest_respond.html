@@ -21,6 +21,36 @@
 {% include "tools/info_box.html" %}
 {% include "tools/_timer.html" with timer_session_id=session.id is_host=False timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js inclusive_pacing=inclusive_pacing inclusive_pacing_multiplier=inclusive_pacing_multiplier %}
 
+<!-- ── Hybrid Pacing banners ──
+     All three start as display:none. guest_poll.js shows/hides them based on
+     inclusive_pacing, timer_started_at, and verbal_breakout in each poll
+     response. Placed above the form so they are immediately visible. -->
+<div id="ip-early-preview"
+     style="display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128221; Inclusive Pacing active</strong> &mdash;
+    You can start composing your response now, before the group timer begins.
+    Take the time you need.
+</div>
+<div id="vb-aac-banner"
+     style="display:none; background:#fffbeb; border:1px solid #fcd34d; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128483;&#65039; Verbal discussion in progress</strong> &mdash;
+    The group has moved to a spoken conversation. Take your time &mdash;
+    your digital submission window is still open.
+    Continue composing and save when you&rsquo;re ready.
+</div>
+<div id="vb-group-banner"
+     style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128172; Verbal discussion in progress</strong> &mdash;
+    Join the spoken conversation with your group.
+    AAC participants are still composing their digital responses.
+</div>
+
 <h2>Your response</h2>
 
 <!-- Buffer autosave anchor — session_autosave.js reads data-buffer-url to

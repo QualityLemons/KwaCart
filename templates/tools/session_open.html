@@ -74,6 +74,38 @@
 {% include "tools/info_box.html" %}
 {% include "tools/_timer.html" with timer_session_id=session.id is_host=is_host timer_started_at=timer_started_at timer_paused_at=timer_paused_at pause_reminder_threshold_sec=pause_reminder_threshold_sec pause_reminder_threshold_js=pause_reminder_threshold_js inclusive_pacing=inclusive_pacing inclusive_pacing_multiplier=inclusive_pacing_multiplier %}
 
+{% if not is_host %}
+<!-- ── Hybrid Pacing banners (participant-only) ──
+     All three start as display:none. session_poll.js shows/hides them based on
+     inclusive_pacing, timer_started_at, and verbal_breakout in each poll
+     response. Placed above the form so they are immediately visible. -->
+<div id="ip-early-preview"
+     style="display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128221; Inclusive Pacing active</strong> &mdash;
+    You can start composing your response now, before the group timer begins.
+    Take the time you need.
+</div>
+<div id="vb-aac-banner"
+     style="display:none; background:#fffbeb; border:1px solid #fcd34d; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128483;&#65039; Verbal discussion in progress</strong> &mdash;
+    The group has moved to a spoken conversation. Take your time &mdash;
+    your digital submission window is still open.
+    Continue composing and save when you&rsquo;re ready.
+</div>
+<div id="vb-group-banner"
+     style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px;
+            padding:0.75rem 1rem; margin-bottom:0.75rem;"
+     aria-live="polite">
+    <strong>&#128172; Verbal discussion in progress</strong> &mdash;
+    Join the spoken conversation with your group.
+    AAC participants are still composing their digital responses.
+</div>
+{% endif %}
+
 <!-- ── Participant response form ── -->
 <h2>Your response</h2>
 
@@ -268,6 +300,29 @@
                   aria-live="polite"
                   style="font-size:0.85rem; color:#15803d; display:none;"></span>
         </div>
+        <!-- ── Verbal Breakout sub-section ──
+             Sub-feature of Inclusive Pacing: lets the host signal the room to
+             start a verbal discussion while AAC participants continue composing.
+             verbal_breakout.js drives the toggle; the panel is shown/hidden
+             when the Inclusive Pacing checkbox changes. -->
+        <div id="verbal-breakout-panel"
+             style="margin-top:0.85rem; padding-top:0.85rem; border-top:1px solid #e2e8f0;"
+             {% if not inclusive_pacing %}hidden{% endif %}>
+            <p style="font-size:0.875rem; color:#475569; margin:0 0 0.6rem;">
+                When the group timer ends, move participants to a verbal discussion
+                while AAC participants continue composing digitally. Those who have
+                pressed &ldquo;I&rsquo;m Composing&rdquo; will be reassured their
+                submission window is still open.
+            </p>
+            <button type="button" id="verbal-breakout-btn"
+                    data-activate-url="{% url 'tools:session_set_verbal_breakout' session.id %}"
+                    class="btn{% if session.verbal_breakout_active %} btn-primary{% endif %}"
+                    aria-pressed="{{ session.verbal_breakout_active|yesno:'true,false' }}">
+                {% if session.verbal_breakout_active %}&#9646;&#9646; End verbal discussion{% else %}&#128172; Start verbal discussion{% endif %}
+            </button>
+            <span id="verbal-breakout-status" aria-live="polite"
+                  style="font-size:0.85rem; margin-left:0.75rem; display:none;"></span>
+        </div>
     </div>
 </details>
 
@@ -357,6 +412,7 @@
 {% if tool_meta.show_canvas %}<script src="{% static 'js/drawing_canvas.js' %}"></script>{% endif %}
 {% if is_host %}<script src="{% static 'js/pause_reminder.js' %}"></script>{% endif %}
 {% if is_host %}<script src="{% static 'js/inclusive_pacing.js' %}"></script>{% endif %}
+{% if is_host %}<script src="{% static 'js/verbal_breakout.js' %}"></script>{% endif %}
 <script src="{% static 'js/multimedia_input.js' %}"></script>
 <!-- draft_init.js provides getCookie() and adds .tool-input to form fields,
      both required by session_autosave.js. Load before the autosave script. -->

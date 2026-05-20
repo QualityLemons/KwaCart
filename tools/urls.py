@@ -48,6 +48,12 @@ urlpatterns = [
          views.session_set_inclusive_pacing,
          name='session_set_inclusive_pacing'),
 
+    # Verbal Breakout — host signals the room to move to verbal discussion
+    # while AAC participants continue composing digitally.
+    path('session/<uuid:session_id>/verbal-breakout/',
+         views.session_set_verbal_breakout,
+         name='session_set_verbal_breakout'),
+
     # Facilitator Synthesis Workspace — transcription staging before export.
     path('session/<uuid:session_id>/synthesis/',
          views.synthesis_review,

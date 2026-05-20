@@ -699,6 +699,9 @@ def session_status(request, session_id):
         # they react immediately when the host enables or adjusts it.
         'inclusive_pacing': session.inclusive_pacing,
         'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
+        # Verbal Breakout — host has moved the group to verbal discussion;
+        # AAC-composing participants are reassured their window is still open.
+        'verbal_breakout': session.verbal_breakout_active,
         'participants': [
             {
                 'display_name': p.user.email if p.user_id else (p.guest_name or 'Guest'),
@@ -800,6 +803,27 @@ def session_set_inclusive_pacing(request, session_id):
         'inclusive_pacing': session.inclusive_pacing,
         'inclusive_pacing_multiplier': session.inclusive_pacing_multiplier,
     })
+
+
+@login_required
+@require_POST
+def session_set_verbal_breakout(request, session_id):
+    """Host toggles verbal-breakout mode for an open session.
+
+    When active, participants who have not flagged themselves as AAC-composing
+    see a banner prompting them to join a verbal discussion; those who did flag
+    themselves are reassured their digital submission window is still open.
+
+    The state is broadcast on every session_status poll so all participants
+    react within ≤ 4 seconds without requiring a page reload.
+    """
+    session = get_object_or_404(ToolSession, id=session_id, host=request.user)
+    if session.status != 'open':
+        return JsonResponse({'error': 'session not open'}, status=400)
+    active = request.POST.get('active') == 'true'
+    session.verbal_breakout_active = active
+    session.save(update_fields=['verbal_breakout_active'])
+    return JsonResponse({'verbal_breakout_active': session.verbal_breakout_active})
 
 
 # --- Guest participant flow --------------------------------------------------
