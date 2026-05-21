@@ -1129,10 +1129,10 @@ TOOL_CATALOG = {
         ],
         'timer_seconds': 1500,
     },
-    'projectile-manager': {
-        'class': 'tools.implementations.ProjectileManagerTool',
-        'form_class': 'tools.forms.ProjectileManagerForm',
-        'title': 'Projectile Manager',
+    'interocepter': {
+        'class': 'tools.implementations.InterocepterTool',
+        'form_class': 'tools.forms.InterocepterForm',
+        'title': 'Interocepter',
         'tagline': 'Turn a confusing idea into a meaningful one-page project explainer.',
         'icon': 'bullseye',
         'category': 'Facilitation',
@@ -1157,7 +1157,7 @@ TOOL_CATALOG = {
         ),
         'why': (
             'Most projects stall because the goal, stakes, and definition of done are '
-            'never made explicit. Projectile Manager forces the group to surface those '
+            'never made explicit. Interocepter forces the group to surface those '
             'answers together in under 30 minutes, leaving everyone with a single shared '
             'reference that makes prioritisation, handoffs, and success reviews much easier.'
         ),

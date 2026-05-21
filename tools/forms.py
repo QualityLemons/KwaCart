@@ -1007,7 +1007,7 @@ class GenRelStarForm(forms.Form):
     )
 
 
-class ProjectileManagerForm(forms.Form):
+class InterocepterForm(forms.Form):
     creator_and_date = forms.CharField(
         widget=forms.TextInput(attrs={
             'placeholder': 'e.g. Maria Chen — 14 May 2025',

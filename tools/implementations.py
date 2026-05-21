@@ -708,8 +708,8 @@ class FiveStructuralElementsTool(BaseTool):
         return result
 
 
-class ProjectileManagerTool(BaseTool):
-    name = 'Projectile Manager'
+class InterocepterTool(BaseTool):
+    name = 'Interocepter'
     description = (
         'Transform a confusing idea into a clearly understood project by defining its '
         'purpose, importance, ideal outcome, success criteria, and the stakes of acting or not.'
