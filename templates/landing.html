@@ -20,6 +20,7 @@
             <form id="logout-form" method="post" action="{% url 'accounts:logout' %}" style="display:none;">{% csrf_token %}</form>
         {% else %}
             <a href="{% url 'about' %}">About</a>
+            <a href="{% url 'accessibility' %}">Accessibility</a>
             <a href="{% url 'accounts:login' %}">Log in</a>
             <a href="{% url 'accounts:signup' %}" class="btn btn-primary" style="padding:0.4rem 0.9rem; font-size:0.9rem;">Register</a>
         {% endif %}
@@ -117,6 +118,60 @@
         </div>
     </div>
 </section>
+
+<!-- ── AAC teaser ── -->
+<section class="section" id="aac-section">
+    <div class="aac-teaser">
+        <div class="aac-teaser-text">
+            <span class="aac-teaser-badge">Accessibility</span>
+            <h2>Built for every voice</h2>
+            <p>
+                KwaCart includes built-in support for AAC users — people who communicate
+                with eye-gaze trackers, switch-scanning systems, or apps like Grid&nbsp;3.
+            </p>
+            <ul class="aac-teaser-list">
+                <li>
+                    <span class="aac-bullet aac-bullet-green" aria-hidden="true"></span>
+                    <strong>Calm Timer</strong> — replaces ticking digits with a slow colour drift
+                </li>
+                <li>
+                    <span class="aac-bullet aac-bullet-yellow" aria-hidden="true"></span>
+                    <strong>Composition Presence Flag</strong> — tells the host you're still writing, even when your text box is empty
+                </li>
+                <li>
+                    <span class="aac-bullet aac-bullet-blue" aria-hidden="true"></span>
+                    <strong>Accessibility Mode</strong> — large targets, frozen layout, no animations
+                </li>
+            </ul>
+            <a href="{% url 'accessibility' %}" class="btn btn-primary" style="margin-top:0.75rem;">
+                See all AAC features &amp; tools &rarr;
+            </a>
+        </div>
+        <div class="aac-teaser-graphic" aria-hidden="true">
+            <div class="aac-graphic-inner">
+                <div class="aac-g-row">
+                    <div class="aac-g-label">Calm timer</div>
+                    <div class="aac-g-block aac-g-green">Plenty of time</div>
+                </div>
+                <div class="aac-g-row">
+                    <div class="aac-g-label"></div>
+                    <div class="aac-g-block aac-g-amber">Getting shorter</div>
+                </div>
+                <div class="aac-g-row">
+                    <div class="aac-g-label"></div>
+                    <div class="aac-g-block aac-g-red">Nearly done</div>
+                </div>
+                <div class="aac-g-composing">
+                    <span class="aac-g-pulse"></span>
+                    ✏ I'm composing…
+                </div>
+                <div class="aac-g-big-btn">Save my response</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
 
 <!-- ── CTA band ── -->
 <section class="cta-band">

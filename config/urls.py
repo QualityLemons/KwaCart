@@ -36,9 +36,14 @@ def about(request):
     return render(request, 'about.html')
 
 
+def accessibility(request):
+    return render(request, 'accessibility.html')
+
+
 urlpatterns = [
     path('', home, name='home'),
     path('about/', about, name='about'),
+    path('accessibility/', accessibility, name='accessibility'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('tools/', include('tools.urls')),
