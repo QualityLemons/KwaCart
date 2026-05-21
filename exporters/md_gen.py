@@ -8,20 +8,97 @@ Storage strategy
 In production (``CLOUDINARY_URL`` present) the file is uploaded directly via
 the Cloudinary Python SDK with an explicit ``public_id`` so the asset path is
 fully controlled regardless of the account's folder mode.  The ``secure_url``
-returned by the API is stored on the model field — the download view then
+returned by Cloudinary is stored on the model field — the download view then
 redirects to that URL, avoiding any URL-reconstruction issues.
 
 In local development the file is written to ``MEDIA_ROOT/archives/md/`` via
 Django's ``default_storage`` (FileSystemStorage).
 
+Canvas drawings
+---------------
+When a ``ToolInstance`` or session participant's ``payload_output`` contains a
+``canvas_data`` key (set by tools such as Drawing Together), the drawing is
+embedded directly in the Markdown file as a Base64 data URI::
+
+    ![Drawing Together canvas](data:image/png;base64,<encoded-bytes>)
+
+This keeps the ``.md`` file completely self-contained — no separate image file
+is needed and the drawing renders correctly in any Markdown viewer regardless
+of where the file is opened.  If the PNG bytes cannot be retrieved (e.g. a
+Cloudinary URL that is temporarily unavailable), the Cloudinary URL is used as
+a plain link fallback.
+
 Filename convention: ``YYYYMMDD_<tool-slug>_<instance-or-session-id>.md``
 """
+import base64
 import os
+import urllib.request
 
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.utils.text import slugify
 
+
+# ── Canvas helpers ─────────────────────────────────────────────────────────
+
+def _load_canvas_bytes(canvas_value):
+    """Return the raw PNG bytes for a canvas_data value.
+
+    Accepts either a Cloudinary https:// URL (production) or a local
+    /media/drawings/… path (development).  Returns None on any failure.
+    """
+    if not canvas_value:
+        return None
+
+    if canvas_value.startswith(('https://', 'http://')):
+        try:
+            req = urllib.request.Request(
+                canvas_value,
+                headers={'User-Agent': 'KwaCart-export/1.0'},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.read()
+        except Exception:
+            return None
+
+    # Local filesystem path like /media/drawings/drawing-together_7_abc.png
+    try:
+        media_url = settings.MEDIA_URL.rstrip('/')    # e.g. '/media'
+        rel = canvas_value
+        if rel.startswith(media_url):
+            rel = rel[len(media_url):].lstrip('/')    # e.g. 'drawings/file.png'
+        local_path = os.path.join(settings.MEDIA_ROOT, rel)
+        with open(local_path, 'rb') as fh:
+            return fh.read()
+    except Exception:
+        return None
+
+
+def _canvas_to_md(canvas_value):
+    """Return a Markdown image tag for a canvas drawing.
+
+    Preference order:
+    1. Base64 data URI — completely self-contained, works everywhere.
+    2. Direct Cloudinary URL — used as fallback if the PNG fetch fails.
+    3. Empty string — if the value is missing or unreadable.
+    """
+    if not canvas_value:
+        return ''
+
+    png_bytes = _load_canvas_bytes(canvas_value)
+    if png_bytes:
+        encoded = base64.b64encode(png_bytes).decode('ascii')
+        return f'\n![Drawing Together canvas](data:image/png;base64,{encoded})\n'
+
+    # Fallback: Cloudinary URL as a plain image link
+    if canvas_value.startswith(('https://', 'http://')):
+        return f'\n![Drawing Together canvas]({canvas_value})\n'
+
+    return ''
+
+
+# ── File storage helper ────────────────────────────────────────────────────
 
 def _save_file(relative_path, content_bytes):
     """Upload content to Cloudinary (production) or local storage (development).
@@ -46,6 +123,8 @@ def _save_file(relative_path, content_bytes):
     return default_storage.save(relative_path, ContentFile(content_bytes))
 
 
+# ── Export functions ───────────────────────────────────────────────────────
+
 def generate_markdown(instance):
     """Generate a Markdown file for a solo ``ToolInstance`` submission."""
     filename = (
@@ -61,9 +140,20 @@ def generate_markdown(instance):
         "\n--- \n",
         "## Results",
     ]
+
+    canvas_value = None
     for key, value in instance.payload_output.items():
+        if key == 'canvas_data':
+            # Collect the canvas value; render it as an embedded image below
+            # its natural position in the output rather than as a raw path.
+            canvas_value = value
+            continue
         label = key.replace('_', ' ').title()
         content_lines.append(f"### {label}\n{value}\n")
+
+    if canvas_value:
+        content_lines.append("### Drawing\n")
+        content_lines.append(_canvas_to_md(canvas_value))
 
     return _save_file(relative_path, "\n".join(content_lines).encode('utf-8'))
 
@@ -89,10 +179,19 @@ def generate_session_markdown(session):
         marker = ' (host)' if inst.user_id == session.host_id else ''
         display = inst.user.email if inst.user_id else (inst.guest_name or 'Guest')
         content_lines.append(f"## {display}{marker}")
+
         if inst.payload_output:
+            canvas_value = None
             for key, value in inst.payload_output.items():
+                if key == 'canvas_data':
+                    canvas_value = value
+                    continue
                 label = key.replace('_', ' ').title()
                 content_lines.append(f"### {label}\n{value}\n")
+
+            if canvas_value:
+                content_lines.append("### Drawing\n")
+                content_lines.append(_canvas_to_md(canvas_value))
         else:
             content_lines.append("*No response submitted.*\n")
 
