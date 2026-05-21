@@ -18,6 +18,24 @@ uri = "file://attached_assets/logo_options/kwa_option_c.png"
 type = "image"
 title = "kwa logo option C speech bubble horizontal"
 
+[[generated]]
+id = "jqjMWieKSsGXxNjQfal77"
+uri = "file://attached_assets/logo_options/kwa_duck_a.png"
+type = "image"
+title = "kwa single duck speech bubble"
+
+[[generated]]
+id = "V3maQB7rnzt_eBoxBhZFh"
+uri = "file://attached_assets/logo_options/kwa_duck_b.png"
+type = "image"
+title = "kwa single duck text below"
+
+[[generated]]
+id = "VcnhSNGsH_hW0FEHOKMk7"
+uri = "file://attached_assets/logo_options/kwa_duck_c.png"
+type = "image"
+title = "kwa single duck text beside"
+
 [[outputs]]
 id = "so8H9uzBmTtq2JB1rasO2"
 uri = "file://README.md"
@@ -65,3 +83,21 @@ id = "I9eXQQ-DBXW48flm5joG-"
 uri = "file://attached_assets/logo_options/kwa_option_c.png"
 type = "image"
 title = "Option C — horizontal line, speech bubble"
+
+[[outputs]]
+id = "BEjNMeuvnuahU8sFvk-bC"
+uri = "file://attached_assets/logo_options/kwa_duck_a.png"
+type = "image"
+title = "Option A — speech bubble"
+
+[[outputs]]
+id = "zAe-AVyMbR8IDwXZjRqwf"
+uri = "file://attached_assets/logo_options/kwa_duck_b.png"
+type = "image"
+title = "Option B — text below"
+
+[[outputs]]
+id = "KnUZKwwgCrCDi05T86_3h"
+uri = "file://attached_assets/logo_options/kwa_duck_c.png"
+type = "image"
+title = "Option C — text beside"
