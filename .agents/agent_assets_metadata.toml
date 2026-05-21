@@ -36,6 +36,24 @@ uri = "file://attached_assets/logo_options/kwa_duck_c.png"
 type = "image"
 title = "kwa single duck text beside"
 
+[[generated]]
+id = "-o0stto-HdeRrNasiFarN"
+uri = "file://attached_assets/logo_options/duck_silhouette_a.png"
+type = "image"
+title = "duck silhouette standing"
+
+[[generated]]
+id = "HwTXJBKjJXPCe_DW_UVeW"
+uri = "file://attached_assets/logo_options/duck_silhouette_b.png"
+type = "image"
+title = "duck silhouette waddling"
+
+[[generated]]
+id = "AgH4upjthXnUZ-2eH9fiK"
+uri = "file://attached_assets/logo_options/duck_silhouette_c.png"
+type = "image"
+title = "duck silhouette quacking"
+
 [[outputs]]
 id = "so8H9uzBmTtq2JB1rasO2"
 uri = "file://README.md"
@@ -101,3 +119,21 @@ id = "KnUZKwwgCrCDi05T86_3h"
 uri = "file://attached_assets/logo_options/kwa_duck_c.png"
 type = "image"
 title = "Option C — text beside"
+
+[[outputs]]
+id = "ilVmSrcRuaBDFDdaKw9OV"
+uri = "file://attached_assets/logo_options/duck_silhouette_a.png"
+type = "image"
+title = "Option A — standing"
+
+[[outputs]]
+id = "0j5z5yjkqjmHIVF5_hq5G"
+uri = "file://attached_assets/logo_options/duck_silhouette_b.png"
+type = "image"
+title = "Option B — waddling"
+
+[[outputs]]
+id = "-SVPtgZO7d3EQMHiOU7PQ"
+uri = "file://attached_assets/logo_options/duck_silhouette_c.png"
+type = "image"
+title = "Option C — mid-quack"
