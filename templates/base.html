@@ -30,7 +30,7 @@
                title="Use tools at your own pace">Work Solo</a>
             <a href="{% url 'tools:catalog' %}?mode=live"
                title="Start a live session with your team">Facilitate</a>
-            <a href="{% url 'archive:dashboard' %}">My Archive</a>
+            <a href="{% url 'archive:knowledge_bank' %}">Knowledge Bank</a>
             <span class="spacer"></span>
             <span>{{ request.user.email }}</span>
             <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">
