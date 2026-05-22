@@ -118,18 +118,6 @@ Each sprint had a defined goal, a set of user stories pulled from the backlog, a
 | **4 — Guest access and public engagement** | Guest join via QR / UUID token (no account required), free try-it pages, waiting list, feature request, staff waiting-list view | US 2, 3, 4, 12, 13, 20 |
 | **5 — Hardening and deployment** | Custom error pages, full validation pass (W3C/JSHint/flake8), security audit, Heroku deployment configuration, README completion | US 21, 22, 23 (context-driven design review); all earlier stories re-tested |
 
-### Iterative development in practice
-
-The sprint structure meant that each increment was a working, deployable application:
-
-- After Sprint 1 a visitor could reach the landing page and create an account.
-- After Sprint 2 a logged-in user could draft, submit, and download solo tool output.
-- After Sprint 3 a facilitator could run a full live session with authenticated colleagues.
-- After Sprint 4 any participant — with or without an account — could join via QR code, and members of the public could engage through the waiting list.
-- After Sprint 5 the application was production-ready on Heroku with hardened security settings and complete documentation.
-
-Sprint reviews identified several scope adjustments. The drawing canvas was initially a Could Have but was promoted to Should Have during Sprint 2 when it became clear the Min Specs tool required freeform input. The HTML export format was added during Sprint 4 review after user testing showed that Markdown and RTF alone were insufficient for participants who wanted to paste output directly into a browser-viewable file.
-
 ---
 
 ## UX Design
@@ -177,70 +165,50 @@ All colour choices were checked for WCAG AA contrast (≥ 4.5:1) against their b
 
 The screenshots below show the implemented design for each key page.
 
----
-
-### Landing Page
+#### Landing Page
 The public homepage — introduces the platform, links to free tools, registration, and the waiting list.
 
 ![Landing page](docs/screenshots/landing.jpg)
 
----
-
-### About Page
+#### About Page
 Explains Liberating Structures, the 23 tools, and the project background.
 
 ![About page](docs/screenshots/about.jpg)
 
----
-
-### Register
+#### Register
 New account creation — email address and password. Redirects to login on success.
 
 ![Register page](docs/screenshots/register.jpg)
 
----
-
-### Log In
+#### Log In
 Email-based login. Redirects authenticated users directly to the tool catalog.
 
 ![Login page](docs/screenshots/login.jpg)
 
----
-
-### Free Tool — Min Specs
+#### Free Tool — Min Specs
 Try Min Specs without an account. Includes a 5-minute countdown timer, structured form, and instant output.
 
 ![Min Specs free try](docs/screenshots/tool-min-specs.jpg)
 
----
-
-### Free Tool — 15% Solutions
+#### Free Tool — 15% Solutions
 Try 15% Solutions without an account. Same timer and structured output experience.
 
 ![15% Solutions free try](docs/screenshots/tool-15-percent.jpg)
 
----
-
-### Waiting List Signup
+#### Waiting List Signup
 Visitors can register their interest before accounts open publicly.
 
 ![Waiting list](docs/screenshots/waiting-list.jpg)
 
----
-
-### Feature Request
+#### Feature Request
 Visitors and users can submit ideas for new tools or platform improvements.
 
 ![Feature request](docs/screenshots/feature-request.jpg)
 
----
-
-### Guest Join
+#### Guest Join
 Participants who scan the QR code land here. They enter only their name — no account needed — and go straight to the session form.
 
 ![Guest join](docs/screenshots/guest-join.jpg)
-
----
 
 ### Wireframes — Authenticated pages
 
@@ -410,18 +378,6 @@ Visitors and users can submit a feature idea at `/request-a-feature/`. Submissio
 
 ## Key Features
 
-### Colour palette
-The interface uses a 6-colour palette:
-
-| Colour | Hex | Role |
-|---|---|---|
-| Purple | `#5D3A9B` | Primary brand, buttons, links |
-| Teal | `#40B0A6` | Success states, result borders, open-session indicators |
-| Gold | `#E1BE6A` | "Free" badges, count labels, CTA band highlight button |
-| Orange | `#E66100` | Step numbers, running-timer button |
-| Yellow | `#FEFE62` | "Already on list" duplicate-notice border |
-| Pink | `#D35FB7` | Accent use |
-
 ### Solo tool use
 Any logged-in user can pick a tool from the catalog, draft at their own pace (autosave on every keystroke), and submit when ready. Submission processes the response and stores downloadable Markdown and RTF files.
 
@@ -445,17 +401,12 @@ Tools with `show_canvas: True` in the registry include a freehand drawing canvas
 ### Timer widget
 Tools can opt in to a countdown timer. The timer:
 
-- MM:SS display, turns amber at ≤ 10 s, red at zero.
-- Start / Pause / Reset controls with a phase progress bar.
-- **Server sync** — all participants see the same remaining time via the poll endpoint.
-- **Late-join** — screen readers hear an approximate time-remaining message on first sync.
-- **Milestone announcements** at 5 min, 2 min, 1 min, 30 s, and 10 s.
-- **Phase-transition announcements** — each phase change fires exactly one ARIA live announcement.
-- **Pause badge** — visible "Paused" indicator; host-only amber reminder if paused for over 5 minutes (configurable threshold via `pause_reminder_threshold_sec`).
-- **Long-pause teardown** — the amber reminder clears immediately when the host resumes.
-- **Reconnection toast** — banner appears after a connectivity outage clears.
-- **Offline detection** — stale badge shown immediately on `window.offline` event, not just on poll failure.
-- **Reset announcement fix** — reset from paused announces "Timer reset", not "Timer resumed".
+- MM:SS display; turns amber at ≤ 10 s, red at zero. Start / Pause / Reset controls with a phase progress bar.
+- **Server sync** — all participants see the same remaining time via the poll endpoint; late-joiners sync immediately.
+- **Milestone announcements** at 5 min, 2 min, 1 min, 30 s, and 10 s via ARIA live regions.
+- **Pause badge** — visible "Paused" indicator; host-only amber reminder if paused for over 5 minutes (configurable via `pause_reminder_threshold_sec`).
+- **Offline detection** — stale badge on `window.offline`; reconnection toast when the connection recovers.
+- **AAC Calm mode** — replaces ticking digits with a static colour block (green → amber → red) to reduce eye-fatigue for eye-gaze users.
 
 ### What / How / Why info panel
 Every tool page includes a structured instruction panel with **What**, **How**, **Why**, and optional **Agreements**. A **Load example data** button pre-fills the form.
@@ -853,14 +804,6 @@ The project is fully configured for Heroku deployment. The files Heroku requires
 | `DATABASE_URL` | Set automatically by the Heroku Postgres add-on |
 | `CLOUDINARY_URL` | From Cloudinary dashboard → API Environment variable (format: `cloudinary://key:secret@cloud`) |
 
-**How the production settings work on Heroku**
-
-- `DATABASE_URL` is detected by `production.py` and passed to `dj-database-url`, switching the database from SQLite to Heroku Postgres automatically
-- `CLOUDINARY_URL` is detected by `production.py` and activates `RawMediaCloudinaryStorage` as the `default` storage backend — all generated MD and RTF export files are uploaded to Cloudinary and served from there permanently
-- `SECURE_PROXY_SSL_HEADER` is already set so Django trusts Heroku's SSL termination
-- `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` are `True`, so cookies are HTTPS-only
-- WhiteNoise (`CompressedManifestStaticFilesStorage`) serves and compresses static files without a separate CDN
-
 ---
 
 ### Replit
@@ -872,47 +815,6 @@ gunicorn --bind=0.0.0.0:5000 --reuse-port config.wsgi:application
 ```
 
 `python manage.py migrate` and `python manage.py collectstatic` run as build steps before the server starts. SSL termination is handled by the Replit proxy; `SECURE_PROXY_SSL_HEADER` is set correctly in `production.py` for when `config.settings.production` is active there.
-
----
-
-## Configuration and dependencies
-
-### Dependencies (`requirements.txt`)
-
-All runtime and development dependencies are listed in `requirements.txt` with exact version pins, so the environment is fully reproducible and it is clear which version of each package is in use:
-
-| Package | Pinned version | Purpose |
-|---|---|---|
-| `django` | 6.0.4 | Web framework |
-| `django-environ` | 0.13.0 | Environment variable helpers |
-| `gunicorn` | 25.3.0 | Production WSGI server |
-| `whitenoise` | 6.6.0 | Static file serving |
-| `psycopg2-binary` | 2.9.12 | PostgreSQL driver (used when `DATABASE_URL` is set) |
-| `dj-database-url` | 3.1.2 | Parses `DATABASE_URL` into Django's `DATABASES` dict |
-| `cloudinary` | 1.44.2 | Cloudinary Python SDK — upload and manage raw assets |
-| `django-cloudinary-storage` | 0.3.0 | Django storage backend that routes `default_storage` calls to Cloudinary |
-| `playwright` | 1.58.0 | Browser automation (end-to-end test runner) |
-| `pytest-django` | 4.12.0 | Django integration for pytest |
-| `pytest-playwright` | 0.7.2 | Playwright integration for pytest |
-
-Every dependency update is committed to the repository so there is a clear record of when and why versions changed.
-
-### Data store configuration
-
-The database is configured in **one place only** — `DATABASES` in `config/settings/base.py` (lines 87–92). No other settings file defines `DATABASES` unconditionally:
-
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-```
-
-To switch database backends in any environment, set a single `DATABASE_URL` environment variable (e.g. `postgres://user:pass@host/dbname`). `config/settings/production.py` detects this variable at startup and calls `dj_database_url.config()` to override the block; when the variable is absent, the SQLite default is used unchanged. No other code needs to change.
-
-**The database file is not accessible to end users.** `db.sqlite3` is a file on the server filesystem — it is not mounted under any URL, not referenced by any view, and is listed in `.gitignore` so it is never committed to the repository. In production, WhiteNoise serves only from `STATIC_ROOT` (compiled assets); the `MEDIA_URL` route added by `django.conf.urls.static.static()` is a no-op when `DEBUG=False`, so uploaded files are also not auto-served. All data access goes through Django's ORM.
 
 ---
 
@@ -1049,8 +951,6 @@ Every public page was checked against the [W3C Nu Html Checker](https://validato
 | About | `/about/` | No errors |
 | Log in | `/accounts/login/` | No errors |
 | Register | `/accounts/signup/` | No errors |
-
-**Landing page** — the only HTML issue found during development was an `<h4>` step heading that immediately followed an `<h2>`, skipping heading level 3. This was corrected by changing all four step headings (`Pick a tool`, `Start a session`, `Work through the phases`, `Review the archive`) from `<h4>` to `<h3>`, and the matching CSS selector `.step h4` was updated to `.step h3`.
 
 **Landing page (no errors):**
 
