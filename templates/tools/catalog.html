@@ -12,9 +12,6 @@
 
 {% block content %}
 
-{# ═══════════════════════════════════════════════════════
-   MODE: SOLO — contemplative, teal, individual
-   ═══════════════════════════════════════════════════════ #}
 {% if mode == 'solo' %}
 
 <div class="cz-banner cz-banner--solo" role="banner">
@@ -66,9 +63,6 @@
 {% endfor %}
 
 
-{# ═══════════════════════════════════════════════════════
-   MODE: LIVE — energetic, purple, group
-   ═══════════════════════════════════════════════════════ #}
 {% elif mode == 'live' %}
 
 <div class="cz-banner cz-banner--live" role="banner">
@@ -120,9 +114,6 @@
 {% endfor %}
 
 
-{# ═══════════════════════════════════════════════════════
-   DEFAULT — prominent mode picker, all tools collapsed
-   ═══════════════════════════════════════════════════════ #}
 {% else %}
 
 <h1 style="margin-bottom:0.2rem;">Tools</h1>
