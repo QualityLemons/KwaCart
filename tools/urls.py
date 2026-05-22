@@ -14,6 +14,7 @@ app_name = 'tools'
 
 urlpatterns = [
     path('', views.tool_catalog, name='catalog'),
+    path('pathway/', views.pathway_finder, name='pathway_finder'),
 
     # Public try-it pages (no login required)
     path('<slug:tool_slug>/try/', views.tool_try, name='tool_try'),

@@ -1132,3 +1132,24 @@ def session_attachment_remove(request, session_id):
     instance.attachments = updated
     instance.save(update_fields=['attachments', 'updated_at'])
     return JsonResponse({'status': 'removed'})
+
+
+@login_required
+def pathway_finder(request):
+    """Authenticated LS Pathway Finder wizard.
+
+    Renders a multi-step recommendation wizard: three fixed context questions
+    (time available, group size, modality) followed by a randomised grid of
+    33 goal circles.  All recommendation logic runs client-side; this view
+    only passes the tool catalog as JSON so the results step can display
+    titles and taglines without an extra round-trip.
+    """
+    import json as _json
+    tools_json = _json.dumps({
+        slug: {
+            'title': info['title'],
+            'tagline': info.get('tagline', ''),
+        }
+        for slug, info in TOOL_CATALOG.items()
+    })
+    return render(request, 'tools/pathway_finder.html', {'tools_json': tools_json})
