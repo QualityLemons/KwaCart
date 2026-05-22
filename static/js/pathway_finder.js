@@ -257,6 +257,12 @@ function getTopTools(limit = 6) {
         .map(([slug, score]) => ({ slug, score }));
 }
 
+// ── CSRF token (read from cookie so POST forms work) ─────────────────────
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
 // ── Results ───────────────────────────────────────────────────────────────
 function renderResults() {
     const top = getTopTools();
@@ -273,6 +279,7 @@ function renderResults() {
         if (!info) return;
         const card = document.createElement('div');
         card.className = 'pathway-result-card';
+        const csrf = getCsrfToken();
         card.innerHTML = `
             <div class="pathway-result-rank">${rankLabels[idx] || (idx + 1) + 'th'}</div>
             <div class="pathway-result-body">
@@ -280,7 +287,10 @@ function renderResults() {
                 <p>${info.tagline}</p>
                 <div class="pathway-result-actions">
                     <a href="/tools/${slug}/draft/">Work Solo</a>
-                    <a href="/tools/${slug}/session/start/">Start a Session</a>
+                    <form method="post" action="/tools/${slug}/session/start/" style="display:inline;margin:0;">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                        <button type="submit" class="pathway-session-btn">Start a Session</button>
+                    </form>
                 </div>
             </div>`;
         resultCards.appendChild(card);
