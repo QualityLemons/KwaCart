@@ -1144,12 +1144,11 @@ def pathway_finder(request):
     only passes the tool catalog as JSON so the results step can display
     titles and taglines without an extra round-trip.
     """
-    import json as _json
-    tools_json = _json.dumps({
+    tools_data = {
         slug: {
             'title': info['title'],
             'tagline': info.get('tagline', ''),
         }
         for slug, info in TOOL_CATALOG.items()
-    })
-    return render(request, 'tools/pathway_finder.html', {'tools_json': tools_json})
+    }
+    return render(request, 'tools/pathway_finder.html', {'tools_data': tools_data})

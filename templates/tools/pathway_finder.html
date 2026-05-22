@@ -104,8 +104,8 @@
 
 </div>
 
-<!-- Tool catalog data for JS (server-rendered, no extra request needed) -->
-<script id="pathway-tools-data" type="application/json">{{ tools_json }}</script>
+{% comment %}json_script encodes the dict safely — no HTML-escaping issues{% endcomment %}
+{{ tools_data|json_script:"pathway-tools-data" }}
 {% endblock %}
 
 {% block extra_js %}
