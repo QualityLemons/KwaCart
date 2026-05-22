@@ -457,7 +457,7 @@ The wireframe below shows both states side-by-side and explains how each Accepta
 | `static/js/timer.js` | `calmMode` flag; `renderCalmBlock()` replaces `.timer-display` with `.calm-block`; colour computed from `elapsedFraction` |
 | `static/css/timer.css` | `.calm-block` with `transition: background-color 4s ease`; `.a11y-theme .calm-block` with `transition: none` |
 | `static/css/accessibility_theme.css` | High-contrast colours, `min-height / min-width: 80px`, `gap: 24px`, `transition: none !important` |
-| `templates/tools/_timer.html` | **Calm timer** toggle button rendered for `{% if not is_host %}` only; hosts always need the exact digit display |
+| `templates/tools/_timer.html` | **Calm timer** toggle button rendered for `{% raw %}{% if not is_host %}{% endraw %}` only; hosts always need the exact digit display |
 | `static/js/accessibility_theme.js` | Reads `localStorage.kwacart_a11y_theme`; applies `.a11y-theme` to `<html>` before first paint to prevent FOUC |
 
 ---
@@ -492,7 +492,7 @@ The wireframe below shows the full three-step flow: participant presses **I'm co
 | `tools/views.py` | `session_composing` view — `@login_required` / guest-token gated; stamps `composing_heartbeat_at = now()` |
 | `tools/views.py` | `session_status` response includes `composing_users` list (instances with heartbeat < 30 s old) |
 | `static/js/session_poll.js` | On each poll, reads `composing_users` and updates the roster chip label to **✏ Composing…** |
-| `templates/tools/session_open.html` | **I'm composing…** `<button aria-pressed>` rendered for `{% if not is_host %}` participants; JS toggles its pressed state and starts/stops the heartbeat |
+| `templates/tools/session_open.html` | **I'm composing…** `<button aria-pressed>` rendered for `{% raw %}{% if not is_host %}{% endraw %}` participants; JS toggles its pressed state and starts/stops the heartbeat |
 | `static/js/session_close.js` | Intercepts the Close Session click; if the current poll data contains any `composing_users`, renders the warning modal before allowing the POST to proceed |
 
 ---
@@ -530,7 +530,7 @@ Facilitators arriving at KwaCart often know what outcome they want (e.g. "surfac
 | File | Role |
 |---|---|
 | `tools/views.py` | `pathway_finder` — `@login_required`; passes `tools_data` dict (title + tagline per slug) as JSON via `json_script` filter |
-| `templates/tools/pathway_finder.html` | Five-step wizard markup; tool data injected with `{{ tools_data\|json_script:"pathway-tools-data" }}`; result cards include POST forms for session launch |
+| `templates/tools/pathway_finder.html` | Five-step wizard markup; tool data injected with `{% raw %}{{ tools_data\|json_script:"pathway-tools-data" }}{% endraw %}`; result cards include POST forms for session launch |
 | `static/js/pathway_finder.js` | All recommendation logic runs client-side; `buildCircles()` renders 33 goal circles; `scoreTools()` computes match percentage; `showStep()` is exposed on `window` for Back button inline handlers |
 | `static/css/pathway_finder.css` | Wizard layout, circle grid, match-percentage bars, result card styles |
 
