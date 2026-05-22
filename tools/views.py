@@ -137,6 +137,12 @@ def tool_catalog(request):
         cat = info.get('category', 'General')
         categories.setdefault(cat, []).append(_normalize_meta(slug, info))
 
+    _order = ['Low-Risk Warm-ups', 'Facilitation', 'General']
+    categories = dict(sorted(
+        categories.items(),
+        key=lambda kv: _order.index(kv[0]) if kv[0] in _order else 99,
+    ))
+
     ctx = {'categories': categories, 'mode': mode}
 
     if request.user.is_authenticated:

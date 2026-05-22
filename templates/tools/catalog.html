@@ -25,6 +25,15 @@
     </nav>
 </div>
 
+<a href="{% url 'tools:pathway_finder' %}" class="cz-pathway-promo">
+    <span class="cz-pathway-promo__icon" aria-hidden="true">🧭</span>
+    <span class="cz-pathway-promo__text">
+        <strong>Blaze your own trail</strong>
+        Get a customised LS pathway matched to your time, group size, and goals.
+    </span>
+    <span class="cz-pathway-promo__cta">Find my pathway &rarr;</span>
+</a>
+
 {% if recent_drafts %}
 <div class="cz-activity" aria-label="Your recent solo work">
     <span class="cz-activity__label">Recent</span>
@@ -75,6 +84,15 @@
         <a href="{% url 'tools:catalog' %}">All tools</a>
     </nav>
 </div>
+
+<a href="{% url 'tools:pathway_finder' %}" class="cz-pathway-promo">
+    <span class="cz-pathway-promo__icon" aria-hidden="true">🧭</span>
+    <span class="cz-pathway-promo__text">
+        <strong>Blaze your own trail</strong>
+        Get a customised LS pathway matched to your time, group size, and goals.
+    </span>
+    <span class="cz-pathway-promo__cta">Find my pathway &rarr;</span>
+</a>
 
 {% if active_sessions %}
 <div class="cz-activity" aria-label="Your open sessions">
@@ -150,6 +168,15 @@
     {% endfor %}
 </div>
 {% endif %}
+
+<a href="{% url 'tools:pathway_finder' %}" class="cz-pathway-promo" style="margin-bottom:1.5rem;">
+    <span class="cz-pathway-promo__icon" aria-hidden="true">🧭</span>
+    <span class="cz-pathway-promo__text">
+        <strong>Blaze your own trail</strong>
+        Get a customised LS pathway matched to your time, group size, and goals.
+    </span>
+    <span class="cz-pathway-promo__cta">Find my pathway &rarr;</span>
+</a>
 
 <details>
     <summary class="cz-browse-toggle">Browse all tools without choosing a mode</summary>
