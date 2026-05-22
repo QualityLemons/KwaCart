@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="560" viewBox="0 0 860 560">
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; }
+      .nav-item  { font-size: 13px; fill: #333; }
+      .heading   { font-size: 18px; fill: #1a1a1a; font-weight: bold; }
+      .sub       { font-size: 12px; fill: #666; }
+      .sec-lbl   { font-size: 13px; fill: #444; font-weight: bold; }
+      .body-txt  { font-size: 12px; fill: #333; }
+      .muted     { font-size: 11px; fill: #888; }
+      .btn-txt   { font-size: 11px; }
+      .radio-lbl { font-size: 12px; fill: #222; }
+      .step-lbl  { font-size: 10px; fill: #aaa; }
+      .wf-label  { font-size: 11px; fill: #aaa; font-style: italic; }
+      .circle-lbl{ font-size: 9px;  fill: #fff; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect width="860" height="560" fill="#fff" stroke="#ddd"/>
+
+  <!-- ── Nav bar ── -->
+  <rect x="0" y="0" width="860" height="44" fill="#eeeeee" stroke="#cccccc"/>
+  <text x="16"  y="26" class="nav-item" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav-item">Work Solo</text>
+  <text x="205" y="26" class="nav-item">Facilitate</text>
+  <text x="295" y="26" class="nav-item" font-weight="bold" fill="#5D3A9B">Find a Pathway</text>
+  <text x="490" y="26" class="nav-item" fill="#aaa">user@example.com</text>
+  <rect x="680" y="12" width="55"  height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="707"  y="25" text-anchor="middle" class="btn-txt" fill="#444">Logout</text>
+  <rect x="744" y="12" width="100" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="794"  y="25" text-anchor="middle" class="btn-txt" fill="#444">Accessibility Mode</text>
+
+  <!-- ── Divider label ── -->
+  <text x="430" y="57" text-anchor="middle" class="wf-label">← Step 1–3: context questions  ·  Step 4: goal circles  ·  Step 5: results →</text>
+
+  <!-- ═══════════════════════════════════════════════════════
+       LEFT PANEL — Step 1 (context question)
+  ═══════════════════════════════════════════════════════ -->
+  <rect x="0" y="60" width="420" height="500" fill="#faf9ff" stroke="#e5e0f0"/>
+  <text x="30" y="90" class="heading">LS Pathway Finder</text>
+  <text x="30" y="106" class="sub">Answer three quick questions to get tailored recommendations.</text>
+
+  <!-- Step progress dots -->
+  <circle cx="40"  cy="122" r="7" fill="#5D3A9B"/>
+  <text x="40" cy="122" text-anchor="middle" class="step-lbl" dy="4" fill="#fff">1</text>
+  <line x1="47" y1="122" x2="67" y2="122" stroke="#ddd" stroke-width="2"/>
+  <circle cx="74" cy="122" r="7" fill="#e0d7f0"/>
+  <text x="74" cy="122" text-anchor="middle" class="step-lbl" dy="4" fill="#aaa">2</text>
+  <line x1="81" y1="122" x2="101" y2="122" stroke="#ddd" stroke-width="2"/>
+  <circle cx="108" cy="122" r="7" fill="#e0d7f0"/>
+  <text x="108" cy="122" text-anchor="middle" class="step-lbl" dy="4" fill="#aaa">3</text>
+  <line x1="115" y1="122" x2="135" y2="122" stroke="#ddd" stroke-width="2"/>
+  <circle cx="142" cy="122" r="7" fill="#e0d7f0"/>
+  <text x="142" cy="122" text-anchor="middle" class="step-lbl" dy="4" fill="#aaa">4</text>
+  <line x1="149" y1="122" x2="169" y2="122" stroke="#ddd" stroke-width="2"/>
+  <circle cx="176" cy="122" r="7" fill="#e0d7f0"/>
+  <text x="176" cy="122" text-anchor="middle" class="step-lbl" dy="4" fill="#aaa">5</text>
+  <text x="40" y="138" class="step-lbl">Step 1 of 5</text>
+
+  <!-- Question 1 -->
+  <text x="30" y="162" class="sec-lbl">How much time do you have?</text>
+
+  <!-- Radio options -->
+  <circle cx="42" cy="184" r="7" fill="#fff" stroke="#5D3A9B" stroke-width="2"/>
+  <circle cx="42" cy="184" r="3" fill="#5D3A9B"/>
+  <text x="56" y="188" class="radio-lbl">Under 15 minutes</text>
+
+  <circle cx="42" cy="206" r="7" fill="#fff" stroke="#ccc" stroke-width="2"/>
+  <text x="56" y="210" class="radio-lbl">15–30 minutes</text>
+
+  <circle cx="42" cy="228" r="7" fill="#fff" stroke="#ccc" stroke-width="2"/>
+  <text x="56" y="232" class="radio-lbl">30–60 minutes</text>
+
+  <circle cx="42" cy="250" r="7" fill="#fff" stroke="#ccc" stroke-width="2"/>
+  <text x="56" y="254" class="radio-lbl">Over an hour</text>
+
+  <!-- Next button -->
+  <rect x="30" y="274" width="120" height="32" rx="6" fill="#5D3A9B"/>
+  <text x="90" y="294" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">Next →</text>
+
+  <!-- Audio icon note -->
+  <text x="30" y="326" class="muted">🔊 Audio available — tap any circle to hear the goal read aloud</text>
+
+  <!-- ── Step 4 circle grid preview (small) ── -->
+  <text x="30" y="354" class="sec-lbl">Step 4 — Goal circles</text>
+  <text x="30" y="368" class="sub">33 randomised goals. Tap each one that matters to your group.</text>
+
+  <!-- Mini circles grid 6×5 + 3 = 33 -->
+  <!-- Row 1 -->
+  <circle cx="48"  cy="400" r="16" fill="#E66100"/>
+  <circle cx="84"  cy="400" r="16" fill="#40B0A6"/>
+  <circle cx="120" cy="400" r="16" fill="#5D3A9B"/>
+  <circle cx="156" cy="400" r="16" fill="#994F00"/>
+  <circle cx="192" cy="400" r="16" fill="#006CD1"/>
+  <circle cx="228" cy="400" r="16" fill="#E66100"/>
+  <!-- Row 2 -->
+  <circle cx="48"  cy="434" r="16" fill="#006CD1"/>
+  <circle cx="84"  cy="434" r="16" fill="#5D3A9B"/>
+  <circle cx="120" cy="434" r="16" fill="#40B0A6"/>
+  <circle cx="156" cy="434" r="16" fill="#E66100"/>
+  <circle cx="192" cy="434" r="16" fill="#994F00"/>
+  <circle cx="228" cy="434" r="16" fill="#5D3A9B"/>
+  <!-- Row 3 — partial -->
+  <circle cx="48"  cy="468" r="16" fill="#40B0A6"/>
+  <circle cx="84"  cy="468" r="16" fill="#006CD1"/>
+  <circle cx="120" cy="468" r="16" fill="#E66100"/>
+  <!-- Selected indicator -->
+  <circle cx="48"  cy="400" r="16" fill="none" stroke="#fff" stroke-width="3" opacity="0.8"/>
+  <circle cx="120" cy="434" r="16" fill="none" stroke="#fff" stroke-width="3" opacity="0.8"/>
+
+  <text x="265" y="445" class="muted" transform="rotate(-90,265,445)">scroll</text>
+
+  <!-- ═══════════════════════════════════════════════════════
+       RIGHT PANEL — Step 5 (results)
+  ═══════════════════════════════════════════════════════ -->
+  <rect x="440" y="60" width="420" height="500" fill="#f5f3ff" stroke="#e5e0f0"/>
+
+  <text x="460" y="90"  class="heading">Your recommended pathway</text>
+  <text x="460" y="106" class="sub">Based on your goals — sorted by best match.</text>
+
+  <!-- Result card 1 (top match) -->
+  <rect x="460" y="116" width="380" height="80" rx="6" fill="#fff" stroke="#c4b5fd" stroke-width="2"/>
+  <rect x="460" y="116" width="6"   height="80" rx="3" fill="#5D3A9B"/>
+  <text x="478" y="136" class="sec-lbl" fill="#5D3A9B">1-2-4-All</text>
+  <text x="478" y="152" class="sub">Turn any question into group insight —</text>
+  <text x="478" y="165" class="sub">alone, then pairs, then fours, then everyone.</text>
+  <!-- match bar -->
+  <rect x="478" y="173" width="200" height="6" rx="3" fill="#ede9fe"/>
+  <rect x="478" y="173" width="170" height="6" rx="3" fill="#5D3A9B"/>
+  <text x="684" y="180" class="muted">85%</text>
+  <!-- action buttons -->
+  <rect x="700" y="126" width="70"  height="22" rx="4" fill="#40B0A6"/>
+  <text x="735"  y="140" text-anchor="middle" class="btn-txt" fill="#fff">Work Solo</text>
+  <rect x="700" y="154" width="70"  height="22" rx="4" fill="#5D3A9B"/>
+  <text x="735"  y="168" text-anchor="middle" class="btn-txt" fill="#fff">Facilitate</text>
+
+  <!-- Result card 2 -->
+  <rect x="460" y="206" width="380" height="70" rx="6" fill="#fff" stroke="#ddd"/>
+  <rect x="460" y="206" width="6"   height="70" rx="3" fill="#7c3aed"/>
+  <text x="478" y="226" class="sec-lbl">15% Solutions</text>
+  <text x="478" y="241" class="sub">What can you start right now with the resources you have?</text>
+  <rect x="478" y="253" width="200" height="6" rx="3" fill="#ede9fe"/>
+  <rect x="478" y="253" width="140" height="6" rx="3" fill="#7c3aed"/>
+  <text x="684" y="260" class="muted">70%</text>
+  <rect x="700" y="214" width="70" height="22" rx="4" fill="#e0e7ff" stroke="#7c3aed"/>
+  <text x="735" y="228" text-anchor="middle" class="btn-txt" fill="#4338ca">Work Solo</text>
+  <rect x="700" y="242" width="70" height="22" rx="4" fill="#e0e7ff" stroke="#7c3aed"/>
+  <text x="735" y="256" text-anchor="middle" class="btn-txt" fill="#4338ca">Facilitate</text>
+
+  <!-- Result card 3 -->
+  <rect x="460" y="286" width="380" height="70" rx="6" fill="#fff" stroke="#ddd"/>
+  <rect x="460" y="286" width="6"   height="70" rx="3" fill="#6d28d9"/>
+  <text x="478" y="306" class="sec-lbl">Nine Whys</text>
+  <text x="478" y="321" class="sub">Ask "why?" nine times and find what actually drives you.</text>
+  <rect x="478" y="333" width="200" height="6" rx="3" fill="#ede9fe"/>
+  <rect x="478" y="333" width="110" height="6" rx="3" fill="#6d28d9"/>
+  <text x="684" y="340" class="muted">55%</text>
+  <rect x="700" y="294" width="70" height="22" rx="4" fill="#f3f0ff" stroke="#6d28d9"/>
+  <text x="735" y="308" text-anchor="middle" class="btn-txt" fill="#5D3A9B">Work Solo</text>
+  <rect x="700" y="322" width="70" height="22" rx="4" fill="#f3f0ff" stroke="#6d28d9"/>
+  <text x="735" y="336" text-anchor="middle" class="btn-txt" fill="#5D3A9B">Facilitate</text>
+
+  <!-- "More results" hint -->
+  <text x="650" y="374" text-anchor="middle" class="muted">↓ more recommendations below</text>
+
+  <!-- Back / reset row -->
+  <rect x="460" y="386" width="90"  height="28" rx="5" fill="#fff" stroke="#ccc"/>
+  <text x="505"  y="404" text-anchor="middle" class="btn-txt" fill="#555">← Back</text>
+  <rect x="562" y="386" width="110" height="28" rx="5" fill="#fff" stroke="#ccc"/>
+  <text x="617"  y="404" text-anchor="middle" class="btn-txt" fill="#555">Start over</text>
+
+  <!-- wf annotation -->
+  <text x="460" y="430" class="wf-label">Left: questions (steps 1–3) + goal circles (step 4)</text>
+  <text x="460" y="443" class="wf-label">Right: scored results with Solo / Facilitate launch buttons (step 5)</text>
+</svg>

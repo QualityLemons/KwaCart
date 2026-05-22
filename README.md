@@ -17,7 +17,8 @@ KwaCart is a Django-based facilitation platform built around **Liberating Struct
 7. [Public Pages (no account required)](#public-pages-no-account-required)
 8. [Key Features](#key-features)
 9. [Epic: Radical Inclusion — AAC-Accessible Live Sessions](#epic-radical-inclusion--aac-accessible-live-sessions)
-10. [Facilitation Tools](#facilitation-tools)
+10. [Epic: LS Pathway Finder](#epic-ls-pathway-finder)
+11. [Facilitation Tools](#facilitation-tools)
 10. [Collaborative Sessions](#collaborative-sessions)
 11. [Archive & Exports](#archive--exports)
 12. [Data Models](#data-models)
@@ -274,6 +275,14 @@ Participants see a stripped-down focused interface with no site navigation. The 
 Three sections: **Solo submissions** (with view, Markdown download, and delete actions), **Sessions you host** (with a Go to session or combined export link), and **Sessions you joined** (read-only, with a combined export download). A fourth section — the **Waiting list** table — is visible only to staff users and is rendered with a dashed border in the wireframe to denote its conditional visibility.
 
 ![Archive wireframe](docs/wireframes/wf-archive.svg)
+
+---
+
+#### LS Pathway Finder
+
+Five-step recommendation wizard. Steps 1–3 ask context questions (time available, group size, and modality); step 4 presents 33 randomised goal circles (Wong colorblind-safe palette, Web Speech API audio on click); step 5 shows scored tool recommendations with **Work Solo** and **Facilitate** launch buttons for each match.
+
+![Pathway Finder wireframe](docs/wireframes/wf-pathway-finder.svg)
 
 ---
 
@@ -534,6 +543,45 @@ The wireframe below shows the full three-step flow: participant presses **I'm co
 | `static/js/session_poll.js` | On each poll, reads `composing_users` and updates the roster chip label to **✏ Composing…** |
 | `templates/tools/session_open.html` | **I'm composing…** `<button aria-pressed>` rendered for `{% if not is_host %}` participants; JS toggles its pressed state and starts/stops the heartbeat |
 | `static/js/session_close.js` | Intercepts the Close Session click; if the current poll data contains any `composing_users`, renders the warning modal before allowing the POST to proceed |
+
+---
+
+## Epic: LS Pathway Finder
+
+> **As a facilitator planning a workshop,** I want to answer a few quick questions about my time, group size, and goals, so that the platform recommends the most appropriate Liberating Structures for my session — without me having to read through all 23 tools manually.
+
+Facilitators arriving at KwaCart often know what outcome they want (e.g. "surface hidden challenges" or "build psychological safety") but are unsure which LS method will fit their constraints. The Pathway Finder removes that friction by guiding them through a structured five-step wizard and returning a prioritised, scored list of tools they can launch immediately.
+
+---
+
+### User Story 26 — Contextual Pathway Recommendations
+
+> **As a facilitator,**
+> I want to answer three quick questions (time available, group size, and working modality) and then tap the goals that matter most to my group,
+> **so that** I receive a ranked list of Liberating Structures best suited to my session — with one-click launch into Solo or Facilitate mode.
+
+#### Acceptance Criteria
+
+| # | Given | When | Then |
+|---|---|---|---|
+| AC1 | An authenticated user navigates to `/tools/pathway/` | The page loads | A five-step wizard is displayed with a progress indicator showing steps 1–5 |
+| AC2 | Steps 1–3 are completed (time, people, modality) | The user clicks **Next** | Each answer is stored client-side; the wizard advances without a page reload |
+| AC3 | Step 4 is reached | The page renders | 33 goal circles are displayed in randomised order using a Wong colorblind-safe palette; tapping any circle toggles its selected state and reads the goal aloud via the Web Speech API |
+| AC4 | At least one goal circle is selected | The user advances to step 5 | Tools are scored against the selected goals and sorted by match percentage; each result card shows title, tagline, match bar, and **Work Solo** / **Facilitate** buttons |
+| AC5 | The user clicks **Work Solo** or **Facilitate** on a result card | — | A POST form submits the correct CSRF token and redirects to the appropriate tool session page |
+
+#### Workflow screenshot
+
+![Pathway Finder — step 1 (time question)](docs/screenshots/pathway-finder.jpg)
+
+#### Implementation notes
+
+| File | Role |
+|---|---|
+| `tools/views.py` | `pathway_finder` — `@login_required`; passes `tools_data` dict (title + tagline per slug) as JSON via `json_script` filter |
+| `templates/tools/pathway_finder.html` | Five-step wizard markup; tool data injected with `{{ tools_data\|json_script:"pathway-tools-data" }}`; result cards include POST forms for session launch |
+| `static/js/pathway_finder.js` | All recommendation logic runs client-side; `buildCircles()` renders 33 goal circles; `scoreTools()` computes match percentage; `showStep()` is exposed on `window` for Back button inline handlers |
+| `static/css/pathway_finder.css` | Wizard layout, circle grid, match-percentage bars, result card styles |
 
 ---
 
