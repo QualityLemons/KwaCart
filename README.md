@@ -291,16 +291,16 @@ Five-step recommendation wizard. Steps 1–3 ask context questions (time availab
 ```mermaid
 flowchart LR
     V([Visitor])      --> LP[Landing Page]
-    LP                --> |Try free|    FT[Free Tool\nMin Specs / 15% Solutions]
+    LP                --> |Try free|    FT[Free Tool - Min Specs / 15% Solutions]
     LP                --> |Join|        WL[Waiting List]
     LP                --> |Idea|        FR[Feature Request]
     LP                --> |Sign in|     LOG[Login / Register]
     LOG               --> CAT[Tool Catalog]
-    CAT               --> |Work Solo|   DRAFT[Draft Editor\nautosave]
-    CAT               --> |Facilitate|  HOST[Session — Host View\nQR · Timer · Controls]
+    CAT               --> |Work Solo|   DRAFT[Draft Editor - autosave]
+    CAT               --> |Facilitate|  HOST[Session Host View - QR / Timer / Controls]
     DRAFT             --> |Submit|      ARC[Archive Dashboard]
     HOST              --> |QR scan|     GNAME[Guest: Enter Name]
-    GNAME             --> GFORM[Guest: Session Form\nfocused participant UI]
+    GNAME             --> GFORM[Guest Session Form - focused participant UI]
     GFORM             --> |polls|       HOST
     HOST              --> |Close|       ARC
     ARC               --> |Download|    EXP[Markdown / RTF Export]
