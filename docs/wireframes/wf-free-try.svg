@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="520" viewBox="0 0 860 520">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:18px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:13px;fill:#444;font-weight:bold;} .sub{font-size:12px;fill:#555;} .muted{font-size:11px;fill:#888;} .timer{font-size:26px;fill:#1a1a1a;font-weight:bold;}</style></defs>
+  <rect width="860" height="520" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="140" y="26" class="nav">About</text>
+  <text x="200" y="26" class="nav">Accessibility</text>
+  <text x="700" y="26" class="nav">Log in</text>
+  <rect x="750" y="12" width="90" height="20" rx="10" fill="#5D3A9B"/>
+  <text x="795" y="25" text-anchor="middle" font-size="11" fill="#fff">Register now</text>
+  <!-- Free badge -->
+  <rect x="40" y="58" width="50" height="18" rx="9" fill="#E1BE6A"/>
+  <text x="65" y="71" text-anchor="middle" font-size="10" fill="#7a5c00" font-weight="bold">FREE</text>
+  <!-- Tool header -->
+  <text x="40" y="96" class="h1">Min Specs</text>
+  <text x="40" y="114" class="sub">Strip your rules down to the bone. What absolutely must stay?</text>
+  <!-- Info box -->
+  <rect x="40" y="126" width="780" height="64" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/>
+  <text x="56" y="146" class="h2" fill="#5D3A9B">What</text>
+  <text x="56" y="162" class="muted">A group activity to identify the minimum specifications that must be in place for any initiative to succeed.</text>
+  <text x="380" y="146" class="h2" fill="#5D3A9B">How</text>
+  <text x="380" y="162" class="muted">Working alone then in pairs, each person lists their must-dos and must-not-dos.</text>
+  <!-- Timer -->
+  <rect x="40" y="204" width="780" height="70" rx="6" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="430" y="232" text-anchor="middle" class="timer">05:00</text>
+  <text x="430" y="252" text-anchor="middle" class="muted">Timer not started</text>
+  <rect x="300" y="258" width="70" height="10" rx="5" fill="#eee"/>
+  <rect x="380" y="258" width="70" height="10" rx="5" fill="#eee"/>
+  <rect x="460" y="258" width="70" height="10" rx="5" fill="#eee"/>
+  <!-- Form -->
+  <text x="40" y="296" class="h2">Must-dos</text>
+  <rect x="40" y="304" width="780" height="70" rx="5" fill="#fff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="56" y="344" class="muted">What absolutely must happen for this to succeed?</text>
+  <text x="40" y="392" class="h2">Must-not-dos</text>
+  <rect x="40" y="400" width="780" height="70" rx="5" fill="#fff" stroke="#ddd"/>
+  <text x="56" y="440" class="muted">What must we stop doing or avoid entirely?</text>
+  <!-- Submit -->
+  <rect x="40" y="484" width="160" height="28" rx="6" fill="#5D3A9B"/>
+  <text x="120" y="501" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Submit response</text>
+  <text x="216" y="501" class="muted">No account required — try it right now.</text>
+</svg>

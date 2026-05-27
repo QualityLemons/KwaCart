@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="560" viewBox="0 0 860 560">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:18px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:13px;fill:#1a1a1a;font-weight:bold;} .sub{font-size:12px;fill:#555;} .muted{font-size:11px;fill:#888;} .field-lbl{font-size:11px;fill:#334155;font-weight:bold;}</style></defs>
+  <rect width="860" height="560" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav">Work Solo</text>
+  <text x="205" y="26" class="nav">Facilitate</text>
+  <text x="295" y="26" class="nav">Find a Pathway</text>
+  <text x="400" y="26" class="nav">Knowledge Bank</text>
+  <text x="560" y="26" class="nav" fill="#aaa">user@example.com</text>
+  <rect x="740" y="12" width="55" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="767" y="25" text-anchor="middle" font-size="11" fill="#444">Logout</text>
+  <!-- Heading -->
+  <text x="40" y="74" class="h1">Min Specs <tspan font-size="14" fill="#64748b" font-weight="normal">— combined results</tspan></text>
+  <text x="40" y="92" class="muted">Session closed at 2024-11-14 11:05  ·  hosted by host@example.com  ·  3 participants</text>
+  <!-- Download bar -->
+  <rect x="40" y="104" width="780" height="44" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="128" class="sub" font-weight="bold">Download combined results:</text>
+  <rect x="260" y="114" width="100" height="24" rx="5" fill="#5D3A9B"/>
+  <text x="310" y="130" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">Markdown</text>
+  <rect x="372" y="114" width="80" height="24" rx="5" fill="#fff" stroke="#ddd"/>
+  <text x="412" y="130" text-anchor="middle" font-size="11" fill="#555">RTF</text>
+  <!-- Participant response 1 (host) -->
+  <rect x="40" y="160" width="780" height="90" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="182" class="h2">host@example.com <tspan font-size="11" fill="#64748b" font-weight="normal">(host)</tspan></text>
+  <text x="56" y="200" class="field-lbl">Must-dos:</text>
+  <text x="56" y="216" class="muted">Respond to every participant within 48 hours; document decisions in writing…</text>
+  <text x="56" y="232" class="field-lbl">Must-not-dos:</text>
+  <!-- Participant response 2 -->
+  <rect x="40" y="262" width="780" height="90" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="284" class="h2">participant@example.com</text>
+  <text x="56" y="302" class="field-lbl">Must-dos:</text>
+  <text x="56" y="318" class="muted">Be transparent about decisions; communicate early; check in with each team member weekly.</text>
+  <text x="56" y="334" class="field-lbl">Must-not-dos:</text>
+  <!-- Participant response 3 (guest) -->
+  <rect x="40" y="364" width="780" height="90" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="386" class="h2">Sam <tspan font-size="11" fill="#64748b" font-weight="normal">(guest)</tspan></text>
+  <text x="56" y="404" class="field-lbl">Must-dos:</text>
+  <text x="56" y="420" class="muted">Start every meeting with a check-in; share the agenda in advance; celebrate small wins.</text>
+  <text x="56" y="436" class="field-lbl">Must-not-dos:</text>
+  <!-- Back link -->
+  <text x="40" y="476" class="muted" fill="#5D3A9B">← Back to catalog</text>
+  <!-- Footer -->
+  <rect x="0" y="532" width="860" height="28" fill="#f8f8f8" stroke="#eee"/>
+  <text x="430" y="549" text-anchor="middle" font-size="11" fill="#888">KwaCart — a Liberating Structures facilitation platform.</text>
+</svg>

@@ -210,11 +210,67 @@ Participants who scan the QR code land here. They enter only their name — no a
 
 ![Guest join](docs/screenshots/guest-join.jpg)
 
-### Wireframes — Authenticated pages
+#### Accessibility
+Explains AAC support, Calm timer, and large-target mode. A display-options bar at the top of the page lets any visitor toggle **Easy-read version** or **Accessibility Mode** before logging in.
 
-The pages below require login and cannot be shown as live screenshots in a public README. The wireframes show the intended layout and key interactive regions for each screen.
+> Screenshot pending — see the [Accessibility wireframe](#accessibility-1) in the Wireframes section below.
 
-#### Tool Catalog
+### Wireframes — All pages
+
+Wireframes show the intended layout and key interactive regions for every screen in the application.
+
+#### Public pages
+
+##### Landing Page
+Public homepage: hero with three action buttons (Register, Try free, Join waiting list), "About this toolkit" story section, use-case cards, and the two free-try tool cards.
+
+![Landing wireframe](docs/wireframes/wf-landing.svg)
+
+##### About Page
+Explains Liberating Structures, the 23 tools, and the project background. Closes with Register and Try-free CTAs.
+
+![About wireframe](docs/wireframes/wf-about.svg)
+
+##### Register
+Email and password creation form. Redirects to login on success.
+
+![Register wireframe](docs/wireframes/wf-register.svg)
+
+##### Log In
+Email-based login form. Redirects authenticated users directly to the tool catalog.
+
+![Log in wireframe](docs/wireframes/wf-login.svg)
+
+##### Free Tool — Try (Min Specs / 15% Solutions)
+Publicly accessible tool form with a free badge, collapsed What/How/Why info box, 5-minute countdown timer, form fields, and a submit button. No account required.
+
+![Free try wireframe](docs/wireframes/wf-free-try.svg)
+
+##### Waiting List Signup
+Name (optional) and email form. Duplicate submissions are detected and shown a distinct notice.
+
+![Waiting list wireframe](docs/wireframes/wf-waiting-list.svg)
+
+##### Feature Request
+Name, email, short title, and freeform description. Submitted ideas go to staff via Django admin.
+
+![Feature request wireframe](docs/wireframes/wf-feature-request.svg)
+
+##### Guest Join
+Participants who scan the QR code enter only their name and are taken straight to the session form — no account needed.
+
+![Guest join wireframe](docs/wireframes/wf-guest-join.svg)
+
+##### Accessibility
+Display-options bar (Easy-read / Accessibility Mode toggles), hero section, feature cards (Calm timer, Composition flag, large touch targets), and standards commitments.
+
+![Accessibility wireframe](docs/wireframes/wf-accessibility.svg)
+
+#### Authenticated pages
+
+The pages below require login.
+
+##### Tool Catalog
 
 Two-zone layout: **Work Solo** (teal) lets users draft at their own pace; **Facilitate** (purple) starts a live session. The active zone is highlighted with a pill toggle at the top of the page. Tool cards in each zone show a title, tagline, and the appropriate action button.
 
@@ -222,7 +278,15 @@ Two-zone layout: **Work Solo** (teal) lets users draft at their own pace; **Faci
 
 ---
 
-#### Live Session — Host View
+##### Draft Editor
+
+Solo working view. Shows the tool title, a collapsible What/How/Why info box, the server-synced countdown timer (with Start / Pause / Reset controls), one or more form fields (textarea per prompt), an autosave indicator, a **Save draft** button, and an **Archive my response** button that finalises the entry and triggers export generation.
+
+![Draft editor wireframe](docs/wireframes/wf-draft-editor.svg)
+
+---
+
+##### Live Session — Host View
 
 The host sees the full session page: a share panel with the signed-in join link and a guest QR code, the server-synced countdown timer with phase progress, the response form (shared with participants), the live participant roster, and the host-only controls panel (pause-reminder threshold, Inclusive Pacing, Verbal Breakout, and the Close Session button).
 
@@ -230,7 +294,7 @@ The host sees the full session page: a share panel with the signed-in join link 
 
 ---
 
-#### Live Session — Participant / Guest View
+##### Live Session — Participant / Guest View
 
 Participants see a stripped-down focused interface with no site navigation. The minimal header shows only the tool name and session context. The timer displays without host controls. The response textarea and **Save my response** button are large and prominent — optimised for any mobile screen or tablet scanned in a high-pressure live environment. An optional Inclusive Pacing banner appears when the host has enabled extended time. The AAC composing section sits below the form.
 
@@ -238,7 +302,15 @@ Participants see a stripped-down focused interface with no site navigation. The 
 
 ---
 
-#### Archive Dashboard
+##### Session Closed — Combined Results
+
+Shown to the host after closing a session. Displays session metadata (closed at, hosted by, participant count), a **Download combined results** bar (Markdown / RTF buttons), and one response card per participant (registered user or named guest) showing their submitted outputs.
+
+![Session closed wireframe](docs/wireframes/wf-session-closed.svg)
+
+---
+
+##### Archive Dashboard
 
 Three sections: **Solo submissions** (with view, Markdown download, and delete actions), **Sessions you host** (with a Go to session or combined export link), and **Sessions you joined** (read-only, with a combined export download). A fourth section — the **Waiting list** table — is visible only to staff users and is rendered with a dashed border in the wireframe to denote its conditional visibility.
 
@@ -246,7 +318,23 @@ Three sections: **Solo submissions** (with view, Markdown download, and delete a
 
 ---
 
-#### LS Pathway Finder
+##### Archive Detail
+
+Single-record view showing the tool name and submission metadata, a **Results** section (tool-generated output as labelled key/value blocks), a **Your input** section (the raw form values), and a download action bar: Preview Markdown, Download MD, Download RTF, Download HTML, and a Delete record button.
+
+![Archive detail wireframe](docs/wireframes/wf-archive-detail.svg)
+
+---
+
+##### Knowledge Bank
+
+Grid of every tool the user has ever run. Each card shows the tool title, tagline, and usage count chips (solo submissions in grey, sessions in purple). Clicking a card navigates to a per-tool history view listing individual submissions and sessions.
+
+![Knowledge bank wireframe](docs/wireframes/wf-knowledge-bank.svg)
+
+---
+
+##### LS Pathway Finder
 
 Five-step recommendation wizard. Steps 1–3 ask context questions (time available, group size, and modality); step 4 presents 33 randomised goal circles (Wong colorblind-safe palette, Web Speech API audio on click); step 5 shows scored tool recommendations with **Work Solo** and **Facilitate** launch buttons for each match.
 

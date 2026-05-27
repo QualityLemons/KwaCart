@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="540" viewBox="0 0 860 540">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:20px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:15px;fill:#1a1a1a;font-weight:bold;} .sub{font-size:12px;fill:#666;} .btn{font-size:11px;} .muted{font-size:11px;fill:#888;} .wf{font-size:11px;fill:#aaa;font-style:italic;}</style></defs>
+  <rect width="860" height="540" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="140" y="26" class="nav">About</text>
+  <text x="200" y="26" class="nav">Accessibility</text>
+  <text x="700" y="26" class="nav">Log in</text>
+  <rect x="750" y="12" width="90" height="20" rx="10" fill="#5D3A9B"/>
+  <text x="795" y="25" text-anchor="middle" class="btn" fill="#fff">Register now</text>
+  <!-- Hero -->
+  <rect x="0" y="44" width="860" height="140" fill="#f5f3ff"/>
+  <text x="430" y="90" text-anchor="middle" class="h1" font-size="22">Facilitation that releases what groups already know</text>
+  <text x="430" y="112" text-anchor="middle" class="sub">KwaCart brings Liberating Structures to your browser. Run timed, structured sessions — or try two tools free.</text>
+  <rect x="230" y="126" width="110" height="28" rx="14" fill="#5D3A9B"/>
+  <text x="285" y="144" text-anchor="middle" class="btn" fill="#fff">Register now</text>
+  <rect x="352" y="126" width="90" height="28" rx="14" fill="#fff" stroke="#5D3A9B"/>
+  <text x="397" y="144" text-anchor="middle" class="btn" fill="#5D3A9B">Try it free ↓</text>
+  <rect x="454" y="126" width="130" height="28" rx="14" fill="#fff" stroke="#5D3A9B"/>
+  <text x="519" y="144" text-anchor="middle" class="btn" fill="#5D3A9B">Join the waiting list</text>
+  <!-- Story section -->
+  <rect x="0" y="184" width="860" height="100" fill="#fafafa" stroke="#eee"/>
+  <text x="40" y="208" class="h2">About this toolkit</text>
+  <text x="40" y="226" class="sub">Hi, my name is John. I want to help grow the performance of teams…</text>
+  <text x="40" y="242" class="muted">What all these had in common: we made an impact when we worked together on goals and problems.</text>
+  <text x="40" y="260" class="muted">KwaCart is how I bring that process to your screen — 23 Liberating Structures, structured and timed.</text>
+  <!-- Use cases -->
+  <text x="40" y="302" class="h2">Use this toolkit when…</text>
+  <rect x="40"  y="312" width="180" height="54" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="54"  y="332" class="sub" font-weight="bold">Person-centred plans</text>
+  <text x="54"  y="348" class="muted">Surface what matters most to the individual</text>
+  <rect x="234" y="312" width="180" height="54" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="248" y="332" class="sub" font-weight="bold">Learning plans</text>
+  <text x="248" y="348" class="muted">Co-create goals with learners and families</text>
+  <rect x="428" y="312" width="180" height="54" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="442" y="332" class="sub" font-weight="bold">Positive behaviour</text>
+  <text x="442" y="348" class="muted">Build shared strategies with everyone's voice</text>
+  <rect x="622" y="312" width="180" height="54" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="636" y="332" class="sub" font-weight="bold">Communication plans</text>
+  <text x="636" y="348" class="muted">Structure the conversation around the person</text>
+  <!-- Free tools section -->
+  <text x="40" y="396" class="h2">Try two tools right now — no account needed</text>
+  <rect x="40"  y="408" width="374" height="70" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/>
+  <text x="56"  y="428" class="sub" font-weight="bold" fill="#5D3A9B">Min Specs</text>
+  <text x="56"  y="444" class="muted">Strip rules down to the bone. What must stay?</text>
+  <rect x="56"  y="455" width="80" height="18" rx="4" fill="#5D3A9B"/>
+  <text x="96"  y="467" text-anchor="middle" class="btn" fill="#fff">Try free →</text>
+  <rect x="446" y="408" width="374" height="70" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/>
+  <text x="462" y="428" class="sub" font-weight="bold" fill="#5D3A9B">15% Solutions</text>
+  <text x="462" y="444" class="muted">What can you start right now with what you have?</text>
+  <rect x="462" y="455" width="80" height="18" rx="4" fill="#5D3A9B"/>
+  <text x="502" y="467" text-anchor="middle" class="btn" fill="#fff">Try free →</text>
+  <!-- Footer -->
+  <rect x="0" y="510" width="860" height="30" fill="#f8f8f8" stroke="#eee"/>
+  <text x="430" y="529" text-anchor="middle" class="muted">KwaCart — a Liberating Structures facilitation platform.</text>
+</svg>

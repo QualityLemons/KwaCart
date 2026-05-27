@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="480" viewBox="0 0 860 480">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:20px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:14px;fill:#1a1a1a;font-weight:bold;} .sub{font-size:12px;fill:#555;} .muted{font-size:11px;fill:#888;}</style></defs>
+  <rect width="860" height="480" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="140" y="26" class="nav" font-weight="bold">About</text>
+  <text x="200" y="26" class="nav">Accessibility</text>
+  <text x="700" y="26" class="nav">Log in</text>
+  <rect x="750" y="12" width="90" height="20" rx="10" fill="#5D3A9B"/>
+  <text x="795" y="25" text-anchor="middle" font-size="11" fill="#fff">Register now</text>
+  <!-- Content -->
+  <text x="40" y="80" class="h1">About KwaCart</text>
+  <text x="40" y="100" class="sub">KwaCart is a facilitation platform built around Liberating Structures — 23 participatory methods</text>
+  <text x="40" y="116" class="sub">that help groups do their best thinking together.</text>
+  <line x1="40" y1="130" x2="820" y2="130" stroke="#eee"/>
+  <!-- What are LS -->
+  <text x="40" y="156" class="h2">What are Liberating Structures?</text>
+  <text x="40" y="174" class="sub">Liberating Structures are 33 facilitation methods developed by Henri Lipmanowicz and Keith McCandless.</text>
+  <text x="40" y="190" class="sub">They include simple rules that make it easy to include and engage everyone in shaping next steps.</text>
+  <text x="40" y="210" class="muted">• Structured enough to produce results</text>
+  <text x="40" y="226" class="muted">• Open enough to surface genuine insight</text>
+  <text x="40" y="242" class="muted">• Fast enough to fit into real working sessions</text>
+  <line x1="40" y1="258" x2="820" y2="258" stroke="#eee"/>
+  <!-- The platform -->
+  <text x="40" y="282" class="h2">The platform</text>
+  <text x="40" y="300" class="sub">KwaCart implements 23 of the 33 LS methods as digital tools. Each tool includes:</text>
+  <rect x="40" y="312" width="240" height="56" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="56" y="332" class="sub" font-weight="bold">What / How / Why</text>
+  <text x="56" y="348" class="muted">Structured instructions for every tool</text>
+  <rect x="300" y="312" width="240" height="56" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="316" y="332" class="sub" font-weight="bold">Timed sessions</text>
+  <text x="316" y="348" class="muted">Server-synced countdown for all participants</text>
+  <rect x="560" y="312" width="260" height="56" rx="6" fill="#f8f8f8" stroke="#ddd"/>
+  <text x="576" y="332" class="sub" font-weight="bold">Downloadable exports</text>
+  <text x="576" y="348" class="muted">Markdown and RTF for every session</text>
+  <line x1="40" y1="384" x2="820" y2="384" stroke="#eee"/>
+  <!-- CTA -->
+  <text x="40" y="410" class="h2">Ready to try it?</text>
+  <rect x="40"  y="422" width="130" height="28" rx="14" fill="#5D3A9B"/>
+  <text x="105" y="440" text-anchor="middle" font-size="11" fill="#fff">Register for free</text>
+  <rect x="184" y="422" width="120" height="28" rx="14" fill="#fff" stroke="#5D3A9B"/>
+  <text x="244" y="440" text-anchor="middle" font-size="11" fill="#5D3A9B">Try a free tool</text>
+  <!-- Footer -->
+  <rect x="0" y="452" width="860" height="28" fill="#f8f8f8" stroke="#eee"/>
+  <text x="430" y="469" text-anchor="middle" font-size="11" fill="#888">KwaCart — a Liberating Structures facilitation platform.</text>
+</svg>

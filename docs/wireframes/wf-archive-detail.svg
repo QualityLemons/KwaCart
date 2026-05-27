@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="520" viewBox="0 0 860 520">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:18px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:13px;fill:#1a1a1a;font-weight:bold;} .sub{font-size:12px;fill:#555;} .muted{font-size:11px;fill:#888;} .field-lbl{font-size:11px;fill:#334155;font-weight:bold;}</style></defs>
+  <rect width="860" height="520" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav">Work Solo</text>
+  <text x="205" y="26" class="nav">Facilitate</text>
+  <text x="295" y="26" class="nav">Find a Pathway</text>
+  <text x="400" y="26" class="nav" font-weight="bold">Knowledge Bank</text>
+  <text x="560" y="26" class="nav" fill="#aaa">user@example.com</text>
+  <rect x="740" y="12" width="55" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="767" y="25" text-anchor="middle" font-size="11" fill="#444">Logout</text>
+  <!-- Heading -->
+  <text x="40" y="74" class="h1">Min Specs</text>
+  <text x="40" y="92" class="muted">Submitted 2024-11-14 10:32  ·  version 1  ·  user@example.com</text>
+  <line x1="40" y1="104" x2="820" y2="104" stroke="#e2e8f0"/>
+  <!-- Results section -->
+  <text x="40" y="124" class="h2">Results</text>
+  <rect x="40" y="132" width="780" height="60" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="150" class="field-lbl">Must-dos</text>
+  <text x="56" y="166" class="muted">Respond to every participant within 48 hours; document decisions in writing; include all voices before closing.</text>
+  <rect x="40" y="200" width="780" height="60" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="218" class="field-lbl">Must-not-dos</text>
+  <text x="56" y="234" class="muted">Make decisions without the team; skip the reflection stage; let one voice dominate the process.</text>
+  <!-- Input section -->
+  <text x="40" y="284" class="h2">Your input</text>
+  <rect x="40" y="292" width="780" height="60" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="56" y="310" class="field-lbl">Must-dos (raw)</text>
+  <text x="56" y="326" class="muted">Respond to every participant within 48 hours; document decisions in writing; include all voices before closing.</text>
+  <!-- Download actions -->
+  <rect x="40"  y="370" width="130" height="28" rx="5" fill="#fff" stroke="#5D3A9B"/>
+  <text x="105" y="387" text-anchor="middle" font-size="11" fill="#5D3A9B">Preview Markdown</text>
+  <rect x="182" y="370" width="130" height="28" rx="5" fill="#fff" stroke="#ddd"/>
+  <text x="247" y="387" text-anchor="middle" font-size="11" fill="#555">Download MD</text>
+  <rect x="324" y="370" width="130" height="28" rx="5" fill="#fff" stroke="#ddd"/>
+  <text x="389" y="387" text-anchor="middle" font-size="11" fill="#555">Download RTF</text>
+  <rect x="466" y="370" width="130" height="28" rx="5" fill="#fff" stroke="#ddd"/>
+  <text x="531" y="387" text-anchor="middle" font-size="11" fill="#555">Download HTML</text>
+  <rect x="668" y="370" width="110" height="28" rx="5" fill="#fff" stroke="#e53e3e"/>
+  <text x="723" y="387" text-anchor="middle" font-size="11" fill="#e53e3e">Delete record</text>
+  <!-- Back link -->
+  <text x="40" y="430" class="muted" fill="#5D3A9B">← Back to Knowledge Bank</text>
+  <!-- Footer -->
+  <rect x="0" y="492" width="860" height="28" fill="#f8f8f8" stroke="#eee"/>
+  <text x="430" y="509" text-anchor="middle" font-size="11" fill="#888">KwaCart — a Liberating Structures facilitation platform.</text>
+</svg>

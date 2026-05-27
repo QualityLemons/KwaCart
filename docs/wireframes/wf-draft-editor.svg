@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="580" viewBox="0 0 860 580">
+  <defs><style>text{font-family:Arial,sans-serif;} .nav{font-size:13px;fill:#333;} .h1{font-size:18px;fill:#1a1a1a;font-weight:bold;} .h2{font-size:13px;fill:#444;font-weight:bold;} .sub{font-size:12px;fill:#555;} .muted{font-size:11px;fill:#888;} .timer{font-size:24px;fill:#1a1a1a;font-weight:bold;}</style></defs>
+  <rect width="860" height="580" fill="#fff" stroke="#ddd"/>
+  <!-- Nav -->
+  <rect x="0" y="0" width="860" height="44" fill="#eee" stroke="#ccc"/>
+  <text x="16" y="26" class="nav" font-weight="bold" fill="#5D3A9B">KwaCart</text>
+  <text x="110" y="26" class="nav" fill="#40B0A6">Work Solo</text>
+  <text x="205" y="26" class="nav">Facilitate</text>
+  <text x="295" y="26" class="nav">Find a Pathway</text>
+  <text x="400" y="26" class="nav">Knowledge Bank</text>
+  <text x="560" y="26" class="nav" fill="#aaa">user@example.com</text>
+  <rect x="740" y="12" width="55" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="767" y="25" text-anchor="middle" font-size="11" fill="#444">Logout</text>
+  <rect x="800" y="12" width="50" height="20" rx="3" fill="#ddd" stroke="#bbb"/>
+  <text x="825" y="25" text-anchor="middle" font-size="11" fill="#444">A11y</text>
+  <!-- Breadcrumb -->
+  <text x="40" y="60" class="muted"><tspan fill="#5D3A9B">Tool catalog</tspan> › Min Specs › Draft</text>
+  <!-- Page heading -->
+  <text x="40" y="84" class="h1">Min Specs</text>
+  <!-- Info box (collapsed) -->
+  <rect x="40" y="92" width="780" height="32" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/>
+  <text x="56" y="112" class="h2" fill="#5D3A9B">▸ What / How / Why</text>
+  <text x="780" y="112" text-anchor="end" class="muted">Load example data</text>
+  <!-- Timer -->
+  <rect x="40" y="136" width="780" height="66" rx="6" fill="#f8f8f8" stroke="#e2e8f0"/>
+  <text x="430" y="162" text-anchor="middle" class="timer">05:00</text>
+  <rect x="330" y="170" width="60" height="22" rx="4" fill="#ddd" stroke="#bbb"/>
+  <text x="360" y="185" text-anchor="middle" font-size="11" fill="#444">Start</text>
+  <rect x="400" y="170" width="60" height="22" rx="4" fill="#ddd" stroke="#bbb"/>
+  <text x="430" y="185" text-anchor="middle" font-size="11" fill="#444">Pause</text>
+  <rect x="470" y="170" width="60" height="22" rx="4" fill="#ddd" stroke="#bbb"/>
+  <text x="500" y="185" text-anchor="middle" font-size="11" fill="#444">Reset</text>
+  <!-- Form field 1 -->
+  <text x="40" y="224" class="h2">Must-dos</text>
+  <text x="40" y="240" class="muted">What absolutely must happen for this to succeed?</text>
+  <rect x="40" y="248" width="780" height="90" rx="5" fill="#fff" stroke="#5D3A9B" stroke-width="2"/>
+  <text x="56" y="276" class="muted">Type your response here…</text>
+  <!-- Form field 2 -->
+  <text x="40" y="358" class="h2">Must-not-dos</text>
+  <text x="40" y="374" class="muted">What must we stop doing or avoid entirely?</text>
+  <rect x="40" y="382" width="780" height="90" rx="5" fill="#fff" stroke="#ddd"/>
+  <!-- Autosave indicator -->
+  <text x="40" y="488" class="muted" fill="#40B0A6">✓ Draft saved automatically</text>
+  <!-- Action buttons -->
+  <rect x="40"  y="500" width="120" height="34" rx="6" fill="#fff" stroke="#5D3A9B"/>
+  <text x="100" y="521" text-anchor="middle" font-size="12" fill="#5D3A9B" font-weight="bold">Save draft</text>
+  <rect x="172" y="500" width="160" height="34" rx="6" fill="#5D3A9B"/>
+  <text x="252" y="521" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Archive my response →</text>
+  <text x="344" y="519" class="muted">Finalises and generates MD/RTF export</text>
+  <!-- footer note -->
+  <text x="40" y="556" class="muted" fill="#aaa" font-style="italic">Archive is permanent — save draft first if you want to continue editing later.</text>
+</svg>
