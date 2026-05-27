@@ -609,9 +609,37 @@ Facilitators arriving at KwaCart often know what outcome they want (e.g. "surfac
 | AC4 | At least one goal circle is selected | The user advances to step 5 | Tools are scored against the selected goals and sorted by match percentage; each result card shows title, tagline, match bar, and **Work Solo** / **Facilitate** buttons |
 | AC5 | The user clicks **Work Solo** or **Facilitate** on a result card | — | A POST form submits the correct CSRF token and redirects to the appropriate tool session page |
 
-#### Workflow screenshot
+#### Workflow screenshots
 
-![Pathway Finder — step 1 (time question)](docs/screenshots/pathway-finder.jpg)
+**Step 1 — How much time do you have?**
+Seven time-range buttons; the progress indicator highlights step 1.
+
+![Pathway Finder — step 1: time available](docs/screenshots/pathway-step1-time.jpg)
+
+**Step 2 — How many people are attending?**
+Five group-size options; steps 1–2 are now filled in the progress indicator.
+
+![Pathway Finder — step 2: group size](docs/screenshots/pathway-step2-size.jpg)
+
+**Step 3 — In-person or virtual?**
+Three modality buttons; a Back button and a **Next: pick your goals →** button appear at the bottom once a choice is made.
+
+![Pathway Finder — step 3: modality](docs/screenshots/pathway-step3-modality.jpg)
+
+**Step 4 — Goal circles (unselected)**
+33 goal circles rendered in a randomised order using the Wong colorblind-safe palette. Tapping any circle toggles its selected state and reads the goal aloud via the Web Speech API.
+
+![Pathway Finder — step 4: goal circles](docs/screenshots/pathway-step4-goals.jpg)
+
+**Step 4 — Goal circles (with selections)**
+Three goals selected (outlined in white with a tick): "Name the big tension", "Meet new people fast", and "Plan step by step". "Clear what blocks you" is also ticked.
+
+![Pathway Finder — step 4: goals selected](docs/screenshots/pathway-step4-goals-selected.jpg)
+
+**Step 5 — Your recommended pathway**
+All five steps filled; ranked result cards show the tool title, tagline, and **Work Solo** / **Start a Session** launch buttons for each match.
+
+![Pathway Finder — step 5: results](docs/screenshots/pathway-step5-results.jpg)
 
 #### Implementation notes
 
