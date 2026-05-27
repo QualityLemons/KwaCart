@@ -1220,6 +1220,78 @@ Issues resolved during this pass:
 
 ## Testing
 
+### Principles of automated and manual testing
+
+Software testing can be divided into two broad approaches — automated and manual — that complement each other. Neither is superior in every situation; the choice depends on what is being tested, how often it needs to be run, and how stable the feature under test is.
+
+---
+
+#### Automated testing
+
+Automated tests are scripts that exercise code directly, without human interaction, and assert that the output matches an expectation. They run in milliseconds, can be executed on every commit by a CI pipeline, and give immediate, reproducible feedback.
+
+**Core principles**
+
+| Principle | What it means in practice |
+|---|---|
+| **Fast feedback** | Tests run on every save or push, catching regressions the moment they are introduced rather than at the end of a release cycle. |
+| **Repeatability** | The same test produces the same result every time, removing human variation from the check. |
+| **Regression safety** | A suite of tests that passes today continues to pass after a refactor — any new failure points directly at the change that broke something. |
+| **Pyramid hierarchy** | Unit tests (smallest, fastest, most numerous) sit at the base; integration tests in the middle; end-to-end tests (slowest, fewest) at the top. Running cheaper tests first maximises speed. |
+| **Isolation** | Each test sets up its own data, makes no assumptions about state left by another test, and cleans up after itself. |
+
+**When automated testing is the right choice**
+
+- Pure logic with clear inputs and outputs — calculations, validators, exporters, data-transformation utilities.
+- Code that will be refactored or extended repeatedly, where regressions are easy to introduce silently.
+- Security-critical invariants (e.g. "a user cannot access another user's archive record") that must hold under every future change.
+- API contracts — checking that a view returns the correct status code, redirects to the correct URL, or renders the correct template given a known database state.
+- Anything that would be slow or difficult to exercise by hand on every change — for example, edge-case form validation, file-generation output, or timezone-dependent behaviour.
+
+In a Django project, automated tests are written with `unittest.TestCase` or `django.test.TestCase` and run with `python manage.py test`. The Django test runner creates an isolated test database, runs every `test_*` method, and tears the database down at the end.
+
+---
+
+#### Manual testing
+
+Manual testing is a human tester interacting with the running application exactly as a real user would — navigating pages, filling in forms, observing visual feedback, and checking that nothing looks or behaves unexpectedly.
+
+**Core principles**
+
+| Principle | What it means in practice |
+|---|---|
+| **Exploratory freedom** | A human can notice that something *feels* wrong — an awkward layout, a confusing label, a missing error message — that no predefined assertion would ever catch. |
+| **Real-environment fidelity** | Testing against the actual running server with `DEBUG=False` and real browser rendering reveals issues (CORS, static-file handling, CSRF, cookie behaviour) that can be invisible in a test database. |
+| **End-to-end realism** | Walking through a complete user journey (sign up → create session → invite guest → close session → download export) validates the integration of every layer at once. |
+| **Accessibility and UX** | Screen-reader behaviour, keyboard navigation, focus order, and visual contrast cannot be fully verified by an automated script — they require a human (or an assistive-technology tool operated by a human) to assess. |
+| **Structured records** | Writing each check into a test table before running it — listing the steps, the expected result, and the actual result — turns ad hoc clicking into a repeatable audit trail that can be reviewed by an assessor or colleague. |
+
+**When manual testing is the right choice**
+
+- First-time or low-frequency features where writing an automated test would take longer than running the check by hand.
+- Anything involving visual presentation, responsive layout, or browser-specific rendering.
+- Accessibility checks — verifying skip links, screen-reader announcements, focus indicators, and ARIA attributes in a real browser with a real assistive technology.
+- Usability or content review — checking that labels, headings, and error messages are clear and unambiguous.
+- Exploratory testing of a new feature before its behaviour is stable enough to encode as assertions.
+- Acceptance testing by a non-technical stakeholder who needs to sign off on a user journey without reading code.
+
+---
+
+#### Approach taken in this project
+
+This project is at Milestone 3 of a Level 5 Diploma, where the primary assessment criterion is the correctness and completeness of the working application rather than the breadth of an automated test suite. Accordingly, all verification was performed as **structured manual testing** against the running application with `DEBUG=False`, replicating production behaviour as closely as possible in the development environment. Tests were carried out in Chrome (desktop) and Firefox (desktop).
+
+Automated testing would be the natural next step for production hardening. The highest-value targets would be:
+
+1. **Authorization invariants** — unit tests asserting that every archive, download, and session-state endpoint returns 403 when accessed by a non-owning authenticated user.
+2. **Export / file-generation logic** in `tools/utils.py` and the `exporters/` module — pure functions with clear inputs and outputs, ideal for unit testing.
+3. **Form validation** on registration, waiting-list, and feature-request forms — checking both valid and invalid input paths.
+4. **Session state transitions** — integration tests confirming that a session moves correctly from `open` → `closed` and that the combined export is generated exactly once.
+
+The structured manual test tables that follow cover the same ground and serve as the specification that automated tests would be written against.
+
+---
+
 All user-facing flows were tested manually against the running application with `DEBUG=False` to replicate production behaviour. Tests were carried out in Chrome (desktop) and Firefox (desktop). The tables below are grouped by feature area.
 
 ### 1 — Public pages
