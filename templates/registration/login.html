@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <header>
-    <nav class="nav">
+    <nav class="nav" aria-label="Main navigation">
         <a href="{% url 'home' %}" class="nav-brand">KwaCart</a>
         <span class="nav-spacer"></span>
         <a href="{% url 'about' %}">About</a>
@@ -19,6 +20,7 @@
     </nav>
 </header>
 
+<main id="main-content">
 <div class="page-wrap">
     <div class="card">
         <div class="card-logo">KwaCart</div>
@@ -26,12 +28,12 @@
         <p class="card-sub">Log in to access your tools and archive.</p>
 
         {% if form.non_field_errors %}
-        <ul class="non-field-errors">
+        <ul class="non-field-errors" role="alert" aria-live="assertive">
             {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
         </ul>
         {% endif %}
 
-        <form method="post" novalidate>
+        <form method="post" novalidate aria-label="Log in to KwaCart">
             {% csrf_token %}
 
             <div class="form-group">
@@ -66,6 +68,8 @@
         </p>
     </div>
 </div>
+
+</div></main>
 
 <footer class="footer">
     KwaCart &mdash; a Liberating Structures facilitation platform.

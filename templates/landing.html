@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/landing.css' %}">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <header>
-    <nav class="nav">
+    <nav class="nav" aria-label="Main navigation">
         <a href="{% url 'home' %}" class="nav-brand">KwaCart</a>
         <span class="nav-spacer"></span>
         {% if request.user.is_authenticated %}
@@ -26,6 +27,8 @@
         {% endif %}
     </nav>
 </header>
+
+<main id="main-content">
 
 <!-- ── Hero ── -->
 <section class="hero">
@@ -332,6 +335,8 @@
         <a href="{% url 'accounts:login' %}" class="btn btn-large">Log in</a>
     </div>
 </section>
+
+</main>
 
 <footer class="footer">
     KwaCart &mdash; a Liberating Structures facilitation platform.
