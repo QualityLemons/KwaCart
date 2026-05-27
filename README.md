@@ -17,6 +17,7 @@ KwaCart is a Django-based facilitation platform built around **Liberating Struct
 7. [Public Pages (no account required)](#public-pages-no-account-required)
 8. [Key Features](#key-features)
 9. [Epic: Radical Inclusion — AAC-Accessible Live Sessions](#epic-radical-inclusion--aac-accessible-live-sessions)
+   - [Access for blind users](#access-for-blind-users)
 10. [Epic: LS Pathway Finder](#epic-ls-pathway-finder)
 11. [Facilitation Tools](#facilitation-tools)
 10. [Collaborative Sessions](#collaborative-sessions)
@@ -211,7 +212,7 @@ Participants who scan the QR code land here. They enter only their name — no a
 ![Guest join](docs/screenshots/guest-join.jpg)
 
 #### Accessibility
-Explains AAC support, Calm timer, and large-target mode. A display-options bar at the top of the page lets any visitor toggle **Easy-read version** or **Accessibility Mode** before logging in.
+Explains AAC support, Calm timer, and large-target mode, and screen-reader / blind-user access. A display-options bar at the top of the page lets any visitor toggle **Easy-read version** or **Accessibility Mode** before logging in. The page has three sections: AAC features, Blind & screen-reader access, and an all-tools reference.
 
 > Screenshot pending — see the [Accessibility wireframe](#accessibility-1) in the Wireframes section below.
 
@@ -582,6 +583,43 @@ The wireframe below shows the full three-step flow: participant presses **I'm co
 | `static/js/session_poll.js` | On each poll, reads `composing_users` and updates the roster chip label to **✏ Composing…** |
 | `templates/tools/session_open.html` | **I'm composing…** `<button aria-pressed>` rendered for `{% raw %}{% if not is_host %}{% endraw %}` participants; JS toggles its pressed state and starts/stops the heartbeat |
 | `static/js/session_close.js` | Intercepts the Close Session click; if the current poll data contains any `composing_users`, renders the warning modal before allowing the POST to proceed |
+
+---
+
+### Access for blind users
+
+> **As a blind or low-vision participant or facilitator,**
+> I want every page, form, and interactive control to be operable and understandable with a screen reader and keyboard alone,
+> **so that** I can take a full and equal part in KwaCart sessions without needing a mouse or sighted assistance.
+
+This work is described on the live [Accessibility page](/accessibility/#blind-access) alongside the AAC features above. The implementation spans every public and authenticated page and is summarised below.
+
+#### Acceptance Criteria
+
+| # | Given | When | Then |
+|---|---|---|---|
+| AC1 | Any page in the application | A keyboard user presses **Tab** once after page load | A visible "Skip to main content" link appears; activating it moves focus to the `<main>` landmark, bypassing the navigation bar |
+| AC2 | A screen reader is active | The user navigates by landmarks | A `<main id="main-content">` region and a labelled `<nav aria-label="Main navigation">` are present on every page |
+| AC3 | The log-in or sign-up form has a validation error | The page re-renders with the error | The error container carries `role="alert" aria-live="assertive"` so the error is announced immediately; the offending field is marked `aria-invalid="true"` and linked to the error via `aria-describedby` |
+| AC4 | The sign-up form's password field receives focus | The help text (password requirements) is present | The help text element is linked to the field via `aria-describedby` so a screen reader reads the requirements automatically |
+| AC5 | The archive dashboard is rendered with saved submissions | A screen reader user navigates the tables | Each table has a `<caption>` naming it; every `<th>` carries `scope="col"`; every View / Preview / Delete / Open button or link has a unique contextual `aria-label` including the tool name and date |
+| AC6 | The tool catalog is in "Work Solo" or "Facilitate" mode | A screen reader user navigates to the page | A screen-reader-only `<h1>` announces the current mode so the page is never without a page title |
+| AC7 | The drawing canvas toolbar is rendered | A screen reader user navigates the toolbar buttons | Pen-size buttons are labelled "Pen size: small / medium / large"; the eraser button is labelled "Eraser tool" |
+| AC8 | A timer or autosave event occurs during a session | The value or state changes without a page reload | An `aria-live` region announces the change (timer milestones, "Draft saved") so the user is informed without looking at the screen |
+
+#### Implementation notes
+
+| File | What changed |
+|---|---|
+| `templates/registration/login.html` | Skip link; `<main id="main-content">`; `aria-label` on `<nav>` and `<form>`; `role="alert" aria-live="assertive"` on non-field-errors |
+| `templates/registration/signup.html` | As above; `id="id_password1-help"` on the password requirements paragraph |
+| `templates/landing.html` | Skip link; `<main id="main-content">`; `aria-label="Main navigation"` on `<nav>` |
+| `templates/about.html` | As landing.html |
+| `static/css/landing.css` `about.css` `login.css` `signup.css` | `.skip-link` and `.sr-only` utility rules (already present in `base.css` for pages that extend `base.html`) |
+| `static/js/aria_wiring.js` | Extended to wire `[id$="-help"]` elements to their input via `aria-describedby` (appends to any existing value); existing error-wiring logic unchanged |
+| `templates/archive/dashboard.html` | `<caption class="sr-only">` on both tables; `scope="col"` on all `<th>`; contextual `aria-label` on every View / Preview / Delete / Open link and button |
+| `templates/tools/catalog.html` | Screen-reader-only `<h1>` announcing "Work Solo" or "Facilitate" in the respective catalog modes |
+| `templates/tools/_drawing_canvas.html` | `aria-label` on S / M / L pen-size buttons and the eraser button |
 
 ---
 
