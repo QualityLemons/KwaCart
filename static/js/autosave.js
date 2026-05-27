@@ -7,7 +7,10 @@
 
 /* ── Debounce helper ── */
 /* Delays execution of `func` until `timeout` ms have elapsed since the last
-   call.  Prevents the autosave endpoint from being hit on every keystroke. */
+   call.  Prevents the autosave endpoint from being hit on every keystroke.
+   This is a standard JavaScript debounce pattern; the clearTimeout/setTimeout
+   approach is widely documented, e.g.:
+   https://developer.mozilla.org/en-US/docs/Glossary/Debounce */
 function debounce(func, timeout = 2000) {
     let timer;
     return (...args) => {

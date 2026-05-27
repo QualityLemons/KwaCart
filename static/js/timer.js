@@ -160,6 +160,9 @@
     }
 
     /* ── CSRF token helper ── */
+    /* The string-splitting technique used here to read a cookie by name
+     * is taken from the Django CSRF documentation:
+     * https://docs.djangoproject.com/en/stable/howto/csrf/ */
     function getCsrf() {
         const val   = '; ' + document.cookie;
         const parts = val.split('; csrftoken=');

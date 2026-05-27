@@ -47,6 +47,9 @@
     var _abortCtrl  = null;   /* AbortController for in-flight fetch   */
 
     /* ── Focus trap ── */
+    /* The getFocusable selector list and Tab/Shift+Tab wrapping logic follow
+     * the WAI-ARIA Authoring Practices Guide (APG) dialog pattern:
+     * https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/ */
     function getFocusable() {
         return Array.from(
             dialog.querySelectorAll(

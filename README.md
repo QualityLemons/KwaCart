@@ -1465,18 +1465,23 @@ Liberating Structures — created by Henri Lipmanowicz and Keith McCandless — 
 
 ### JavaScript libraries (vendored — not installed via a package manager)
 
+Both files below are included verbatim from their upstream releases and have not been modified. An attribution comment has been added at the top of each file.
+
 | Library | Licence | File | Purpose |
 |---|---|---|---|
 | [qrcode.js](https://github.com/davidshimjs/qrcodejs) by davidshimjs | MIT | `static/js/libraries/qrcode.min.js` | Client-side QR code generation for the guest-join link on the session page |
-
-The file is included verbatim from the upstream release. An attribution comment has been added at the top of the file.
+| [marked.js](https://github.com/markedjs/marked) by Christopher Jeffrey | MIT | `static/js/libraries/marked.min.js` | Markdown parsing and HTML rendering used by the inline archive preview modal |
 
 ### Learner-written code
 
-All code **not** listed above was written by the project author. This includes:
+All code **not** listed in the sections above was written by the project author. This includes all Python source files in `accounts/`, `archive/`, `tools/`, `exporters/`, and `config/`; all CSS files in `static/css/`; all HTML templates in `templates/`; all migration files; and all JavaScript files in `static/js/` except the two vendored libraries above.
 
-- All Python source files: `accounts/`, `archive/`, `tools/`, `exporters/`, `config/`
-- All JavaScript files in `static/js/` except the vendored library above
-- All CSS files in `static/css/`
-- All HTML templates in `templates/`
-- All migration files in `*/migrations/`
+Within the author-written JavaScript, a small number of well-established patterns were adapted from canonical external sources. Each is attributed with an inline comment directly above the relevant code:
+
+| File | Pattern | Source |
+|---|---|---|
+| `static/js/draft_init.js` | `getCookie()` — reads a named cookie by string-splitting `document.cookie` | [Django CSRF documentation](https://docs.djangoproject.com/en/stable/howto/csrf/) |
+| `static/js/timer.js` | `getCsrf()` — same cookie-reading technique, inlined for the timer's fetch calls | [Django CSRF documentation](https://docs.djangoproject.com/en/stable/howto/csrf/) |
+| `static/js/autosave.js` | `debounce()` — standard clearTimeout/setTimeout debounce wrapper | [MDN — Debounce](https://developer.mozilla.org/en-US/docs/Glossary/Debounce) |
+| `static/js/pathway_finder.js` | `shuffle()` — Fisher-Yates (Durstenfeld) in-place array shuffle | [Wikipedia — Fisher–Yates shuffle](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle) |
+| `static/js/archive_md_preview.js` | `getFocusable()` / `trapFocus()` — Tab/Shift+Tab focus containment inside a dialog | [WAI-ARIA APG — Dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) |

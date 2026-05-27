@@ -81,6 +81,8 @@ const TOOL_META = {
 };
 
 // ── Fisher-Yates shuffle ──────────────────────────────────────────────────
+// Knuth's in-place uniform shuffle (Durstenfeld's computer adaptation, 1964).
+// Algorithm reference: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {

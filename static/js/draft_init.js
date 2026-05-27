@@ -3,6 +3,12 @@
    .tool-input class to all form fields that autosave should monitor.
    Must be loaded before autosave.js. */
 
+/* getCookie — reads a named cookie value from document.cookie.
+ * The string-splitting technique below is taken directly from the
+ * Django CSRF documentation:
+ * https://docs.djangoproject.com/en/stable/howto/csrf/
+ * (section "Acquiring the token if CSRF_USE_SESSIONS and
+ * CSRF_COOKIE_HTTPONLY are False") */
 function getCookie(name) {
     var value = '; ' + document.cookie;
     var parts = value.split('; ' + name + '=');
