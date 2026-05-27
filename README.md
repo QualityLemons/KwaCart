@@ -689,6 +689,35 @@ All five steps filled; ranked result cards show the tool title, tagline, and **W
 | Wise Crowds | 15 minutes of focused peer advice on a real challenge, with the client's back turned. |
 | Wise Crowds (Large Group) | Scale peer consultation to a full room — one client, primary team, satellite groups. |
 
+### Wicked Questions — live session walkthrough
+
+The screenshots below show a complete Wicked Questions session from first response through to the combined Markdown export.
+
+**Round 1 — Individual questions (timer: 21:10)**
+Participants write their own "How is it that…?" pairs of opposites into the first textarea while the session timer runs.
+
+![Wicked Questions — individual response form](docs/screenshots/wicked-q-session-form1.jpg)
+
+**Round 2 — Small group question added (timer: 11:55)**
+A second field appears for the small group's most impactful Wicked Question. Both fields are live and editable until the host closes the session.
+
+![Wicked Questions — small group field](docs/screenshots/wicked-q-session-form2.jpg)
+
+**Round 3 — Whole-group refinement added (timer: 01:59)**
+The third field captures the whole group's refined Wicked Question. All three fields are visible simultaneously; the session closes when the timer reaches zero or the host clicks Close.
+
+![Wicked Questions — whole group refinement field](docs/screenshots/wicked-q-session-form3.jpg)
+
+**Session closed — combined results page**
+After the host closes the session, all participants see the combined results. The download bar offers Markdown and RTF exports. Each participant's response card shows `group_question`, `individual_questions`, and `whole_group_refinement` as labelled fields.
+
+![Wicked Questions — session closed and combined results](docs/screenshots/wicked-q-session-closed.jpg)
+
+**Markdown export preview**
+The generated Markdown file follows the standard KwaCart export format: tool slug as the heading, session metadata, then each participant's responses as bold-labelled paragraphs.
+
+![Wicked Questions — Markdown export](docs/screenshots/wicked-q-export-md.jpg)
+
 ---
 
 ## Collaborative Sessions
